@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- color -->
+    <item>
+        <color android:color="#5A9D9D"/>
+    </item>
+
+    <!-- logo -->
+    <item>
+    
+    </item>
+</layer-list>
