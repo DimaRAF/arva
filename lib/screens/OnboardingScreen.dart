@@ -17,8 +17,6 @@ class OnboardingScreen extends StatelessWidget {
 
           
           _buildContent(context),
-
-          
           _buildSkipButton(context),
         ],
       ),
@@ -107,7 +105,7 @@ class OnboardingBackgroundPainter extends CustomPainter {
 
     final topPaint = Paint()..color = const Color(0xFFE6E7FA);
 
-    // vvv  هنا هو مكان التغيير  vvv
+    
     final topPath = Path()
       ..moveTo(0, height * 0.4) // 1. نبدأ من هنا
 
@@ -126,28 +124,68 @@ class OnboardingBackgroundPainter extends CustomPainter {
       ..close();
     canvas.drawPath(topPath, topPaint);
 
+    
+    
     // لون الشكل السفلي (أزرق مخضر فاتح)
     final bottomPaint = Paint()..color = const Color(0xFFC2DCDD);
+    // --- 2. المنحنى السفلي المتموج ---
+    
     final bottomPath = Path()
-      // 1. نقطة البداية
-      ..moveTo(-0.1, height * 0.5)
-
-     
-
-      // 3. الانحناء الثاني (المرتفع)
+      // نقطة البداية (من اليمين)
+      ..moveTo(width, height * 0.7)
+      // الموجة الأولى (اليمنى)
       ..cubicTo(
-        width * 0.3, height * 1, // نقطة تحكم 1
-        width * 1, height * 0.5,  // نقطة تحكم 2
-        width * 1,       height * 0.3  // نقطة النهاية النهائية
+        width * 0.4, height * 0.6, // نقطة تحكم 1
+        width * 0.65, height * 0.85, // نقطة تحكم 2
+        width * 0.35, height * 0.8   // نهاية الموجة الأولى
       )
-
-      // 4. إغلاق الشكل
-      ..lineTo(width, height)
+      // الموجة الثانية (اليسرى)
+      ..cubicTo(
+        width * 0.10, height * 0.79, // نقطة تحكم 1
+        0,            height * 0.9,  // نقطة تحكم 2
+        width * 0.02, height      // نقطة النهاية النهائية
+      )
+      // إغلاق الشكل من الأسفل
       ..lineTo(width, height)
       ..close();
     canvas.drawPath(bottomPath, bottomPaint);
-  }
 
+// --- الشكل البنفسجي الثاني (الخلفي) ---
+// --- الشكل البنفسجي الثاني (الخلفي) ---
+// --- الشكل البنفسجي الثاني (الخلفي) على اليمين ---
+final middlePaint = Paint()
+  ..color = const Color(0xFFE6E7FA).withOpacity(0.7);
+
+final middlePath = Path()
+  // نبدأ خارج الشاشة من جهة اليمين قرب الأعلى
+  ..moveTo(width * 1.05, height * 0.05)
+
+  // رأس الفقاعة (ينحني لليسار بالجزء العلوي)
+  ..cubicTo(
+    width * 0.90, height * 0.02,  // cp1
+    width * 0.65, height * 0.08,  // cp2
+    width * 0.55, height * 0.22   // end1
+  )
+
+  // الانحناء الأوسط الذي ينزل باتجاه المركز
+  ..cubicTo(
+    width * 0.40, height * 0.45,  // cp3
+    width * 0.55, height * 0.60,  // cp4
+    width * 0.77, height * 0.64   // end2
+  )
+
+  // يرجع للخارج على اليمين ليكمل شكل الفقاعة ويقفلها
+  ..cubicTo(
+    width * 0.95, height * 0.68,  // cp5
+    width * 1.10, height * 0.50,  // cp6 (خارج الشاشة قليلاً ليعطي انبسام)
+    width * 1.05, height * 0.25   // end3 (نقطة قريبة من الأعلى على اليمين)
+  )
+  ..close();
+
+canvas.drawPath(middlePath, middlePaint);
+
+
+  }
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
