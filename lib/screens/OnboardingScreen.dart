@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'choose_role_screen.dart';
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
 
@@ -33,7 +34,7 @@ class OnboardingScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          
+          const SizedBox(height: 50),
           const Text(
             'Hello &\nWelcome!',
             style: TextStyle(
@@ -81,7 +82,9 @@ class OnboardingScreen extends StatelessWidget {
       right: 30,
       child: TextButton(
         onPressed: () {
-          print("Skip button pressed!");
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const ChooseRoleScreen()),
+            );
         },
         child: const Text(
           'skip',
@@ -154,31 +157,31 @@ class OnboardingBackgroundPainter extends CustomPainter {
 // --- الشكل البنفسجي الثاني (الخلفي) ---
 // --- الشكل البنفسجي الثاني (الخلفي) على اليمين ---
 final middlePaint = Paint()
-  ..color = const Color(0xFFE6E7FA).withOpacity(0.7);
+  ..color = const Color.fromARGB(255, 206, 208, 245).withOpacity(0.7);
 
 final middlePath = Path()
   // نبدأ خارج الشاشة من جهة اليمين قرب الأعلى
-  ..moveTo(width * 1.05, height * 0.05)
+  ..moveTo(width * 1.2, height * 0.001)
 
   // رأس الفقاعة (ينحني لليسار بالجزء العلوي)
   ..cubicTo(
-    width * 0.90, height * 0.02,  // cp1
-    width * 0.65, height * 0.08,  // cp2
-    width * 0.55, height * 0.22   // end1
+    width * 1.08, height * 0.06,  // cp1
+    width * 0.9, height * 0.007,  // cp2
+    width * 0.7, height * 0.2 // end1
   )
 
   // الانحناء الأوسط الذي ينزل باتجاه المركز
   ..cubicTo(
-    width * 0.40, height * 0.45,  // cp3
-    width * 0.55, height * 0.60,  // cp4
-    width * 0.77, height * 0.64   // end2
+    width * 0.3, height * 0.3,  // cp3
+    width * 0.27, height * 0.5,  // cp4
+    width * 0.7, height * 0.6   // end2
   )
 
   // يرجع للخارج على اليمين ليكمل شكل الفقاعة ويقفلها
   ..cubicTo(
-    width * 0.95, height * 0.68,  // cp5
-    width * 1.10, height * 0.50,  // cp6 (خارج الشاشة قليلاً ليعطي انبسام)
-    width * 1.05, height * 0.25   // end3 (نقطة قريبة من الأعلى على اليمين)
+    width * 0.99, height * 1.0,  // cp5
+    width * 1.0, height * 0.35,  // cp6 (خارج الشاشة قليلاً ليعطي انبسام)
+    width * 6.8, height * 2.07 // end3 (نقطة قريبة من الأعلى على اليمين)
   )
   ..close();
 
