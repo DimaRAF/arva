@@ -82,7 +82,7 @@ class OnboardingScreen extends StatelessWidget {
       right: 30,
       child: TextButton(
         onPressed: () {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const ChooseRoleScreen()),
             );
         },
