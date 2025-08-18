@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 import 'medical_staff_info_screen.dart';
 import 'patient_info_screen.dart';
 import 'OnboardingScreen.dart'; // لاستخدام الخلفية
+import 'medical_staff_login_screen.dart';
+import 'choose_role_screen.dart';
+import 'patient_login_screen.dart';
+
 
 class AuthScreen extends StatelessWidget {
   // 1. أضفنا هذا المعامل لنعرف من هو المستخدم الحالي
@@ -24,7 +28,10 @@ class AuthScreen extends StatelessWidget {
             bottom: 30,
             left: 30,
             child: FloatingActionButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const ChooseRoleScreen()),
+            );
+           },
               backgroundColor: const Color(0xFF5A7A9A),
               child: const Icon(Icons.arrow_back, color: Colors.white),
             
@@ -52,7 +59,19 @@ class AuthScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity, height: 50,
                       child: ElevatedButton(
-                        onPressed: () { /* منطق تسجيل الدخول هنا */ },
+                        onPressed: () { 
+                          if (userRole == 'Medical Staff') {
+                          Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => const MedicalStaffLoginScreen()),
+                        );
+                          } else {
+                          //  توجيه المريض إلى شاشة تسجيل دخول خاصة به هنا
+                          Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => const  PatientLoginScreen())
+
+                        );
+                          }
+                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF5A7A9A),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -76,7 +95,7 @@ class AuthScreen extends StatelessWidget {
                           // وإذا كان مريضاً، اذهب إلى شاشة معلومات المريض
                           else {
                             Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const PatientInfoScreen()),
+                            MaterialPageRoute(builder: (context) => const PatientSignUpScreen()),
                             );
                           }
                         },

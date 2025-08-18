@@ -15,7 +15,7 @@ class ChooseRoleScreen extends StatelessWidget {
       body: Stack(
         children: [
           CustomPaint(size: Size.infinite, painter: OnboardingBackgroundPainter()),
-          // 1. الخلفية المتموجة (تم إصلاحها)
+          
           CustomPaint(
             size: Size.infinite,
             painter: OnboardingBackgroundPainter(),
@@ -70,7 +70,7 @@ class ChooseRoleScreen extends StatelessWidget {
             left: 30,
             child: FloatingActionButton(
               onPressed: () {
-                // --- vvv تم إصلاح هذا السطر vvv ---
+                
                 // الدالة الصحيحة للرجوع هي .pop() فقط
                 Navigator.of(context).pop();
               },
