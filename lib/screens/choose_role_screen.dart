@@ -71,8 +71,9 @@ class ChooseRoleScreen extends StatelessWidget {
             child: FloatingActionButton(
               onPressed: () {
                 
-                // الدالة الصحيحة للرجوع هي .pop() فقط
-                Navigator.of(context).pop();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+                );
               },
               backgroundColor: const Color(0xFF5A7A9A),
               child: const Icon(Icons.arrow_back, color: Colors.white),
