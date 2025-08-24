@@ -1,20 +1,94 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter/gestures.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // <-- 1. تم إضافة الاستيراد الناقص
+import 'package:cloud_firestore/cloud_firestore.dart'; // <-- 2. تم إضافة الاستيراد الناقص
 import 'medical_staff_login_screen.dart';
 import 'auth_screen.dart';
+import 'dart:math';
 
+// 3. تم تحويل الواجهة إلى StatefulWidget لتتمكن من التعامل مع الحالة
 class MedicalStaffSignUpScreen extends StatefulWidget {
   const MedicalStaffSignUpScreen({Key? key}) : super(key: key);
 
   @override
   State<MedicalStaffSignUpScreen> createState() => _MedicalStaffSignUpScreenState();
-}
+}//KKMKM
 
 class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
-  // 2. أضفنا متغيرات لتتبع حالة رؤية كلمتي المرور
+  // 4. تم نقل كل المتغيرات والدوال إلى هنا (مكانها الصحيح)
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> signUp() async {
+    if (_usernameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields")),
+      );
+      return;
+    }
+
+    if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match!")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (userCredential.user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+          'username': _usernameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'role': 'Medical Staff',
+          'createdAt': Timestamp.now(),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Account created successfully!")),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? "An error occurred")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("An unknown error occurred: $e")),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,18 +96,14 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // الطبقة الأولى: الخلفية
           CustomPaint(
             size: Size.infinite,
-            painter: SignUpBackgroundPainter(),
+            painter: SignUpBacgroundPainter(),
           ),
-
-          // الطبقة الثانية: المحتوى
           SafeArea(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // الجزء العلوي مع الصورة
                   SizedBox(
                     height: 280,
                     child: Stack(
@@ -49,8 +119,6 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                       ],
                     ),
                   ),
-
-                  // الجزء السفلي مع حقول الإدخال
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30.0),
                     child: Column(
@@ -61,27 +129,21 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0)),
                         ),
                         const SizedBox(height: 20),
-
-                        // حقول الإدخال العادية
-                        _buildTextField(icon: Icons.person_outline, hintText: 'User Name'),
+                        _buildTextField(controller: _usernameController, icon: Icons.person_outline, hintText: 'User Name'),
                         const SizedBox(height: 15),
-                        _buildTextField(icon: Icons.email_outlined, hintText: 'Email'),
+                        _buildTextField(controller: _emailController, icon: Icons.email_outlined, hintText: 'Email'),
                         const SizedBox(height: 15),
-
-                        
                         _buildPasswordTextField(
+                          controller: _passwordController,
                           hintText: 'Password',
                           isVisible: _passwordVisible,
                           onToggleVisibility: () {
-                            setState(() {
-                              _passwordVisible = !_passwordVisible;
-                            });
+                            setState(() { _passwordVisible = !_passwordVisible; });
                           },
                         ),
                         const SizedBox(height: 15),
-
-                        // حقل تأكيد كلمة المرور مع أيقونة العين
                         _buildPasswordTextField(
+                          controller: _confirmPasswordController,
                           hintText: 'Confirm Password',
                           isVisible: _confirmPasswordVisible,
                           onToggleVisibility: () {
@@ -90,25 +152,22 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                             });
                           },
                         ),
-                        
                         const SizedBox(height: 30),
-
-                        // زر إنشاء الحساب
                         SizedBox(
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: _isLoading ? null : signUp,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5A7A9A),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
-                            child: const Text('Sign up', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                            child: _isLoading
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : const Text('Sign up', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                           ),
                         ),
                         const SizedBox(height: 25),
-
-                        // رابط تسجيل الدخول
                         RichText(
                           text: TextSpan(
                             style: const TextStyle(color: Colors.grey, fontSize: 16),
@@ -135,14 +194,11 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
               ),
             ),
           ),
-
-          // الطبقة الثالثة: زر الرجوع
           Positioned(
             top: 40,
             left: 20,
             child: FloatingActionButton(
               onPressed: () {
-                
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => const AuthScreen(userRole: 'Medical Staff')),
                 );
@@ -157,9 +213,9 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
     );
   }
 
-  // دالة مساعدة للحقول العادية
-  Widget _buildTextField({required IconData icon, required String hintText}) {
+  Widget _buildTextField({required TextEditingController controller, required IconData icon, required String hintText}) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.grey),
@@ -174,13 +230,14 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
     );
   }
 
-  // دالة مساعدة مخصصة لحقول كلمة المرور
   Widget _buildPasswordTextField({
+    required TextEditingController controller,
     required String hintText,
     required bool isVisible,
     required VoidCallback onToggleVisibility,
   }) {
     return TextField(
+      controller: controller,
       obscureText: !isVisible,
       decoration: InputDecoration(
         hintText: hintText,
@@ -205,39 +262,72 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
 }
 
 // كلاس رسم الخلفية (يبقى كما هو)
-class SignUpBackgroundPainter extends CustomPainter {
+
+class SignUpBacgroundPainter extends CustomPainter {
+ 
   @override
-  void paint(Canvas canvas, Size size) {
-    final width = size.width;
-    final height = size.height;
-
-    final tealPaint = Paint()..color = const Color(0xFFBFDDE0);
-    canvas.save();
-    canvas.translate(width * 0.6, height * 0.03);
-    canvas.rotate(pi / 10);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: width * 0.8, height: 150),
-        const Radius.circular(30),
-      ),
-      tealPaint,
-    );
-    canvas.restore();
-
-    final purplePaint = Paint()..color = const Color(0xFFC6B4DE);
-    canvas.save();
-    canvas.translate(width * 0.2, height * 0.03);
-    canvas.rotate(pi / 10);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: width, height: 200),
-        const Radius.circular(30),
-      ),
-      purplePaint,
-    );
-    canvas.restore();
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
+@override
+void paint(Canvas canvas, Size size) {
+
+final width = size.width;
+
+final height = size.height;
+
+
+
+final tealPaint = Paint()..color = const Color(0xFFBFDDE0);
+
+canvas.save();
+
+canvas.translate(width * 0.6, height * 0.03);
+
+canvas.rotate(pi / 10);
+
+canvas.drawRRect(
+RRect.fromRectAndRadius(
+
+Rect.fromCenter(center: Offset.zero, width: width * 0.8, height: 150),
+
+const Radius.circular(30),
+
+),
+
+  tealPaint,
+
+  );
+
+  canvas.restore();
+
+
+
+  final purplePaint = Paint()..color = const Color(0xFFC6B4DE);
+
+canvas.save();
+
+canvas.translate(width * 0.2, height * 0.03);
+
+canvas.rotate(pi / 10);
+canvas.drawRRect(
+
+RRect.fromRectAndRadius(
+
+Rect.fromCenter(center: Offset.zero, width: width, height: 200),
+
+ const Radius.circular(30),
+
+),
+
+purplePaint,
+
+);
+
+canvas.restore();
+
+
+
+}}
+

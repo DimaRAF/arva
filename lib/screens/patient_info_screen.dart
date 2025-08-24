@@ -1,7 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
-import 'package:flutter/gestures.dart';
 import 'medical_staff_info_screen.dart';
 import 'patient_login_screen.dart';
 // import 'patient_login_screen.dart'; // ستحتاج لإنشاء هذه الواجهة لاحقاً
@@ -27,7 +25,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         children: [
           CustomPaint(
             size: Size.infinite,
-            painter: SignUpBackgroundPainter(),
+            painter: SignUpBacgroundPainter(),
           ),
           SafeArea(
             child: SingleChildScrollView(

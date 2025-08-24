@@ -31,6 +31,14 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # ... (أي حزم أخرى لديك)
+
+  # تأكد أن هذه الحزم تبدأ من نفس مستوى "flutter:"
+  firebase_core: ^2.15.1
+  firebase_auth: ^4.9.0
+  cloud_firestore: ^4.9.1
+
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -85,7 +93,7 @@ flutter:
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
+  #         style: italicflutter pub get
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

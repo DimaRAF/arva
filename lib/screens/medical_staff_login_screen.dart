@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'medical_staff_info_screen.dart'; // لاستخدامه في رابط "Sign Up"
 import 'auth_screen.dart'; // لاستخدامه في رابط "Sign Up"
+import 'package:firebase_auth/firebase_auth.dart'; // <-- 1. تم إضافة الاستيراد الناقص
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // 1. تم تحويل الواجهة إلى StatefulWidget
 class MedicalStaffLoginScreen extends StatefulWidget {
@@ -12,8 +14,72 @@ class MedicalStaffLoginScreen extends StatefulWidget {
 }
 
 class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
+
+    // Controllers لقراءة البيانات
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
   // 2. تم نقل متغير الحالة إلى هنا
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
+
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+   // --- دالة تسجيل الدخول ---
+  Future<void> login() async {
+    // التأكد من أن الحقول ليست فارغة
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter email and password")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // استخدام دالة Firebase لتسجيل الدخول
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // إذا نجح تسجيل الدخول، يمكنك الانتقال إلى الصفحة الرئيسية
+      // Navigator.of(context).pushReplacement(...);
+      print("Login Successful!");
+
+    } on FirebaseAuthException catch (e) {
+      // التعامل مع أخطاء تسجيل الدخول الشائعة
+      String errorMessage = "An error occurred. Please try again.";
+      if (e.code == 'user-not-found') {
+        errorMessage = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Wrong password provided for that user.';
+      }
+       ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    } catch (e) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("An unknown error occurred: $e")),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +91,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
           // الطبقة الأولى: الخلفية
           CustomPaint(
             size: Size.infinite,
-            painter: SignUpBackgroundPainter(),
+            painter: SignUpBacgroundPainter(),
           ),
 
           // الطبقة الثانية: المحتوى القابل للتمرير
@@ -66,11 +132,12 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                           style: TextStyle(fontSize: 16, color: Colors.grey),
                         ),
                         const SizedBox(height: 60),
-                        _buildTextField(icon: Icons.person_outline, hintText: 'Username'),
+                        _buildTextField(controller: _emailController,icon: Icons.person_outline, hintText: 'Username'),
                         const SizedBox(height: 15),
                         
                         // --- حقل كلمة المرور مع أيقونة العين ---
                         TextField(
+                          controller: _passwordController,
                           obscureText: !_isPasswordVisible,
                           decoration: InputDecoration(
                             hintText: 'Password',
@@ -112,13 +179,16 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            // عند الضغط، استدعاء دالة login
+                          onPressed: _isLoading ? null : login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5A7A9A),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                             ),
-                            child: const Text('Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                          ),
+                           child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
                         ),
                         const SizedBox(height: 25),
                         RichText(
@@ -167,8 +237,9 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
     );
   }
 
-  Widget _buildTextField({required IconData icon, required String hintText}) {
+  Widget _buildTextField({required TextEditingController controller,required IconData icon, required String hintText}) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.grey),
@@ -182,5 +253,21 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
       ),
     );
   }
+}
+
+
+
+class BackgroundClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    var path = Path();
+    path.lineTo(0, size.height - 50);
+    path.quadraticBezierTo(size.width / 2, size.height, size.width, size.height - 50);
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
