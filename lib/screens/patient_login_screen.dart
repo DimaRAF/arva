@@ -7,7 +7,7 @@ import 'auth_screen.dart'; // لاستخدامه في رابط "Sign Up"
 
 // تم تغيير اسم الكلاس ليناسب واجهة المريض
 class PatientLoginScreen extends StatefulWidget {
-  const PatientLoginScreen({Key? key}) : super(key: key);
+  const PatientLoginScreen({super.key});
 
   @override
   State<PatientLoginScreen> createState() => _PatientLoginScreenState();
@@ -149,8 +149,8 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                 );
               },
               backgroundColor: const Color(0xFF5A7A9A),
-              child: const Icon(Icons.arrow_back, color: Colors.white),
               mini: true,
+              child: const Icon(Icons.arrow_back, color: Colors.white),
             ),
           ),
         ],

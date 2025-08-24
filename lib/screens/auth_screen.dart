@@ -15,7 +15,7 @@ class AuthScreen extends StatelessWidget {
   // 1. أضفنا هذا المعامل لنعرف من هو المستخدم الحالي
   final String userRole;
 
-  const AuthScreen({Key? key, required this.userRole}) : super(key: key);
+  const AuthScreen({super.key, required this.userRole});
 
   @override
   Widget build(BuildContext context) {

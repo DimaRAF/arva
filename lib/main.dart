@@ -1,10 +1,9 @@
 
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; // 1. استيراد الحزمة
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; 
 import 'screens/splashscreen.dart';
-
-
+//
 // The main entry point of the application.
 // 3. تم تحويل الدالة إلى async
 void main() async {
@@ -21,7 +20,7 @@ void main() async {
 
 // The root widget of your application.
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

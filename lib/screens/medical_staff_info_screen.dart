@@ -9,7 +9,7 @@ import 'dart:math';
 
 // 3. تم تحويل الواجهة إلى StatefulWidget لتتمكن من التعامل مع الحالة
 class MedicalStaffSignUpScreen extends StatefulWidget {
-  const MedicalStaffSignUpScreen({Key? key}) : super(key: key);
+  const MedicalStaffSignUpScreen({super.key});
 
   @override
   State<MedicalStaffSignUpScreen> createState() => _MedicalStaffSignUpScreenState();
@@ -204,8 +204,8 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                 );
               },
               backgroundColor: const Color(0xFF5A7A9A),
-              child: const Icon(Icons.arrow_back, color: Colors.white),
               mini: true,
+              child: const Icon(Icons.arrow_back, color: Colors.white),
             ),
           ),
         ],

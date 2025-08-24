@@ -4,6 +4,8 @@ import 'OnboardingScreen.dart';
 
 // --- SplashScreen converted to a StatefulWidget ---
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }

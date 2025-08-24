@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'choose_role_screen.dart';
 class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

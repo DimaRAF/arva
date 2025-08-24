@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 // 1. تم تحويل الواجهة إلى StatefulWidget
 class MedicalStaffLoginScreen extends StatefulWidget {
-  const MedicalStaffLoginScreen({Key? key}) : super(key: key);
+  const MedicalStaffLoginScreen({super.key});
 
   @override
   State<MedicalStaffLoginScreen> createState() => _MedicalStaffLoginScreenState();
@@ -52,23 +52,39 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
         password: _passwordController.text.trim(),
       );
 
+            // إظهار رسالة نجاح عند تسجيل الدخول الصحيح
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Login Successful!"),
+            backgroundColor: Colors.green, // تلوين الرسالة باللون الأخضر
+          ),
+        );
+      }
+
       // إذا نجح تسجيل الدخول، يمكنك الانتقال إلى الصفحة الرئيسية
       // Navigator.of(context).pushReplacement(...);
-      print("Login Successful!");
-
+      
     } on FirebaseAuthException catch (e) {
       // التعامل مع أخطاء تسجيل الدخول الشائعة
       String errorMessage = "An error occurred. Please try again.";
-      if (e.code == 'user-not-found') {
-        errorMessage = 'No user found for that email.';
+        if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        errorMessage = 'Incorrect email or password.';
       } else if (e.code == 'wrong-password') {
-        errorMessage = 'Wrong password provided for that user.';
+        errorMessage = 'Incorrect password.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'The email address is badly formatted.';
       }
-       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+      
+      // Show the error message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red, // Color the message red
+        ),
       );
     } catch (e) {
-       ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("An unknown error occurred: $e")),
       );
     }
@@ -228,8 +244,8 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                 );
               },
               backgroundColor: const Color(0xFF5A7A9A),
-              child: const Icon(Icons.arrow_back, color: Colors.white),
               mini: true,
+              child: const Icon(Icons.arrow_back, color: Colors.white),
             ),
           ),
         ],

@@ -31,12 +31,10 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # ... (أي حزم أخرى لديك)
-
-  # تأكد أن هذه الحزم تبدأ من نفس مستوى "flutter:"
-  firebase_core: ^2.15.1
-  firebase_auth: ^4.9.0
-  cloud_firestore: ^4.9.1
+  # تأكد أن هذه الحزم على نفس مستوى "flutter:"
+  firebase_core: any
+  firebase_auth: any
+  cloud_firestore: any
 
 
   # The following adds the Cupertino Icons font to your application.

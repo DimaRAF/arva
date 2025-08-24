@@ -4,7 +4,7 @@ import 'auth_screen.dart';     // تأكد من أن هذا الملف موجو�
 
 // --- الواجهة الرئيسية لصفحة اختيار الدور ---
 class ChooseRoleScreen extends StatelessWidget {
-  const ChooseRoleScreen({Key? key}) : super(key: key);
+  const ChooseRoleScreen({super.key});
 
   @override
  
