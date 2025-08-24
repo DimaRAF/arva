@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'medical_staff_info_screen.dart'; // لاستخدامه في رابط "Sign Up"
 import 'auth_screen.dart'; // لاستخدامه في رابط "Sign Up"
 import 'package:firebase_auth/firebase_auth.dart'; // <-- 1. تم إضافة الاستيراد الناقص
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 // 1. تم تحويل الواجهة إلى StatefulWidget
 class MedicalStaffLoginScreen extends StatefulWidget {

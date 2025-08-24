@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart'; // <-- 1. تم إضافة ا�
 import 'package:cloud_firestore/cloud_firestore.dart'; // <-- 2. تم إضافة الاستيراد الناقص
 import 'medical_staff_login_screen.dart';
 import 'auth_screen.dart';
-import 'dart:math';
 
 // 3. تم تحويل الواجهة إلى StatefulWidget لتتمكن من التعامل مع الحالة
 class MedicalStaffSignUpScreen extends StatefulWidget {
