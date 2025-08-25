@@ -147,8 +147,16 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                           style: TextStyle(fontSize: 16, color: Colors.grey),
                         ),
                         const SizedBox(height: 60),
-                        _buildTextField(controller: _emailController,icon: Icons.person_outline, hintText: 'Username'),
-                        const SizedBox(height: 15),
+                        
+                        // تم تغيير الأيقونة والنص المؤقت ليكون للبريد الإلكتروني
+                      _buildTextField(
+                      controller: _emailController, 
+                      icon: Icons.email_outlined, // أيقونة البريد
+                      hintText: 'Email' // النص المؤقت
+                      ),
+                      const SizedBox(height: 15),
+                  
+
                         
                         // --- حقل كلمة المرور مع أيقونة العين ---
                         TextField(
@@ -269,7 +277,6 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
     );
   }
 }
-
 
 
 class BackgroundClipper extends CustomClipper<Path> {

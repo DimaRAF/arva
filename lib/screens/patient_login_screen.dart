@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'patient_info_screen.dart'; // لاستخدامه في رابط "Sign Up"
 import 'medical_staff_info_screen.dart';
 import 'auth_screen.dart'; // لاستخدامه في رابط "Sign Up"
+import 'package:firebase_auth/firebase_auth.dart';
  // لاستيراد SignUpBackgroundPainter مؤقتاً
 
 // تم تغيير اسم الكلاس ليناسب واجهة المريض
@@ -14,7 +15,85 @@ class PatientLoginScreen extends StatefulWidget {
 }
 
 class _PatientLoginScreenState extends State<PatientLoginScreen> {
+    // Controllers لقراءة البيانات
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  // 2. تم نقل متغير الحالة إلى هنا
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
+
+    @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+   // --- دالة تسجيل الدخول ---
+  Future<void> login() async {
+    // التأكد من أن الحقول ليست فارغة
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter email and password")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // استخدام دالة Firebase لتسجيل الدخول
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+            // إظهار رسالة نجاح عند تسجيل الدخول الصحيح
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Login Successful!"),
+            backgroundColor: Colors.green, // تلوين الرسالة باللون الأخضر
+          ),
+        );
+      }
+
+      // إذا نجح تسجيل الدخول، يمكنك الانتقال إلى الصفحة الرئيسية
+      // Navigator.of(context).pushReplacement(...);
+      
+    } on FirebaseAuthException catch (e) {
+      // التعامل مع أخطاء تسجيل الدخول الشائعة
+      String errorMessage = "An error occurred. Please try again.";
+        if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        errorMessage = 'Incorrect email or password.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Incorrect password.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'The email address is badly formatted.';
+      }
+      
+      // Show the error message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: const Color.fromARGB(255, 150, 121, 119), // Color the message red
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("An unknown error occurred: $e")),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,9 +140,14 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   const SizedBox(height: 30),
-                  _buildTextField(icon: Icons.person_outline, hintText: 'Username'),
+                  _buildTextField(
+                      controller: _emailController, 
+                      icon: Icons.email_outlined, // أيقونة البريد
+                      hintText: 'Email' // النص المؤقت
+                      ),
                   const SizedBox(height: 15),
                   TextField(
+                    controller: _passwordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
                       hintText: 'Password',
@@ -104,13 +188,14 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: _isLoading ? null : login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF5A7A9A),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                       ),
-                      child: const Text('Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),),
                   ),
                   const SizedBox(height: 30),
                   RichText(
@@ -157,8 +242,10 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
       ),                                                                                                                                                                                                                              
     );
   }
-  Widget _buildTextField({required IconData icon, required String hintText}) {
+
+  Widget _buildTextField({required TextEditingController controller,required IconData icon, required String hintText}) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.grey),
