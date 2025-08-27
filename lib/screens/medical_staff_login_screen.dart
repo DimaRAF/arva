@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'medical_staff_info_screen.dart'; // لاستخدامه في رابط "Sign Up"
 import 'auth_screen.dart'; // لاستخدامه في رابط "Sign Up"
 import 'package:firebase_auth/firebase_auth.dart'; // <-- 1. تم إضافة الاستيراد الناقص
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // 1. تم تحويل الواجهة إلى StatefulWidget
 class MedicalStaffLoginScreen extends StatefulWidget {
@@ -45,42 +46,58 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
     });
 
     try {
-      // استخدام دالة Firebase لتسجيل الدخول
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      // الخطوة 1: تسجيل الدخول
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-            // إظهار رسالة نجاح عند تسجيل الدخول الصحيح
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Login Successful!"),
-            backgroundColor: Colors.green, // تلوين الرسالة باللون الأخضر
-          ),
-        );
-      }
+      // --- الخطوة 2: التحقق من الدور (المنطق الأمني الجديد) ---
+      if (userCredential.user != null) {
+        // قراءة بيانات المستخدم من Firestore
+        DocumentSnapshot userData = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
+        
+        final userRole = (userData.data() as Map<String, dynamic>)['role'];
 
-      // إذا نجح تسجيل الدخول، يمكنك الانتقال إلى الصفحة الرئيسية
-      // Navigator.of(context).pushReplacement(...);
-      
+        // الخطوة 3: اتخاذ القرار
+        if (userRole == 'Medical Staff') {
+          // إذا كان طبيباً، اسمح له بالمرور
+          // MainPage ستقوم بالباقي
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Login Successful! Redirecting..."),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          // إذا لم يكن طبيباً، قم بتسجيل خروجه فوراً واعرض رسالة خطأ
+          await FirebaseAuth.instance.signOut();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Access Denied: This login is for Medical Staff only."),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
     } on FirebaseAuthException catch (e) {
-      // التعامل مع أخطاء تسجيل الدخول الشائعة
-      String errorMessage = "An error occurred. Please try again.";
-        if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+      String errorMessage = "An error occurred, please try again.";
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
         errorMessage = 'Incorrect email or password.';
       } else if (e.code == 'wrong-password') {
         errorMessage = 'Incorrect password.';
       } else if (e.code == 'invalid-email') {
         errorMessage = 'The email address is badly formatted.';
       }
-      
-      // Show the error message to the user
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red, // Color the message red
-        ),
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,7 +111,6 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
