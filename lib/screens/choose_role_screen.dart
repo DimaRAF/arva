@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'OnboardingScreen.dart'; // تأكد من أن هذا الملف موجود
-import 'auth_screen.dart';     // تأكد من أن هذا الملف موجود
+import 'OnboardingScreen.dart'; 
+import 'auth_screen.dart';     
 
 // --- الواجهة الرئيسية لصفحة اختيار الدور ---
 class ChooseRoleScreen extends StatelessWidget {
@@ -42,7 +42,7 @@ class ChooseRoleScreen extends StatelessWidget {
                       icon: Icons.medical_services_outlined,
                       label: 'Medical staff',
                       onTap: () {
-                        // تم تعديل هذا لينتقل إلى شاشة تسجيل الدخول الصحيحة
+                        // يتنقل إلى شاشة تسجيل الدخول الصحيحة
                         Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => const AuthScreen(userRole: 'Medical Staff')),
                         );
@@ -52,7 +52,7 @@ class ChooseRoleScreen extends StatelessWidget {
                       icon: Icons.personal_injury_outlined,
                       label: '   Patient   ',
                       onTap: () {
-                        // تم تعديل هذا لينتقل إلى شاشة تسجيل الدخول الصحيحة
+                        // ينتقل إلى شاشة تسجيل الدخول الصحيحة
                         Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => const AuthScreen(userRole: 'Patient')),
                         );
@@ -64,7 +64,7 @@ class ChooseRoleScreen extends StatelessWidget {
             ),
           ),
 
-          // 3. زر الرجوع (تم إصلاحه)
+          // 3. زر الرجوع 
           Positioned(
             bottom: 30,
             left: 30,
@@ -84,7 +84,7 @@ class ChooseRoleScreen extends StatelessWidget {
     );
   }
 
-  // دالة مساعدة لبناء كرت اختيار الدور
+  // دالة  لبناء كرت اختيار الدور
   Widget _buildRoleCard({
     required IconData icon,
     required String label,

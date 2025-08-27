@@ -1,8 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'medical_staff_info_screen.dart'; // لاستخدامه في رابط "Sign Up"
-import 'auth_screen.dart'; // لاستخدامه في رابط "Sign Up"
-import 'package:firebase_auth/firebase_auth.dart'; // <-- 1. تم إضافة الاستيراد الناقص
+import 'medical_staff_info_screen.dart'; 
+import 'auth_screen.dart'; 
+import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // 1. تم تحويل الواجهة إلى StatefulWidget
@@ -15,11 +15,11 @@ class MedicalStaffLoginScreen extends StatefulWidget {
 
 class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
 
-    // Controllers لقراءة البيانات
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // 2. تم نقل متغير الحالة إلى هنا
+  
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 
@@ -116,7 +116,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // 3. تم تعديل الهيكل ليستخدم Stack كعنصر رئيسي
+      
       body: Stack(
         children: [
           // الطبقة الأولى: الخلفية
@@ -139,7 +139,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                         Positioned(
                           top: -10,
                           child: Image.asset(
-                            'assets/doctors.png', // تأكد أن اسم الصورة صحيح
+                            'assets/doctors.png', 
                             height: 300,
                           ),
                         ),
@@ -164,7 +164,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                         ),
                         const SizedBox(height: 60),
                         
-                        // تم تغيير الأيقونة والنص المؤقت ليكون للبريد الإلكتروني
+                        
                       _buildTextField(
                       controller: _emailController, 
                       icon: Icons.email_outlined, // أيقونة البريد
@@ -174,7 +174,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                   
 
                         
-                        // --- حقل كلمة المرور مع أيقونة العين ---
+                        // --- حقل كلمة المرور مع أيقونة  ---
                         TextField(
                           controller: _passwordController,
                           obscureText: !_isPasswordVisible,

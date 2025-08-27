@@ -1,13 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'patient_info_screen.dart'; // لاستخدامه في رابط "Sign Up"
+import 'patient_info_screen.dart'; 
 import 'medical_staff_info_screen.dart';
-import 'auth_screen.dart'; // لاستخدامه في رابط "Sign Up"
+import 'auth_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
- // لاستيراد SignUpBackgroundPainter مؤقتاً
 
-// تم تغيير اسم الكلاس ليناسب واجهة المريض
+
+
 class PatientLoginScreen extends StatefulWidget {
   const PatientLoginScreen({super.key});
 
@@ -16,11 +16,11 @@ class PatientLoginScreen extends StatefulWidget {
 }
 
 class _PatientLoginScreenState extends State<PatientLoginScreen> {
-    // Controllers لقراءة البيانات
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // 2. تم نقل متغير الحالة إلى هنا
+ 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 

@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'choose_role_screen.dart';
+
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
@@ -110,7 +110,7 @@ class OnboardingBackgroundPainter extends CustomPainter {
 
     
     final topPath = Path()
-      ..moveTo(0, height * 0.4) // 1. نبدأ من هنا
+      ..moveTo(0, height * 0.4) 
 
       // 2. نرسم الانحناء الأول (الأيسر)
       ..cubicTo(
@@ -154,8 +154,8 @@ class OnboardingBackgroundPainter extends CustomPainter {
     canvas.drawPath(bottomPath, bottomPaint);
 
 // --- الشكل البنفسجي الثاني (الخلفي) ---
-// --- الشكل البنفسجي الثاني (الخلفي) ---
-// --- الشكل البنفسجي الثاني (الخلفي) على اليمين ---
+
+
 final middlePaint = Paint()
   ..color = const Color.fromARGB(255, 206, 208, 245).withOpacity(0.7);
 

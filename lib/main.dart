@@ -5,12 +5,12 @@ import 'firebase_options.dart';
 import 'screens/splashscreen.dart';
 //
 // The main entry point of the application.
-// 3. تم تحويل الدالة إلى async
+
 void main() async {
-  // 4. هذا السطر ضروري لضمان تهيئة كل شيء قبل runApp
+
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 5. تهيئة Firebase باستخدام الإعدادات الافتراضية للمنصة الحالية
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -18,7 +18,7 @@ void main() async {
   runApp(const MyApp());
 }
 
-// The root widget of your application.
+// The root widget of  application.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

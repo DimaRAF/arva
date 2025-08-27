@@ -1,7 +1,3 @@
-
-// ---------------------------------------------------
-// الملف 2: lib/screens/auth_screen.dart (تم تعديله ليصبح قابلاً لإعادة الاستخدام)
-// ---------------------------------------------------
 import 'package:flutter/material.dart';
 import 'medical_staff_info_screen.dart';
 import 'patient_info_screen.dart';
@@ -12,9 +8,7 @@ import 'patient_login_screen.dart';
 
 
 class AuthScreen extends StatelessWidget {
-  // 1. أضفنا هذا المعامل لنعرف من هو المستخدم الحالي
   final String userRole;
-
   const AuthScreen({super.key, required this.userRole});
 
   @override
@@ -48,7 +42,7 @@ class AuthScreen extends StatelessWidget {
                     const SizedBox(height: 30),
                     const Text("Let's get started!", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 15),
-                    // 2. يمكنك تغيير هذا النص بناءً على الدور إذا أردت
+                    
                     Text(
                       "Login or Sign Up  to enjoy the features we’ve provided, and stay healthy! \n continue as a $userRole.",
                       textAlign: TextAlign.center,
@@ -85,7 +79,7 @@ class AuthScreen extends StatelessWidget {
                       width: double.infinity, height: 50,
                       child: OutlinedButton(
                         onPressed: () {
-                          // 3. هنا هو المنطق الرئيسي
+                          
                           // إذا كان المستخدم طبيباً، اذهب إلى شاشة معلومات الطبيب
                           if (userRole == 'Medical Staff') {
                             Navigator.of(context).push(

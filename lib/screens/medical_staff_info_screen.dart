@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter/gestures.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // <-- 1. تم إضافة الاستيراد الناقص
-import 'package:cloud_firestore/cloud_firestore.dart'; // <-- 2. تم إضافة الاستيراد الناقص
+import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'medical_staff_login_screen.dart';
 import 'auth_screen.dart';
 
-// 3. تم تحويل الواجهة إلى StatefulWidget لتتمكن من التعامل مع الحالة
+
 class MedicalStaffSignUpScreen extends StatefulWidget {
   const MedicalStaffSignUpScreen({super.key});
 
   @override
   State<MedicalStaffSignUpScreen> createState() => _MedicalStaffSignUpScreenState();
-}//KKMKM
+}
 
 class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
-  // 4. تم نقل كل المتغيرات والدوال إلى هنا (مكانها الصحيح)
+  
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
