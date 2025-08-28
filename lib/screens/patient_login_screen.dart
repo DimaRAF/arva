@@ -108,6 +108,38 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
     }
   }
 
+  // --- دالة إرسال بريد إلكتروني لإعادة تعيين كلمة المرور ---
+  Future<void> passwordReset() async {
+    if (_emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter your email to reset password."),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _emailController.text.trim(),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Password reset link sent! Check your email."),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? "An error occurred"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -188,8 +220,8 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                   const SizedBox(height: 10),
                   Align(
                     alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {},
+                   child: TextButton(
+                      onPressed: passwordReset,
                       child: const Text(
                         "Forgot Password?",
                         style: TextStyle(color: Color(0xFF5A7A9A), fontWeight: FontWeight.bold),

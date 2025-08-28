@@ -112,6 +112,43 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
     }
   }
 
+  // --- دالة إرسال بريد إلكتروني لإعادة تعيين كلمة المرور ---
+  Future<void> passwordReset() async {
+    // التأكد من أن حقل البريد الإلكتروني ليس فارغاً
+    if (_emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter your email to reset password."),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // استخدام دالة Firebase لإرسال البريد
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _emailController.text.trim(),
+      );
+      // إظهار رسالة نجاح للمستخدم
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Password reset link sent! Check your email."),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      // التعامل مع الأخطاء (مثل: البريد غير موجود)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? "An error occurred"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -206,12 +243,12 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () {},
-                            child: const Text(
-                              "Forgot Password?",
-                              style: TextStyle(color: Color(0xFF5A7A9A), fontWeight: FontWeight.bold),
-                            ),
+                          onPressed: passwordReset,
+                          child: const Text(
+                          "Forgot Password?",
+                          style: TextStyle(color: Color(0xFF5A7A9A), fontWeight: FontWeight.bold),
                           ),
+                         ),
                         ),
                         const SizedBox(height: 40),
                         SizedBox(
