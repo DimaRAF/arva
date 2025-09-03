@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'medical_staff_info_screen.dart';
 import 'patient_info_screen.dart';
-import 'OnboardingScreen.dart'; // لاستخدام الخلفية
+import 'OnboardingScreen.dart'; 
 import 'medical_staff_login_screen.dart';
 import 'choose_role_screen.dart';
 import 'patient_login_screen.dart';
@@ -59,7 +59,7 @@ class AuthScreen extends StatelessWidget {
                           MaterialPageRoute(builder: (context) => const MedicalStaffLoginScreen()),
                         );
                           } else {
-                          //  توجيه المريض إلى شاشة تسجيل دخول خاصة به هنا
+                          //  توجيه المريض إلى شاشة تسجيل دخول ا
                           Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => const  PatientLoginScreen())
 
@@ -74,19 +74,19 @@ class AuthScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // زر إنشاء حساب
+                    
                     SizedBox(
                       width: double.infinity, height: 50,
                       child: OutlinedButton(
                         onPressed: () {
                           
-                          // إذا كان المستخدم طبيباً، اذهب إلى شاشة معلومات الطبيب
+                          
                           if (userRole == 'Medical Staff') {
                             Navigator.of(context).push(
                               MaterialPageRoute(builder: (context) => const MedicalStaffSignUpScreen()),
                             );
                           } 
-                          // وإذا كان مريضاً، اذهب إلى شاشة معلومات المريض
+                          
                           else {
                             Navigator.of(context).push(
                             MaterialPageRoute(builder: (context) => const PatientSignUpScreen()),

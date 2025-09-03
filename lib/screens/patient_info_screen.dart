@@ -75,7 +75,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
             .set({
           'username': _usernameController.text.trim(),
           'email': _emailController.text.trim(),
-          'role': 'Patient', // حفظ دور المستخدم كمريض
+          'role': 'Patient', 
           'createdAt': Timestamp.now(),
         });
 

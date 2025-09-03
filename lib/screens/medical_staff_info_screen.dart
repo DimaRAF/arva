@@ -260,7 +260,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
   }
 }
 
-// كلاس رسم الخلفية (يبقى كما هو)
+
 
 class SignUpBacgroundPainter extends CustomPainter {
  

@@ -31,9 +31,9 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
     super.dispose();
   }
 
-   // --- دالة تسجيل الدخول ---
+   
   Future<void> login() async {
-    // التأكد من أن الحقول ليست فارغة
+   
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter email and password")),
@@ -46,13 +46,13 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
     });
 
     try {
-      // 1. تسجيل الدخول
+      
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // 2. التحقق من الدور
+      
       if (userCredential.user != null) {
         DocumentSnapshot userData = await FirebaseFirestore.instance
             .collection('users')
@@ -61,9 +61,9 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
         
         final userRole = (userData.data() as Map<String, dynamic>)['role'];
 
-        // 3. اتخاذ القرار
+        
         if (userRole == 'Patient') {
-          // إذا كان مريضاً، اسمح له بالمرور
+          
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -73,7 +73,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
             );
           }
         } else {
-          // إذا لم يكن مريضاً، سجل خروجه واعرض رسالة خطأ
+         
           await FirebaseAuth.instance.signOut();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -108,7 +108,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
     }
   }
 
-  // --- دالة إرسال بريد إلكتروني لإعادة تعيين كلمة المرور ---
+  
   Future<void> passwordReset() async {
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -187,8 +187,8 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                   const SizedBox(height: 30),
                   _buildTextField(
                       controller: _emailController, 
-                      icon: Icons.email_outlined, // أيقونة البريد
-                      hintText: 'Email' // النص المؤقت
+                      icon: Icons.email_outlined, 
+                      hintText: 'Email' 
                       ),
                   const SizedBox(height: 15),
                   TextField(

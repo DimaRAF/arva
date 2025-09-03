@@ -5,7 +5,7 @@ import 'auth_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// 1. تم تحويل الواجهة إلى StatefulWidget
+
 class MedicalStaffLoginScreen extends StatefulWidget {
   const MedicalStaffLoginScreen({super.key});
 
@@ -31,9 +31,9 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
     super.dispose();
   }
 
-   // --- دالة تسجيل الدخول ---
+   
   Future<void> login() async {
-    // التأكد من أن الحقول ليست فارغة
+    
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter email and password")),
@@ -46,15 +46,15 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
     });
 
     try {
-      // الخطوة 1: تسجيل الدخول
+      
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // --- الخطوة 2: التحقق من الدور (المنطق الأمني الجديد) ---
+      
       if (userCredential.user != null) {
-        // قراءة بيانات المستخدم من Firestore
+        
         DocumentSnapshot userData = await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredential.user!.uid)
@@ -62,10 +62,9 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
         
         final userRole = (userData.data() as Map<String, dynamic>)['role'];
 
-        // الخطوة 3: اتخاذ القرار
+        
         if (userRole == 'Medical Staff') {
-          // إذا كان طبيباً، اسمح له بالمرور
-          // MainPage ستقوم بالباقي
+          
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -75,7 +74,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
             );
           }
         } else {
-          // إذا لم يكن طبيباً، قم بتسجيل خروجه فوراً واعرض رسالة خطأ
+          
           await FirebaseAuth.instance.signOut();
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -112,9 +111,9 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
     }
   }
 
-  // --- دالة إرسال بريد إلكتروني لإعادة تعيين كلمة المرور ---
+ 
   Future<void> passwordReset() async {
-    // التأكد من أن حقل البريد الإلكتروني ليس فارغاً
+    
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -126,11 +125,11 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
     }
 
     try {
-      // استخدام دالة Firebase لإرسال البريد
+      
       await FirebaseAuth.instance.sendPasswordResetEmail(
         email: _emailController.text.trim(),
       );
-      // إظهار رسالة نجاح للمستخدم
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Password reset link sent! Check your email."),
@@ -138,7 +137,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
         ),
       );
     } on FirebaseAuthException catch (e) {
-      // التعامل مع الأخطاء (مثل: البريد غير موجود)
+     
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.message ?? "An error occurred"),
@@ -156,18 +155,18 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
       
       body: Stack(
         children: [
-          // الطبقة الأولى: الخلفية
+         
           CustomPaint(
             size: Size.infinite,
             painter: SignUpBacgroundPainter(),
           ),
 
-          // الطبقة الثانية: المحتوى القابل للتمرير
+          
           SafeArea(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // الجزء العلوي مع الصورة
+                  
                   SizedBox(
                     height: 280,
                     child: Stack(
@@ -184,7 +183,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                     ),
                   ),
 
-                  // الجزء السفلي مع حقول الإدخال
+                  
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30.0),
                     child: Column(
@@ -204,14 +203,14 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                         
                       _buildTextField(
                       controller: _emailController, 
-                      icon: Icons.email_outlined, // أيقونة البريد
-                      hintText: 'Email' // النص المؤقت
+                      icon: Icons.email_outlined,
+                      hintText: 'Email' 
                       ),
                       const SizedBox(height: 15),
                   
 
                         
-                        // --- حقل كلمة المرور مع أيقونة  ---
+                        
                         TextField(
                           controller: _passwordController,
                           obscureText: !_isPasswordVisible,
@@ -230,7 +229,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                                 _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                                 color: Colors.grey,
                               ),
-                              // 4. عند الضغط، نستخدم setState لتحديث الواجهة
+                              
                               onPressed: () {
                                 setState(() {
                                   _isPasswordVisible = !_isPasswordVisible;
@@ -255,7 +254,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
-                            // عند الضغط، استدعاء دالة login
+                          
                           onPressed: _isLoading ? null : login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5A7A9A),
@@ -292,7 +291,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
               ),
             ),
           ),
-          // الطبقة الثالثة: زر الرجوع
+          
           Positioned(
             top: 40,
             left: 20,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'OnboardingScreen.dart'; 
 import 'auth_screen.dart';     
 
-// --- الواجهة الرئيسية لصفحة اختيار الدور ---
+
 class ChooseRoleScreen extends StatelessWidget {
   const ChooseRoleScreen({super.key});
 
@@ -21,7 +21,7 @@ class ChooseRoleScreen extends StatelessWidget {
             painter: OnboardingBackgroundPainter(),
           ),
 
-          // 2. المحتوى الرئيسي
+          
           SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -42,7 +42,7 @@ class ChooseRoleScreen extends StatelessWidget {
                       icon: Icons.medical_services_outlined,
                       label: 'Medical staff',
                       onTap: () {
-                        // يتنقل إلى شاشة تسجيل الدخول الصحيحة
+                        
                         Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => const AuthScreen(userRole: 'Medical Staff')),
                         );
@@ -52,7 +52,7 @@ class ChooseRoleScreen extends StatelessWidget {
                       icon: Icons.personal_injury_outlined,
                       label: '   Patient   ',
                       onTap: () {
-                        // ينتقل إلى شاشة تسجيل الدخول الصحيحة
+                        
                         Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => const AuthScreen(userRole: 'Patient')),
                         );
