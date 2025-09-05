@@ -5,6 +5,7 @@ import 'medical_staff_info_screen.dart';
 import 'auth_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'pateint_home.dart';
 
 
 
@@ -65,11 +66,9 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
         if (userRole == 'Patient') {
           
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Login Successful! Redirecting..."),
-                backgroundColor: Colors.green,
-              ),
+           
+            Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const PatientHomeScreen()),
             );
           }
         } else {
