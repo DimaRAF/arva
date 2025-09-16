@@ -4,6 +4,8 @@ import 'medical_staff_info_screen.dart';
 import 'auth_screen.dart'; 
 import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'medical_staff_home_screen.dart'; 
+import 'dart:math';
 
 
 class MedicalStaffLoginScreen extends StatefulWidget {
@@ -47,51 +49,35 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
 
     try {
       
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(credential.user!.uid).get();
 
       
-      if (userCredential.user != null) {
-        
-        DocumentSnapshot userData = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .get();
-        
-        final userRole = (userData.data() as Map<String, dynamic>)['role'];
-
-        
-        if (userRole == 'Medical Staff') {
-          
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Login Successful! Redirecting..."),
-                backgroundColor: Colors.green,
-              ),
-            );
-          }
-        } else {
-          
-          await FirebaseAuth.instance.signOut();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Access Denied: This login is for Medical Staff only."),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+      if (!userDoc.exists || userDoc.data()?['role'] != 'Medical Staff') {
+        await FirebaseAuth.instance.signOut();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Access Denied: This login is for Medical Staff only."),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        // 2. إذا كان الدور صحيحاً، انتقل مباشرة إلى الصفحة الرئيسية للطبيب
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const MedicalStaffHomeScreen()),
+          );
         }
       }
     } on FirebaseAuthException catch (e) {
-      String errorMessage = "An error occurred, please try again.";
+      String errorMessage = "An error occurred. Please try again.";
       if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
         errorMessage = 'Incorrect email or password.';
-      } else if (e.code == 'wrong-password') {
-        errorMessage = 'Incorrect password.';
       } else if (e.code == 'invalid-email') {
         errorMessage = 'The email address is badly formatted.';
       }
@@ -105,12 +91,9 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
     }
 
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() { _isLoading = false; });
     }
   }
-
  
   Future<void> passwordReset() async {
     
@@ -158,7 +141,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
          
           CustomPaint(
             size: Size.infinite,
-            painter: SignUpBacgroundPainter(),
+            painter: SignUpBackgroundPainter(),
           ),
 
           

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter/gestures.dart';
-import 'package:firebase_auth/firebase_auth.dart'; 
-import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'medical_staff_login_screen.dart';
 import 'auth_screen.dart';
 
-
+// 1. تم تحويل الواجهة إلى StatefulWidget لتتمكن من التعامل مع الحالة
 class MedicalStaffSignUpScreen extends StatefulWidget {
   const MedicalStaffSignUpScreen({super.key});
 
@@ -15,12 +15,12 @@ class MedicalStaffSignUpScreen extends StatefulWidget {
 }
 
 class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
-  
+  // 2. تم نقل كل المتغيرات والدوال إلى هنا (مكانها الصحيح)
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
   bool _isLoading = false;
@@ -38,6 +38,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
     if (_usernameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all fields")),
       );
@@ -45,6 +46,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
     }
 
     if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Passwords do not match!")),
       );
@@ -68,15 +70,19 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
           'role': 'Medical Staff',
           'createdAt': Timestamp.now(),
         });
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
         );
+        // يمكنك إضافة انتقال هنا بعد نجاح إنشاء الحساب
       }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "An error occurred")),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("An unknown error occurred: $e")),
       );
@@ -97,7 +103,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
         children: [
           CustomPaint(
             size: Size.infinite,
-            painter: SignUpBacgroundPainter(),
+            painter: SignUpBackgroundPainter(),
           ),
           SafeArea(
             child: SingleChildScrollView(
@@ -122,12 +128,11 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 30.0),
                     child: Column(
                       children: [
-                        const SizedBox(height: 20),
                         const Text(
                           "Nice to have you here",
                           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0)),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 30),
                         _buildTextField(controller: _usernameController, icon: Icons.person_outline, hintText: 'User Name'),
                         const SizedBox(height: 15),
                         _buildTextField(controller: _emailController, icon: Icons.email_outlined, hintText: 'Email'),
@@ -260,73 +265,42 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
   }
 }
 
+// 5. تم إصلاح هيكلية هذا الكلاس
+class SignUpBackgroundPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final width = size.width;
+    final height = size.height;
 
+    final tealPaint = Paint()..color = const Color(0xFFBFDDE0);
+    canvas.save();
+    canvas.translate(width * 0.6, height * 0.03);
+    canvas.rotate(pi / 10);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset.zero, width: width * 0.8, height: 150),
+        const Radius.circular(30),
+      ),
+      tealPaint,
+    );
+    canvas.restore();
 
-class SignUpBacgroundPainter extends CustomPainter {
- 
+    final purplePaint = Paint()..color = const Color(0xFFC6B4DE);
+    canvas.save();
+    canvas.translate(width * 0.2, height * 0.03);
+    canvas.rotate(pi / 10);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset.zero, width: width, height: 200),
+        const Radius.circular(30),
+      ),
+      purplePaint,
+    );
+    canvas.restore();
+  }
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
-
-@override
-void paint(Canvas canvas, Size size) {
-
-final width = size.width;
-
-final height = size.height;
-
-
-
-final tealPaint = Paint()..color = const Color(0xFFBFDDE0);
-
-canvas.save();
-
-canvas.translate(width * 0.6, height * 0.03);
-
-canvas.rotate(pi / 10);
-
-canvas.drawRRect(
-RRect.fromRectAndRadius(
-
-Rect.fromCenter(center: Offset.zero, width: width * 0.8, height: 150),
-
-const Radius.circular(30),
-
-),
-
-  tealPaint,
-
-  );
-
-  canvas.restore();
-
-
-
-  final purplePaint = Paint()..color = const Color(0xFFC6B4DE);
-
-canvas.save();
-
-canvas.translate(width * 0.2, height * 0.03);
-
-canvas.rotate(pi / 10);
-canvas.drawRRect(
-
-RRect.fromRectAndRadius(
-
-Rect.fromCenter(center: Offset.zero, width: width, height: 200),
-
- const Radius.circular(30),
-
-),
-
-purplePaint,
-
-);
-
-canvas.restore();
-
-
-
-}}
-
+}

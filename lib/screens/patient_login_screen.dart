@@ -147,7 +147,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
         children: [
           CustomPaint(
             size: Size.infinite,
-            painter: SignUpBacgroundPainter(),
+            painter: SignUpBackgroundPainter(),
           ),
           SafeArea(
             child: SingleChildScrollView(
