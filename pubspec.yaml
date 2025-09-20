@@ -70,6 +70,12 @@ flutter:
     - assets/report.png
     - assets/doctor_avatar.png
     - assets/patient_icon.png
+    - assets/Hospital.png
+    - assets/blood_test.png
+    - assets/lungs_check.png
+    - assets/DNA.png
+
+
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

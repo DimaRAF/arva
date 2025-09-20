@@ -78,14 +78,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     // 1. تم تغيير اللون إلى الأبيض
-                    color: Colors.white,
+                    color: const Color(0xFF75B5B6),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     children: [
                       const CircleAvatar(
-                        radius: 40,
+                        radius: 45,
                         backgroundImage: AssetImage('assets/doctor_avatar.png'),
+                        backgroundColor: Color(0xFF75B5B6),
                       ),
                       const SizedBox(width: 20),
                       Column(
@@ -93,13 +94,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           Text(
                             _userData?['username'] ?? 'User',
-                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(221, 255, 255, 255)),
                           ),
                           const SizedBox(height: 5),
                           Text(
                             _userData?['email'] ?? 'No email',
                             
-                            style: const TextStyle(fontSize: 16, color: Colors.grey),
+                            style: const TextStyle(fontSize: 16, color: Color.fromARGB(255, 255, 253, 253)),
                           ),
                         ],
                       ),

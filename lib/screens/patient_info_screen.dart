@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'medical_staff_info_screen.dart';
 import 'patient_login_screen.dart';
 import 'auth_screen.dart';
-
+import 'pateint_home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -36,12 +36,11 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
     _confirmPasswordController.dispose();
     super.dispose();
   }
-
-    // دالة إنشاء حساب المريض
   Future<void> signUp() async {
     if (_usernameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all fields")),
       );
@@ -50,16 +49,16 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
 
     if (_passwordController.text.trim() !=
         _confirmPasswordController.text.trim()) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Passwords do not match!")),
       );
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
     });
-
 
     try {
       UserCredential userCredential =
@@ -69,31 +68,53 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
       );
 
       if (userCredential.user != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .set({
-          'username': _usernameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'role': 'Patient', 
+        final userId = userCredential.user!.uid;
+        final username = _usernameController.text.trim();
+        final email = _emailController.text.trim();
+
+        // 2. إنشاء ملف المستخدم الأساسي في مجموعة "users"
+        await FirebaseFirestore.instance.collection('users').doc(userId).set({
+          'username': username,
+          'email': email,
+          'role': 'Patient', // تم تحديد الدور كمريض
           'createdAt': Timestamp.now(),
         });
 
+        // 3. إنشاء الملف الطبي في "patient_profiles"
+        await FirebaseFirestore.instance.collection('patient_profiles').doc(userId).set({
+          'username': username,
+          'blood_group': null,
+          'weight': null,
+          'height': null,
+          'age': null,
+          'roomNumber': null,
+          'assignedDoctorId': null,
+        });
+
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
         );
+
+        // 4. الانتقال إلى الواجهة الرئيسية للمريض
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const PatientHomeScreen()),
+          (route) => false,
+        );
       }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "An error occurred")),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("An unknown error occurred: $e")),
       );
     }
 
-    if (mounted) {
+    if (mounted && _isLoading) {
       setState(() {
         _isLoading = false;
       });

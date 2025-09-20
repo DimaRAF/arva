@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'medical_staff_login_screen.dart';
 import 'auth_screen.dart';
+import 'medical_staff_home_screen.dart';
 
 // 1. تم تحويل الواجهة إلى StatefulWidget لتتمكن من التعامل مع الحالة
 class MedicalStaffSignUpScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _jobTitleController = TextEditingController();
 
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
@@ -31,13 +33,15 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _jobTitleController.dispose();
     super.dispose();
   }
 
   Future<void> signUp() async {
     if (_usernameController.text.isEmpty ||
         _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
+        _passwordController.text.isEmpty ||
+        _jobTitleController.text.isEmpty)  {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all fields")),
@@ -68,13 +72,20 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
           'username': _usernameController.text.trim(),
           'email': _emailController.text.trim(),
           'role': 'Medical Staff',
+          'jobTitle': _jobTitleController.text.trim(),
           'createdAt': Timestamp.now(),
         });
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
         );
-        // يمكنك إضافة انتقال هنا بعد نجاح إنشاء الحساب
+      
+        // 2. الانتقال إلى الواجهة الرئيسية بعد نجاح إنشاء الحساب
+        // pushAndRemoveUntil تقوم بإغلاق كل الشاشات السابقة (الدخول، اختيار الدور، إلخ)
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MedicalStaffHomeScreen()),
+          (route) => false,
+        );
       }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -88,7 +99,9 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
       );
     }
 
-    if (mounted) {
+    // لا تقم بتغيير حالة التحميل هنا إذا نجح الانتقال
+    // لأن الواجهة سيتم إغلاقها
+    if (mounted && _isLoading) {
       setState(() {
         _isLoading = false;
       });
@@ -132,11 +145,13 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                           "Nice to have you here",
                           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0)),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 12),
                         _buildTextField(controller: _usernameController, icon: Icons.person_outline, hintText: 'User Name'),
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 12),
+                        _buildTextField(controller: _jobTitleController, icon: Icons.work_outline, hintText: 'Job Title'),
+                        const SizedBox(height: 12),
                         _buildTextField(controller: _emailController, icon: Icons.email_outlined, hintText: 'Email'),
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 12),
                         _buildPasswordTextField(
                           controller: _passwordController,
                           hintText: 'Password',
@@ -145,7 +160,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                             setState(() { _passwordVisible = !_passwordVisible; });
                           },
                         ),
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 12),
                         _buildPasswordTextField(
                           controller: _confirmPasswordController,
                           hintText: 'Confirm Password',
@@ -156,7 +171,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                             });
                           },
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 18),
                         SizedBox(
                           width: double.infinity,
                           height: 50,
@@ -171,7 +186,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                                 : const Text('Sign up', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                           ),
                         ),
-                        const SizedBox(height: 25),
+                        const SizedBox(height: 18),
                         RichText(
                           text: TextSpan(
                             style: const TextStyle(color: Colors.grey, fontSize: 16),

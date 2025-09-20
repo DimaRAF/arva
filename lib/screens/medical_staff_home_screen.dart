@@ -82,8 +82,7 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Icon(Icons.notifications_none, color: Colors.white, size: 30),
-                  // --- vvv هنا هو التغيير الرئيسي vvv ---
-                  // تم تحويل الأيقونة إلى زر قابل للضغط
+                 
                   IconButton(
                     icon: const Icon(Icons.tune, color: Colors.white, size: 30),
                     onPressed: () {
@@ -93,7 +92,7 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
                       );
                     },
                   ),
-                  // --- ^^^ نهاية التغيير ^^^ ---
+                  
                 ],
               ),
               const CircleAvatar(
@@ -107,9 +106,10 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
                     _staffData?['username'] ?? 'Doctor',
                     style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const Text(
-                    "Nurse",
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  Text(
+   
+                 _staffData?['jobTitle'] ?? 'Medical Staff', // اقرأ المسمى الوظيفي من قاعدة البيانات
+                style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 16),
                   ),
                 ],
               ),
