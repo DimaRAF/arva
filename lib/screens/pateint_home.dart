@@ -14,8 +14,6 @@ class PatientHomeScreen extends StatefulWidget {
 class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int _selectedIndex = 0;
 
-  // 1. أنشأنا قائمة بالواجهات التي سيعرضها شريط التنقل
-  // كل واجهة تمثل صفحة مختلفة
   final List<Widget> _pages = [
     const _HomePageContent(), // الواجهة الرئيسية (تحتوي على كل الكود القديم)
     const Center(child: Text("Search Page", style: TextStyle(fontSize: 24))), // واجهة البحث (مؤقتة)
@@ -26,8 +24,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // 2. أصبح الـ body الآن يعرض الواجهة المحددة من القائمة
-      // IndexedStack يحافظ على حالة كل صفحة عند التنقل بينها
+      
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
@@ -102,21 +99,29 @@ class __HomePageContentState extends State<_HomePageContent> {
     _fetchPatientData();
   }
 
-  Future<void> _fetchPatientData() async {
+Future<void> _fetchPatientData() async {
     if (!mounted) return;
     setState(() { _isLoading = true; });
 
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        DocumentSnapshot doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
+        // 1. جلب البيانات من كلا المجموعتين
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        DocumentSnapshot profileDoc = await FirebaseFirestore.instance.collection('patient_profiles').doc(user.uid).get();
 
-        if (doc.exists && mounted) {
+        // 2. دمج البيانات في خريطة واحدة
+        Map<String, dynamic> combinedData = {};
+        if (userDoc.exists) {
+          combinedData.addAll(userDoc.data() as Map<String, dynamic>);
+        }
+        if (profileDoc.exists) {
+          combinedData.addAll(profileDoc.data() as Map<String, dynamic>);
+        }
+        
+        if (mounted) {
           setState(() {
-            _patientData = doc.data() as Map<String, dynamic>?;
+            _patientData = combinedData;
           });
         }
       } catch (e) {
@@ -129,6 +134,69 @@ class __HomePageContentState extends State<_HomePageContent> {
         _isLoading = false;
       });
     }
+  }
+
+  // --- vvv دالة جديدة لحفظ التعديلات في قاعدة البيانات vvv ---
+  Future<void> _updatePatientProfile(String field, dynamic value) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    // تحويل القيمة إلى رقم إذا كان الحقل يتطلب ذلك
+    if (field == 'age' || field == 'height' || field == 'weight') {
+      value = int.tryParse(value.toString()) ?? 0;
+    }
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('patient_profiles')
+          .doc(user.uid)
+          .update({field: value});
+
+      // إعادة جلب البيانات لتحديث الواجهة
+      await _fetchPatientData();
+      
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Profile updated successfully!"), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to update profile: $e"), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  // --- vvv دالة جديدة لإظهار نافذة التعديل vvv ---
+  void _showEditDialog(String fieldKey, String title, {bool isNumeric = false}) {
+    final controller = TextEditingController(text: _patientData?[fieldKey]?.toString() ?? '');
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Update $title"),
+        content: TextField(
+          controller: controller,
+          keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+          decoration: InputDecoration(labelText: title),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _updatePatientProfile(fieldKey, controller.text);
+              Navigator.of(context).pop();
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -170,10 +238,10 @@ class __HomePageContentState extends State<_HomePageContent> {
                       ),
                     ),
                     Positioned(
-                      top:170,
+                      top:165,
                       child: Container(
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        padding: const EdgeInsets.all(20),
+                        width: MediaQuery.of(context).size.width * 0.93,
+                        padding: const EdgeInsets.all(25),
                         decoration: BoxDecoration(
                           color: const Color(0xFF4C6EA0),
                           borderRadius: BorderRadius.circular(30),
@@ -218,50 +286,86 @@ class __HomePageContentState extends State<_HomePageContent> {
                         mainAxisSpacing: 15,
                         childAspectRatio: 1.3,
                         children: [
-                          _buildInfoCard(title: 'Blood Group', value: _patientData?['blood_group'] ?? '--', icon: Icons.bloodtype, color: const Color(0xFFFBE0E0), iconColor: Colors.red),
-                          _buildInfoCard(title: 'Weight', value: '${_patientData?['weight'] ?? '--'} kg', icon: Icons.fitness_center, color: const Color(0xFFBFE0E2), iconColor: Colors.green.shade700),
-                          _buildInfoCard(title: 'Height', value: '${_patientData?['height'] ?? '--'} cm', icon: Icons.height, color: const Color(0xFFBFE0E2), iconColor: Colors.green.shade700),
-                          _buildInfoCard(title: 'Age', value: '${_patientData?['age'] ?? '--'}', icon: Icons.cake_outlined, color: const Color(0xFFE0E6F8), iconColor: Colors.blue.shade700),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      const Text("Services", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                            _buildServiceButton(
-                            imagePath: 'assets/analysis.png',
-                            label: 'analysis',
-                            onTap: () {
-                              // 2. عند الضغط، انتقل إلى الواجهة الجديدة
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => const MedicalReportHomeScreen()),
-                              );
-                            },
+                          _buildInfoCard(
+                            title: 'Blood Group',
+                            value: _patientData?['blood_group'] ?? '--',
+                            icon: Icons.bloodtype,
+                            color: const Color(0xFFFBE0E0),
+                            iconColor: Colors.red,
+                            onTap: () => _showEditDialog('blood_group', 'Blood Group'),
                           ),
-                          _buildServiceButton(imagePath: 'assets/drugs.png', label: 'Drugs', onTap: () {}),
-                          _buildServiceButton(imagePath: 'assets/report.png', label: 'Report', onTap: () {}),
+                          _buildInfoCard(
+                            title: 'Weight',
+                            value: '${_patientData?['weight'] ?? '--'} kg',
+                            icon: Icons.fitness_center,
+                            color: const Color(0xFFBFE0E2),
+                            iconColor: Colors.green.shade700,
+                            onTap: () => _showEditDialog('weight', 'Weight', isNumeric: true),
+                          ),
+                          _buildInfoCard(
+                            title: 'Height',
+                            value: '${_patientData?['height'] ?? '--'} cm',
+                            icon: Icons.height,
+                            color: const Color(0xFFBFE0E2),
+                            iconColor: Colors.green.shade700,
+                            onTap: () => _showEditDialog('height', 'Height', isNumeric: true),
+                          ),
+                          _buildInfoCard(
+                            title: 'Age',
+                            value: '${_patientData?['age'] ?? '--'}',
+                            icon: Icons.cake_outlined,
+                            color: const Color(0xFFE0E6F8),
+                            iconColor: Colors.blue.shade700,
+                            onTap: () => _showEditDialog('age', 'Age', isNumeric: true),
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
+                          const SizedBox(height: 30),
+                          const Text("Services", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildServiceButton(
+                                imagePath: 'assets/analysis.png',
+                                label: 'analysis',
+                                onTap: () {
+                                  // 2. عند الضغط، انتقل إلى الواجهة الجديدة
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context) => const MedicalReportHomeScreen()),
+                                    );
+
+                                },
+                              ),
+                              _buildServiceButton(imagePath: 'assets/drugs.png', label: 'Drugs', onTap: () {}),
+
+                              _buildServiceButton(imagePath: 'assets/report.png', label: 'Report', onTap: () {}),
+                              ],
+                              ),
+                              ],
+                              ),
+                              ),
+                              ],
+                              ),
+                              );
+                          }
   }
 
+ // --- vvv تم تعديل هذه الدالة vvv ---
   Widget _buildInfoCard({
     required String title,
     required String value,
     required IconData icon,
     required Color color,
     required Color iconColor,
+    required VoidCallback onTap, // تم إضافة دالة الضغط
   }) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(25)),
+    return InkWell( // تم تغليف الكرت بـ InkWell
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(25),
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(25)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -277,6 +381,7 @@ class __HomePageContentState extends State<_HomePageContent> {
           Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         ],
       ),
+    ),
     );
   }
 
@@ -309,4 +414,3 @@ class __HomePageContentState extends State<_HomePageContent> {
       ),
     );
   }
-}

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'recommendation_page.dart';
+//import 'recommendation_page.dart';
 
 
 class AppColors {
@@ -115,12 +115,12 @@ class ResultsPage extends StatelessWidget {
                     rangeMin: '31 pg',
                     rangeMax: '36 pg',
                     indicatorPosition: 0.12,
-                    onTap: () {
-                        // 3. عند الضغط، انتقل إلى صفحة التفاصيل
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const BloodTest()),
-                        );
-                      },
+                    // onTap: () {
+                    //     // 3. عند الضغط، انتقل إلى صفحة التفاصيل
+                    //     Navigator.of(context).push(
+                    //       MaterialPageRoute(builder: (context) => const BloodTest()),
+                    //     );
+                    //   },
                   ),
                   const SizedBox(height: 12),
 
@@ -168,7 +168,7 @@ class ResultCard extends StatelessWidget {
   final Color backgroundColor;
   final String rangeMin;
   final String rangeMax;
-  final double indicatorPosition; // 0..1 across the bar
+  final double indicatorPosition; 
   final VoidCallback? onTap;
 
   const ResultCard({

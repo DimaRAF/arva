@@ -72,17 +72,17 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         final username = _usernameController.text.trim();
         final email = _emailController.text.trim();
 
-        // 2. إنشاء ملف المستخدم الأساسي في مجموعة "users"
+        // 1. إنشاء ملف المستخدم الأساسي في مجموعة "users"
         await FirebaseFirestore.instance.collection('users').doc(userId).set({
           'username': username,
           'email': email,
-          'role': 'Patient', // تم تحديد الدور كمريض
+          'role': 'Patient',
           'createdAt': Timestamp.now(),
         });
 
-        // 3. إنشاء الملف الطبي في "patient_profiles"
+        // --- 2. (الجزء المهم) إنشاء الملف الطبي في "patient_profiles" ---
         await FirebaseFirestore.instance.collection('patient_profiles').doc(userId).set({
-          'username': username,
+          'username': username, // نكرر الاسم لسهولة الوصول
           'blood_group': null,
           'weight': null,
           'height': null,
@@ -95,25 +95,19 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
         );
-
-        // 4. الانتقال إلى الواجهة الرئيسية للمريض
+        
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const PatientHomeScreen()),
           (route) => false,
         );
       }
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+       if (!mounted) return;
+       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "An error occurred")),
       );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An unknown error occurred: $e")),
-      );
-    }
-
+    } 
+    
     if (mounted && _isLoading) {
       setState(() {
         _isLoading = false;

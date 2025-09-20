@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_screen.dart';
+import 'vital_signs_screen.dart';
 
 
 class MedicalStaffHomeScreen extends StatefulWidget {
@@ -14,6 +15,13 @@ class MedicalStaffHomeScreen extends StatefulWidget {
 class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
   Map<String, dynamic>? _staffData;
   bool _isLoading = true;
+
+  // 1.  بتعريف قائمة الألوان التي ستتكرر
+  final List<Color> _patientColors = [
+    const Color(0xFF4C6EA0), // أزرق
+    const Color(0xFFC6B4DE), // بنفسجي
+    const Color(0xFF5FAAB1), // أخضر
+  ];
 
   @override
   void initState() {
@@ -142,16 +150,14 @@ Widget _buildPatientsList() {
           itemBuilder: (context, index) {
             var patientData = patients[index].data() as Map<String, dynamic>;
             
+            final Color color = _patientColors[index % _patientColors.length];
+
             return _buildPatientCard(
+              context: context, 
               name: patientData['username'] ?? 'N/A',
               room: "Room ${patientData['roomNumber'] ?? '--'}",
-              // تم تمرير اللون مباشرة هنا
-              iconBackgroundColor: index % 2 == 0 
-                  ? const Color(0xFFE0E6F8) // اللون الأول
-                  : const Color(0xFFFBE0E0), // اللون الثاني
-              iconColor: index % 2 == 0 
-                  ? const Color(0xFF6A8EAF) // لون الأيقونة الأول
-                  : Colors.red, // لون الأيقونة الثاني
+              color: color,
+              
             );
           },
         );
@@ -160,12 +166,21 @@ Widget _buildPatientsList() {
   }
 
 Widget _buildPatientCard({
-    required String name,
-    required String room,
-    required Color iconBackgroundColor, // يستقبل لون الخلفية
-    required Color iconColor,          // يستقبل لون الأيقونة
-  }) {
-    return Container(
+  required BuildContext context, // 2. أضفنا context لنتمكن من استخدامه في الانتقال
+  required String name,
+  required String room,
+  required Color color,
+}) {
+  // 3. تم تغليف الكرت بـ InkWell لجعله قابلاً للضغط
+  return InkWell(
+    onTap: () {
+      // 4. عند الضغط، انتقل إلى شاشة العلامات الحيوية
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const VitalSignsScreen()),
+      );
+    },
+    borderRadius: BorderRadius.circular(20), // لجعل تأثير الضغط بنفس شكل الحواف
+    child: Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -176,9 +191,15 @@ Widget _buildPatientCard({
       child: Row(
         children: [
           CircleAvatar(
-            radius: 30,
-            backgroundColor: iconBackgroundColor,
-            child: Icon(Icons.person_outline, size: 30, color: iconColor),
+            radius: 40,
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(0.0),
+              child: Image.asset(
+                'assets/patient_icon.png',
+                color: color,
+              ),
+            ),
           ),
           const SizedBox(width: 15),
           Column(
@@ -197,8 +218,9 @@ Widget _buildPatientCard({
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class HeaderPainter extends CustomPainter {
