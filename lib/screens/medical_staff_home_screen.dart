@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_screen.dart';
-import 'vital_signs_screen.dart';
-
+import 'vital_signs_screen.dart'; // تأكد من استيراد هذه الواجهة
 
 class MedicalStaffHomeScreen extends StatefulWidget {
-  const MedicalStaffHomeScreen({Key? key}) : super(key: key);
+  const MedicalStaffHomeScreen({super.key});
 
   @override
   State<MedicalStaffHomeScreen> createState() => _MedicalStaffHomeScreenState();
@@ -16,7 +15,6 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
   Map<String, dynamic>? _staffData;
   bool _isLoading = true;
 
-  // 1.  بتعريف قائمة الألوان التي ستتكرر
   final List<Color> _patientColors = [
     const Color(0xFF4C6EA0), // أزرق
     const Color(0xFFC6B4DE), // بنفسجي
@@ -55,52 +53,44 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
           : Column(
               children: [
                 _buildHeader(),
-                
                 Expanded(
                   child: Stack(
                     children: [
-                     
                       CustomPaint(
                         size: Size.infinite,
                         painter: BodyBackgroundPainter(),
                       ),
-                      
                       _buildPatientsList(),
                     ],
                   ),
                 ),
-                
               ],
             ),
     );
   }
 
-  
   Widget _buildHeader() {
     return Container(
-      height: 280,
+      height: 270,
       color: const Color(0xFF75B5B6),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              const SizedBox(height: 5),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Icon(Icons.notifications_none, color: Colors.white, size: 30),
-                 
-                  IconButton(
+                  IconButton( // تم تعديل هذا ليكون IconButton
                     icon: const Icon(Icons.tune, color: Colors.white, size: 30),
                     onPressed: () {
-                      // عند الضغط، انتقل إلى شاشة الملف الشخصي
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (context) => const ProfileScreen()),
                       );
                     },
                   ),
-                  
                 ],
               ),
               const CircleAvatar(
@@ -108,18 +98,14 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
                 backgroundColor: Color(0xFF75B5B6),
                 backgroundImage: AssetImage('assets/doctor_avatar.png'),
               ),
-              Column(
-                children: [
-                  Text(
-                    _staffData?['username'] ?? 'Doctor',
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-   
-                 _staffData?['jobTitle'] ?? 'Medical Staff', // اقرأ المسمى الوظيفي من قاعدة البيانات
+              const SizedBox(height: 1),
+              Text(
+                _staffData?['username'] ?? 'Doctor',
+                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                _staffData?['jobTitle'] ?? "Nurse", // تم تعديل هذا ليقرأ من قاعدة البيانات
                 style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 16),
-                  ),
-                ],
               ),
             ],
           ),
@@ -128,7 +114,7 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
     );
   }
 
-Widget _buildPatientsList() {
+  Widget _buildPatientsList() {
     final String currentDoctorId = FirebaseAuth.instance.currentUser!.uid;
 
     return StreamBuilder<QuerySnapshot>(
@@ -140,24 +126,30 @@ Widget _buildPatientsList() {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(child: Text("You have no assigned patients."));
         }
+        
         var patients = snapshot.data!.docs;
+        
         return ListView.builder(
           padding: const EdgeInsets.all(20),
           itemCount: patients.length,
           itemBuilder: (context, index) {
             var patientData = patients[index].data() as Map<String, dynamic>;
-            
+            final String patientId = patients[index].id;
             final Color color = _patientColors[index % _patientColors.length];
 
+            // --- vvv تم إصلاح طريقة استدعاء الدالة هنا vvv ---
             return _buildPatientCard(
-              context: context, 
+              context: context,
+              patientId: patientId, // الآن نمرر الـ ID
               name: patientData['username'] ?? 'N/A',
               room: "Room ${patientData['roomNumber'] ?? '--'}",
               color: color,
-              
             );
           },
         );
@@ -165,62 +157,63 @@ Widget _buildPatientsList() {
     );
   }
 
-Widget _buildPatientCard({
-  required BuildContext context, // 2. أضفنا context لنتمكن من استخدامه في الانتقال
-  required String name,
-  required String room,
-  required Color color,
-}) {
-  // 3. تم تغليف الكرت بـ InkWell لجعله قابلاً للضغط
-  return InkWell(
-    onTap: () {
-      // 4. عند الضغط، انتقل إلى شاشة العلامات الحيوية
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const VitalSignsScreen()),
-      );
-    },
-    borderRadius: BorderRadius.circular(20), // لجعل تأثير الضغط بنفس شكل الحواف
-    child: Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, spreadRadius: 2)],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(0.0),
-              child: Image.asset(
-                'assets/patient_icon.png',
-                color: color,
+  // --- vvv تم إصلاح تعريف الدالة هنا vvv ---
+  Widget _buildPatientCard({
+    required BuildContext context,
+    required String patientId, // 1. أضفنا هذا المعامل لاستقبال الـ ID
+    required String name,
+    required String room,
+    required Color color,
+  }) {
+    return InkWell(
+      onTap: () {
+        // 2. الآن يمكننا استخدام الـ ID الذي تم تمريره
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => VitalSignsScreen(patientId: patientId)),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 15),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, spreadRadius: 2)],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: Image.asset(
+                  'assets/patient_icon.png',
+                  color: color,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 5),
-              Row(
-                children: [
-                  const Icon(Icons.king_bed_outlined, size: 16, color: Colors.grey),
-                  const SizedBox(width: 5),
-                  Text(room, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                ],
-              ),
-            ],
-          ),
-        ],
+            const SizedBox(width: 15),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    const Icon(Icons.king_bed_outlined, size: 16, color: Colors.grey),
+                    const SizedBox(width: 5),
+                    Text(room, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class HeaderPainter extends CustomPainter {
@@ -236,60 +229,34 @@ class HeaderPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldClipper) => false;
 }
 
-
 class BodyBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final width = size.width;
     final height = size.height;
-
     
     final paint1 = Paint()..color = const Color(0xFFDADADA).withOpacity(0.5);
     final path1 = Path()
       ..moveTo(width, height * 0.5)
-      
-      ..cubicTo(
-        width * 0.3, height * 0.4, 
-        width * 0.1, height * 0.9, 
-        width * -0.1, height    
-      )
-     
+      ..cubicTo(width * 0.3, height * 0.4, width * 0.1, height * 0.9, width * -0.1, height)
       ..lineTo(width, height)
       ..close();
-    canvas.drawPath(path1, paint1);  
+    canvas.drawPath(path1, paint1);
 
-    
     final paint2 = Paint()..color = const Color(0xFFC3C9F9).withOpacity(0.6);
     final path2 = Path()
-      ..moveTo(0,height * 0.1 )
-      ..cubicTo(
-        width * 0.4, height * 0.2, 
-        width * 0.6, height * 0.7, 
-        width * -0.3, height  *0.7  
-      )
+      ..moveTo(0,height * 0.1)
+      ..cubicTo(width * 0.4, height * 0.2, width * 0.6, height * 0.7, width * -0.3, height *0.7)
       ..lineTo(0,height * 0.9)
       ..close();
     canvas.drawPath(path2, paint2);
 
-     
     final paint3 = Paint()..color = const Color(0x8B5FAAB1).withOpacity(0.5);
     final path3 = Path()
-      ..moveTo(width , 0)
-      ..lineTo(width*0.6, height*0)  
-      ..cubicTo(
-      width * 0.3, height * 0.2,  
-      width * 0.3, height * 0.2,  
-      width * 0.5, height * 0.3  
-      )
-
-  
-      ..cubicTo(
-      width * 0.7, height * 0.4,  
-      width * 0.6, height * 0.5,  
-      width , height * 0.4
-      )
-
-      
+      ..moveTo(width, 0)
+      ..lineTo(width*0.6, height*0)
+      ..cubicTo(width * 0.3, height * 0.2, width * 0.3, height * 0.2, width * 0.5, height * 0.3)
+      ..cubicTo(width * 0.7, height * 0.4, width * 0.6, height * 0.5, width, height * 0.4)
       ..lineTo(width, height*.3)
       ..close();
     canvas.drawPath(path3, paint3);
@@ -298,3 +265,4 @@ class BodyBackgroundPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldClipper) => false;
 }
+
