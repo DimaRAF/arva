@@ -286,7 +286,7 @@ class _SegmentBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth;
-      // Match figma proportions: 8.6% yellow, 61.8% green, 29.6% red
+      
       final yellowW = w * 0.086;
       final greenW = w * 0.618;
       final redW = w * 0.296;

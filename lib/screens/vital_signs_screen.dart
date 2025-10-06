@@ -34,7 +34,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   Map<String, dynamic>? _predictedVitals;
   
   
-  int _bottomNavIndex = 1;
+  final int _bottomNavIndex = 1;
 @override
 void initState() {
   super.initState();
@@ -141,7 +141,7 @@ LineChartBarData _buildPredictionLine({
   required String vitalKey,
   required Color color,
 }) {
-  // --- جمل طباعة تشخيصية ---
+  
   print('--- Checking prediction line for: $vitalKey');
 
   if (_historyForChart.isEmpty) {

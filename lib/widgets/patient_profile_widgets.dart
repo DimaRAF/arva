@@ -8,10 +8,10 @@ class PatientInfoGrid extends StatelessWidget {
   final Function(String, String, {bool isNumeric}) onCardTap;
 
   const PatientInfoGrid({
-    Key? key,
+    super.key,
     required this.patientData,
     required this.onCardTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +98,7 @@ class PatientInfoGrid extends StatelessWidget {
 class PatientServicesRow extends StatelessWidget {
   final BuildContext parentContext;
 
-  const PatientServicesRow({Key? key, required this.parentContext}) : super(key: key);
+  const PatientServicesRow({super.key, required this.parentContext});
 
   @override
   Widget build(BuildContext context) {
