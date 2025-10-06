@@ -8,7 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 
-import 'pateint_home.dart'; // استيراد شاشة الملف الذكي
+import 'pateint_home.dart'; 
 
 
 class VitalSignsScreen extends StatefulWidget {
