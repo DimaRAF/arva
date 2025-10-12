@@ -5,10 +5,9 @@ import 'dart:math';
 import 'package:csv/csv.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:tflite_flutter/tflite_flutter.dart';
 
-import 'pateint_home.dart'; 
 
 
 class VitalSignsScreen extends StatefulWidget {
@@ -73,10 +72,17 @@ void initState() {
 
 Future<void> _loadModel() async {
   try {
-    var options = InterpreterOptions()
+      var options = InterpreterOptions()
       ..addDelegate(GpuDelegateV2()) 
+      // GPU delegate
+
+      
       ..threads = 4;
-    _interpreter = await Interpreter.fromAsset('assets/vitals_predictor.tflite', options: options); 
+
+    _interpreter = await Interpreter.fromAsset(
+      'assets/vitals_predictor.tflite',
+      options: options,
+    );
     print('TensorFlow Lite model loaded successfully.');
   } catch (e) {
     print('Failed to load TensorFlow Lite model: $e');
