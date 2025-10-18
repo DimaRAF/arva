@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:async';
-import 'dart:math';
 import 'package:csv/csv.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:arva/ml/scaler_lite.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+
+
 
 
 
@@ -21,11 +25,16 @@ class VitalSignsScreen extends StatefulWidget {
 class _VitalSignsScreenState extends State<VitalSignsScreen> {
   String _patientName = "Unknown Patient";
   String _roomNumber = '--';
+  int _criticalCount = 0;
+
    
   
   Interpreter? _interpreter;
   
   bool _isLoading = true;
+
+  MinMaxScalerLite? _scaler;
+  final List<String> _featuresOrder = ['HR', 'Temp', 'SaO2', 'NISysABP', 'NIDiasABP'];
 
   final List<Map<String, dynamic>> _patientSpecificDataset = [];
   final List<Map<String, dynamic>> _historyForChart = [];
@@ -34,9 +43,24 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   
   
   final int _bottomNavIndex = 1;
+
+  // 🔔 إعداد إشعارات النظام
+final FlutterLocalNotificationsPlugin _notificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+Future<void> _initializeNotifications() async {
+  const AndroidInitializationSettings initSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initSettings =
+      InitializationSettings(android: initSettingsAndroid);
+
+  await _notificationsPlugin.initialize(initSettings);
+}
+
 @override
 void initState() {
   super.initState();
+  _initializeNotifications();
   // 1. تحميل البيانات وإرسالها للخدمة
   _loadDataAndConfigureService();
   
@@ -70,79 +94,101 @@ void initState() {
   });
 }
 
+Future<void> _loadScaler() async {
+  _scaler = await loadScalerFromAssets('assets/vitals_scaler_params.json');
+  // تحقق اختياري من ترتيب الخصائص
+  if (_scaler!.featuresOrder.join(',') != _featuresOrder.join(',')) {
+    print('⚠️ features_order in JSON != _featuresOrder in app');
+  }
+  print('✅ Scaler loaded');
+}
 Future<void> _loadModel() async {
   try {
-      var options = InterpreterOptions()
-      ..addDelegate(GpuDelegateV2()) 
-      // GPU delegate
-
-      
-      ..threads = 4;
-
-    _interpreter = await Interpreter.fromAsset(
-      'assets/vitals_predictor.tflite',
-      options: options,
-    );
-    print('TensorFlow Lite model loaded successfully.');
+    print('🔄 Loading model from assets...');
+    
+    final interpreter = await Interpreter.fromAsset('assets/vitals_predictor_gru.tflite');
+    if (mounted) {
+      setState(() => _interpreter = interpreter);
+    }
+    print('✅ TensorFlow Lite model loaded successfully.');
   } catch (e) {
-    print('Failed to load TensorFlow Lite model: $e');
+    print('❌ Failed to load TensorFlow Lite model: $e');
   }
 }
+
+
+
+
 void _runPrediction() {
-  // --- جمل طباعة تشخيصية ---
   if (_interpreter == null) {
     print("Prediction skipped: Interpreter is null.");
+    return;
+  }
+  if (_scaler == null) {
+    print("Prediction skipped: Scaler is null.");
     return;
   }
   if (_historyForChart.length < 10) {
     print("Prediction skipped: Not enough history data (${_historyForChart.length}/10).");
     return;
   }
-  // --- نهاية جمل الطباعة ---
 
   const int sequenceLength = 10;
-  const int numFeatures = 5;
-
   final recentHistory = _historyForChart.sublist(_historyForChart.length - sequenceLength);
 
-  var input = List.generate(sequenceLength, (i) {
-    final record = recentHistory[i];
-    return [
-      record['HR']?.toDouble() ?? 0.0,
-      record['Temp']?.toDouble() ?? 0.0,
-      record['SaO2']?.toDouble() ?? 0.0,
-      record['NISysABP']?.toDouble() ?? 0.0,
-      record['NIDiasABP']?.toDouble() ?? 0.0,
-    ];
-  });
+  
+  final List<List<double>> seqNorm = [];
+  for (int i = 0; i < sequenceLength; i++) {
+    final r = recentHistory[i];
 
-  var shapedInput = [input];
-  var output = List.filled(1 * numFeatures, 0.0).reshape([1, numFeatures]);
+    
+  final rawVec = [
+  double.tryParse(r['HR']?.toString() ?? '0') ?? 0.0,
+  double.tryParse(r['Temp']?.toString() ?? '0') ?? 0.0,
+  double.tryParse(r['SaO2']?.toString() ?? '0') ?? 0.0,
+  double.tryParse(r['NISysABP']?.toString() ?? '0') ?? 0.0,
+  double.tryParse(r['NIDiasABP']?.toString() ?? '0') ?? 0.0,
+  ];
+
+    
+    final normVec = _scaler!.normalizeVector(rawVec);
+    seqNorm.add(normVec);
+  }
+
+  
+final input = [seqNorm];
+
+final List<List<double>> output = [
+  List<double>.filled(5, 0.0),
+];
 
   try {
-    _interpreter!.run(shapedInput, output);
-    final predictedValues = output[0];
+    _interpreter!.run(input, output);
+
+    
+    final denorm = _scaler!.denormalizeVector(output[0]);
 
     setState(() {
       _predictedVitals = {
-        'HR': predictedValues[0],
-        'Temp': predictedValues[1],
-        'SaO2': predictedValues[2],
-        'NISysABP': predictedValues[3],
-        'NIDiasABP': predictedValues[4],
+        'HR'       : denorm[0],
+        'Temp'     : denorm[1],
+        'SaO2'     : denorm[2],
+        'NISysABP' : denorm[3],
+        'NIDiasABP': denorm[4],
       };
-      // --- جملة طباعة مهمة جداً ---
-      print('>>> PREDICTION SET SUCCESSFULLY: $_predictedVitals');
     });
 
+    print('>>> PREDICTION (denormalized): $_predictedVitals');
+    _checkForAlerts();
+
   } catch (e) {
-    // --- جملة طباعة للخطأ ---
     print("!!! ERROR running model prediction: $e");
   }
 }
 
 
-// أضف هذه الدالة الجديدة في الكلاس الخاص بك
+
+
 LineChartBarData _buildPredictionLine({
   required String vitalKey,
   required Color color,
@@ -169,7 +215,7 @@ LineChartBarData _buildPredictionLine({
     print('--- [$vitalKey] Skipped: One of the values is not a valid number.');
     return LineChartBarData(show: false);
   }
-  // --- نهاية جمل الطباعة ---
+  
 
   return LineChartBarData(
     spots: [
@@ -185,31 +231,101 @@ LineChartBarData _buildPredictionLine({
 }
 
 Future<void> _loadDataAndConfigureService() async {
-    // تحميل البيانات (نفس كود _loadDataForPatient السابق)
-    await _loadModel();
-    await _loadDataForPatient();
+  await _loadScaler();
 
-    // بعد تحميل البيانات بنجاح، أرسلها إلى الخدمة الخلفية
-    if (_patientSpecificDataset.isNotEmpty) {
-      //_currentVitals = _patientSpecificDataset[0];
-      FlutterBackgroundService().invoke('startPatientSimulation', {
-  'patientId': widget.patientId,
-  'dataset': _patientSpecificDataset.map((record) {
-    return {
-      ...record,
-      'time': (record['time'] as DateTime).toIso8601String(), // ← أو .millisecondsSinceEpoch
-    };
-  }).toList(),
-  'startIndex': 0,
-});
-    }
+  // تحميل الموديل
+  await _loadModel();
 
-    if (mounted) setState(() => _isLoading = false);
+  // ✅ أضيفي هذا الشرط هنا
+  if (_interpreter == null) {
+    print('⚠️ Interpreter not ready, skipping simulation start.');
+    return;
   }
 
+  // تحميل بيانات المريض
+  await _loadDataForPatient();
+
+  // بعد تحميل البيانات، إرسالها إلى الخدمة الخلفية
+  if (_patientSpecificDataset.isNotEmpty) {
+    FlutterBackgroundService().invoke('startPatientSimulation', {
+      'patientId': widget.patientId,
+      'dataset': _patientSpecificDataset.map((record) {
+        return {
+          ...record,
+          'time': (record['time'] as DateTime).toIso8601String(),
+        };
+      }).toList(),
+      'startIndex': 0,
+    });
+  }
+
+  if (mounted) setState(() => _isLoading = false);
+}
 
 
 
+void _checkForAlerts() {
+  if (_predictedVitals == null) return;
+
+  bool critical = false;
+  _predictedVitals!.forEach((key, value) {
+    if (_isVitalCritical(key, value)) {
+      critical = true;
+    }
+  });
+
+  if (critical) {
+    _criticalCount++;
+    if (_criticalCount >= 3) {
+      _showAlertNotification('Vitals'); // 🔔 إشعار بعد 3 قراءات خطيرة متتالية
+      _criticalCount = 0; // نعيد العدّ بعد الإشعار
+    }
+  } else {
+    _criticalCount = 0; // نعيد العدّ إذا رجعت القيم طبيعية
+  }
+}
+
+bool _isVitalCritical(String key, double? value) {
+  if (value == null) return false;
+  switch (key) {
+    case 'HR':
+      return value > 120 || value < 50;
+    case 'Temp':
+      return value > 38.5 || value < 35.5;
+    case 'SaO2':
+      return value < 90;
+    case 'NISysABP':
+      return value > 150 || value < 90;
+    case 'NIDiasABP':
+      return value > 100 || value < 50;
+    default:
+      return false;
+  }
+}
+
+
+Future<void> _showAlertNotification(String vitalName) async {
+  const AndroidNotificationDetails androidDetails =
+      AndroidNotificationDetails(
+    'vital_alerts', // id
+    'Vital Alerts', // اسم القناة
+    channelDescription: 'Alerts for abnormal vital signs',
+    importance: Importance.max,
+    priority: Priority.high,
+    color: Color(0xFFD32F2F),
+    icon: '@mipmap/ic_launcher',
+  );
+
+  const NotificationDetails generalNotificationDetails =
+      NotificationDetails(android: androidDetails);
+
+  await _notificationsPlugin.show(
+    0, // رقم الإشعار (تقدرين تغيّرينه لو بتستخدمين أكثر من إشعار)
+    '⚠️ Critical Alert',
+    'The patient’s $vitalName values are critically abnormal!',
+    generalNotificationDetails,
+  );
+}
 
 
   // --- دوال منطق العمل ---
@@ -392,20 +508,21 @@ Future<void> _loadDataForPatient() async {
                 ),
                 borderData: FlBorderData(show: false),
                
-                minX: max(0, _historyForChart.length - 50).toDouble() - 1, // نطرح 1 لإعطاء مسافة على اليسار
-                maxX: (_historyForChart.length - 1).toDouble() + 4,
+                minX: (_historyForChart.length > 10 ? _historyForChart.length - 10 : 0).toDouble(),
+                maxX: (_historyForChart.length - 1).toDouble() + 2,
+
                  
                 lineBarsData: [
-                  _buildLine(vitalKey: 'HR', color: Colors.red),
-                  _buildPredictionLine(vitalKey: 'HR', color: Colors.red),
+                  _buildPredictionLine(vitalKey: 'HR', color: const Color.fromARGB(255, 240, 139, 132)),
+                  _buildLine(vitalKey: 'HR', color: const Color.fromARGB(255, 250, 19, 2)),
+                  _buildPredictionLine(vitalKey: 'Temp', color: const Color.fromARGB(255, 248, 202, 132)),
                   _buildLine(vitalKey: 'Temp', color: Colors.orange),
-                  _buildPredictionLine(vitalKey: 'Temp', color: Colors.orange),
-                  _buildLine(vitalKey: 'SaO2', color: Colors.blue),
-                  _buildPredictionLine(vitalKey: 'SaO2', color: Colors.blue),
-                  _buildLine(vitalKey: 'NISysABP', color: Colors.purple),
-                  _buildPredictionLine(vitalKey: 'NISysABP', color: Colors.purple),
+                  _buildPredictionLine(vitalKey: 'SaO2', color: const Color.fromARGB(255, 131, 193, 243)),
+                  _buildLine(vitalKey: 'SaO2', color: const Color.fromARGB(255, 0, 137, 250)),
+                  _buildPredictionLine(vitalKey: 'NISysABP', color: const Color.fromARGB(255, 201, 145, 211)),
+                  _buildLine(vitalKey: 'NISysABP', color: const Color.fromARGB(255, 149, 2, 175)),
+                  _buildPredictionLine(vitalKey: 'NIDiasABP', color: const Color.fromARGB(255, 115, 189, 181)),
                   _buildLine(vitalKey: 'NIDiasABP', color: Colors.teal),
-                  _buildPredictionLine(vitalKey: 'NIDiasABP', color: Colors.teal),
                 ],
               ),
             ),
@@ -464,7 +581,19 @@ Future<void> _loadDataForPatient() async {
       isCurved: true,
       color: color,
       barWidth: 2,
-      dotData: const FlDotData(show: false),
+      dotData: FlDotData(
+  show: true,
+  checkToShowDot: (spot, barData) {
+    return spot == barData.spots.last;
+  },
+  getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+    radius: 5, // حجم النقطة
+    color: barData.color ?? const Color(0xFF000000), // ✅ استخدم color بدل colors
+    strokeWidth: 2,
+    strokeColor: Colors.white,
+  ),
+),
+
     );
   }
 Widget _buildHeader() {
@@ -732,6 +861,8 @@ Widget _buildPatientInfoCard() {
     ),
   );
 }
+
+
 
 // دالة بناء شريط التنقل السفلي بالتصميم الجديد
 Widget _buildBottomNavBar() {

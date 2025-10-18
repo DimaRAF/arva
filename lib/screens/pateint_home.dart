@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'profile_screen.dart'; // تأكد من استيراد شاشة الملف الشخصي
+import 'profile_screen.dart'; 
 import 'uploud_medical_report.dart';
 
 class PatientHomeScreen extends StatefulWidget {
@@ -15,9 +15,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const _HomePageContent(), // الواجهة الرئيسية (تحتوي على كل الكود القديم)
-    const Center(child: Text("Search Page", style: TextStyle(fontSize: 24))), // واجهة البحث (مؤقتة)
-    const ProfileScreen(), // واجهة الملف الشخصي التي أنشأناها
+    const _HomePageContent(), 
+    const Center(child: Text("Search Page", style: TextStyle(fontSize: 24))), 
+    const ProfileScreen(), 
   ];
 
   @override
@@ -43,7 +43,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // تم إصلاح طريقة بناء الأيقونات
+          
           _buildNavItem(icon: Icons.home, index: 0),
           _buildNavItem(icon: Icons.search, index: 1),
           _buildNavItem(icon: Icons.person, index: 2),

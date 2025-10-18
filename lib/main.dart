@@ -8,9 +8,7 @@ import 'screens/pateint_home.dart';
 import 'screens/medical_staff_home_screen.dart';
 import 'dart:async';
 import 'dart:ui';
-import 'dart:convert';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 
 Map<String, dynamic> patientSimulationData = {};
@@ -111,87 +109,62 @@ class RoleChecker extends StatelessWidget {
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
   
+  // الخريطة ستحتوي على المؤقتات النشطة فقط
   final Map<String, Timer> activeSimulations = {};
-  
-  // --- دالة مساعدة لبدء المحاكاة لتجنب تكرار الكود ---
-  void startSimulationLogic(String patientId, List<Map<String, dynamic>> dataset, int startIndex) {
-    if (activeSimulations.containsKey(patientId)) return;
-    
-    int simulationIndex = startIndex;
-    print("Starting simulation for $patientId at index $simulationIndex");
 
-    Timer patientTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (dataset.isEmpty) {
-        timer.cancel();
-        return;
-      }
-      final nextIndex = simulationIndex % dataset.length;
-      final newVitals = dataset[nextIndex];
-
-      final encodableVitals = newVitals.map((key, value) {
-        if (value is DateTime) return MapEntry(key, value.toIso8601String());
-        return MapEntry(key, value);
-      });
-
-      service.invoke('update', {'patientId': patientId, 'vitals': encodableVitals});
-      simulationIndex++;
-    });
-
-    activeSimulations[patientId] = patientTimer;
-  }
-  
-  // --- استعادة الحالة عند بدء تشغيل الخدمة ---
-  final prefs = await SharedPreferences.getInstance();
-  final String? savedSimulationsJson = prefs.getString('active_simulations_state');
-
-  if (savedSimulationsJson != null) {
-    final Map<String, dynamic> savedState = jsonDecode(savedSimulationsJson);
-    savedState.forEach((patientId, data) {
-      // أعد تشغيل المحاكاة للمرضى الذين كانوا نشطين
-      final dataset = List<Map<String, dynamic>>.from(data['dataset']);
-      // ملاحظة: لم نقم بتخزين الـ index الحالي للتبسيط، ستبدأ من الصفر عند إعادة التشغيل
-      // ولكنها لن تضاف مرة أخرى عند دخول الشاشة
-      startSimulationLogic(patientId, dataset, 0); 
-    });
-  }
-
-  // --- منطق الأوامر القادمة من الواجهة ---
-  service.on('startPatientSimulation').listen((data) async {
+  // الاستماع لأمر بدء محاكاة جديدة
+  service.on('startPatientSimulation').listen((data) {
     if (data == null) return;
     final patientId = data['patientId'] as String;
 
+    // التأكد من عدم وجود محاكاة نشطة لنفس المريض
     if (activeSimulations.containsKey(patientId)) {
       print("Simulation for $patientId is already running.");
       return;
     }
     
     final dataset = List<Map<String, dynamic>>.from(data['dataset']);
-    startSimulationLogic(patientId, dataset, data['startIndex'] ?? 0);
+    int simulationIndex = data['startIndex'] ?? 0;
+    
+    print("✅ Starting simulation for $patientId at index $simulationIndex");
 
-    // حفظ الحالة الجديدة في الذاكرة الدائمة
-    final currentState = prefs.getString('active_simulations_state');
-    Map<String, dynamic> stateMap = currentState != null ? jsonDecode(currentState) : {};
-    stateMap[patientId] = {'dataset': dataset};
-    await prefs.setString('active_simulations_state', jsonEncode(stateMap));
+    // إنشاء المؤقت الدوري
+    Timer patientTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (dataset.isEmpty) {
+        timer.cancel();
+        return;
+      }
+      
+      final nextIndex = simulationIndex % dataset.length;
+      final newVitals = dataset[nextIndex];
+
+      // تحويل التاريخ إلى نص قبل إرساله
+      final encodableVitals = newVitals.map((key, value) {
+        if (value is DateTime) return MapEntry(key, value.toIso8601String());
+        return MapEntry(key, value);
+      });
+
+      // إرسال التحديث إلى الواجهة
+      service.invoke('update', {'patientId': patientId, 'vitals': encodableVitals});
+      simulationIndex++;
+    });
+
+    // إضافة المؤقت الجديد إلى الخريطة
+    activeSimulations[patientId] = patientTimer;
   });
 
-  service.on('stopPatientSimulation').listen((data) async {
+  // الاستماع لأمر إيقاف المحاكاة
+  service.on('stopPatientSimulation').listen((data) {
     if (data == null) return;
     final patientId = data['patientId'] as String;
     
+    // إيقاف المؤقت وإزالته من الخريطة
     activeSimulations[patientId]?.cancel();
     activeSimulations.remove(patientId);
-    
-    // تحديث الحالة في الذاكرة الدائمة
-    final currentState = prefs.getString('active_simulations_state');
-    if (currentState == null) return;
-    Map<String, dynamic> stateMap = jsonDecode(currentState);
-    stateMap.remove(patientId);
-    await prefs.setString('active_simulations_state', jsonEncode(stateMap));
-    print("Stopped and removed simulation for $patientId from persistent storage.");
+    print("🛑 Stopped simulation for $patientId.");
   });
 
-  // ... يمكنك إضافة الإشعار هنا إذا أردت ...
+  // إعداد الإشعار
   if (service is AndroidServiceInstance) {
     service.setForegroundNotificationInfo(
       title: "ARVA Monitoring Service",
@@ -199,9 +172,12 @@ void onStart(ServiceInstance service) async {
     );
   }
 }
-
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();
+
+  // لا تقم باستعادة الحالة هنا، دع الشاشة تدير ذلك عند فتحها
+  // هذا يبسط المنطق ويمنع الأخطاء
+
   await service.configure(
     androidConfiguration: AndroidConfiguration(
       onStart: onStart,

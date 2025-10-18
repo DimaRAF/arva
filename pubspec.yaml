@@ -38,6 +38,7 @@ dependencies:
   cloud_firestore: any
   google_sign_in: ^7.1.1
   sign_in_with_apple: ^7.0.1
+  flutter_local_notifications: ^17.1.2
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -83,7 +84,8 @@ flutter:
     - assets/blood_test.png
     - assets/lungs_check.png
     - assets/DNA.png
-    - assets/vitals_predictor.tflite
+    - assets/vitals_predictor_gru.tflite
+    - assets/vitals_scaler_params.json
     - assets/patient_vitals/ 
 
 
