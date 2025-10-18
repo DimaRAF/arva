@@ -8,10 +8,8 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:arva/ml/scaler_lite.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-
-
-
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class VitalSignsScreen extends StatefulWidget {
@@ -25,7 +23,17 @@ class VitalSignsScreen extends StatefulWidget {
 class _VitalSignsScreenState extends State<VitalSignsScreen> {
   String _patientName = "Unknown Patient";
   String _roomNumber = '--';
-  int _criticalCount = 0;
+  final Map<String, int> _lastAlertReadingCount = {};
+  final Map<String, int> _criticalCount = {
+  'HR': 0,
+  'Temp': 0,
+  'SaO2': 0,
+  'BP': 0,
+};
+
+final Map<String, DateTime> _lastAlertTime = {};
+
+  final Map<String, List<Map<String, dynamic>>> _patientDataCache = {};
 
    
   
@@ -54,43 +62,63 @@ Future<void> _initializeNotifications() async {
   const InitializationSettings initSettings =
       InitializationSettings(android: initSettingsAndroid);
 
-  await _notificationsPlugin.initialize(initSettings);
+  await _notificationsPlugin.initialize(
+    initSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse response) async {
+  if (response.payload != null && context.mounted) {
+    try {
+      final data = jsonDecode(response.payload!);
+      final patientId = data['patientId'];
+      final patientName = data['patientName'];
+
+     Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(
+    builder: (context) => VitalSignsScreen(patientId: patientId),
+  ),
+  (route) => route.isFirst, 
+);
+
+    } catch (e) {
+      print("❌ Failed to decode notification payload: $e");
+    }
+  }
+},
+
+  );
 }
+
 
 @override
 void initState() {
   super.initState();
   _initializeNotifications();
+   _loadChartHistory();
   // 1. تحميل البيانات وإرسالها للخدمة
   _loadDataAndConfigureService();
   
   // 2. الاستماع للتحديثات القادمة من الخدمة
   FlutterBackgroundService().on('update').listen((data) {
     // تأكد أن التحديث خاص بهذا المريض وأن الشاشة ما زالت موجودة
-    if (mounted && data != null && data['patientId'] == widget.patientId) {
-      setState(() {
-        // --- هذا هو الجزء الأهم الذي يجب التأكد منه ---
-
-        // أ) استلم البيانات القادمة في متغير جديد
-        final receivedVitals = Map<String, dynamic>.from(data['vitals']);
-
-        // ب) حوّل الوقت من نص إلى كائن تاريخ
-        if (receivedVitals['time'] is String) {
-          receivedVitals['time'] = DateTime.parse(receivedVitals['time'] as String);
-        }
-
-        // ج) استخدم البيانات بعد تحويلها
-        _currentVitals = receivedVitals;
-        _historyForChart.add(_currentVitals);
-        
-        // --- نهاية الجزء المهم ---
-
-        if (_historyForChart.length > 288) {
-          _historyForChart.removeAt(0);
-        }
-      });
-      _runPrediction();
+   if (mounted && data != null && data['patientId'] == widget.patientId) {
+  setState(() {
+    final receivedVitals = Map<String, dynamic>.from(data['vitals']);
+    if (receivedVitals['time'] is String) {
+      receivedVitals['time'] = DateTime.parse(receivedVitals['time'] as String);
     }
+    _currentVitals = receivedVitals;
+    _historyForChart.add(_currentVitals);
+    if (_historyForChart.length > 288) _historyForChart.removeAt(0);
+  });
+  
+  _saveChartHistory(); 
+  _checkVitalsAndNotify(_currentVitals, isPredicted: false);
+
+  _runPrediction();
+  
+
+}
+
   });
 }
 
@@ -177,17 +205,17 @@ final List<List<double>> output = [
         'NIDiasABP': denorm[4],
       };
     });
+    _saveChartHistory(); 
+
 
     print('>>> PREDICTION (denormalized): $_predictedVitals');
-    _checkForAlerts();
+    _checkVitalsAndNotify(_predictedVitals!, isPredicted: true);
+
 
   } catch (e) {
     print("!!! ERROR running model prediction: $e");
   }
 }
-
-
-
 
 LineChartBarData _buildPredictionLine({
   required String vitalKey,
@@ -231,6 +259,13 @@ LineChartBarData _buildPredictionLine({
 }
 
 Future<void> _loadDataAndConfigureService() async {
+  final prefs = await SharedPreferences.getInstance();
+  final data = prefs.getString('vitals_${widget.patientId}');
+  if (data != null) {
+    _currentVitals = jsonDecode(data);
+    print('♻️ Loaded cached vitals for ${widget.patientId}');
+  }
+
   await _loadScaler();
 
   // تحميل الموديل
@@ -249,6 +284,7 @@ Future<void> _loadDataAndConfigureService() async {
   if (_patientSpecificDataset.isNotEmpty) {
     FlutterBackgroundService().invoke('startPatientSimulation', {
       'patientId': widget.patientId,
+      'patientName': _patientName,
       'dataset': _patientSpecificDataset.map((record) {
         return {
           ...record,
@@ -262,53 +298,118 @@ Future<void> _loadDataAndConfigureService() async {
   if (mounted) setState(() => _isLoading = false);
 }
 
+Future<void> _saveChartHistory() async {
+  final prefs = await SharedPreferences.getInstance();
+  final encodedHistory = jsonEncode(_historyForChart.map((e) {
+    final map = Map<String, dynamic>.from(e);
+    if (map['time'] is DateTime) {
+      map['time'] = (map['time'] as DateTime).toIso8601String();
+    }
+    return map;
+  }).toList());
+
+  prefs.setString('chart_history_${widget.patientId}', encodedHistory);
+}
+
+Future<void> _loadChartHistory() async {
+  final prefs = await SharedPreferences.getInstance();
+  final saved = prefs.getString('chart_history_${widget.patientId}');
+  if (saved != null) {
+    final List<dynamic> decoded = jsonDecode(saved);
+    _historyForChart.clear();
+    _historyForChart.addAll(decoded.map((e) {
+      final map = Map<String, dynamic>.from(e);
+      if (map['time'] is String) {
+        map['time'] = DateTime.parse(map['time']);
+      }
+      return map;
+    }));
+  }
+}
 
 
-void _checkForAlerts() {
-  if (_predictedVitals == null) return;
+void _checkVitalsAndNotify(Map<String, dynamic> vitals, {bool isPredicted = false}) {
+  final hr = (vitals['HR'] as num?)?.toDouble() ?? 0;
+  final temp = (vitals['Temp'] as num?)?.toDouble() ?? 0;
+  final spo2 = (vitals['SaO2'] as num?)?.toDouble() ?? 0;
+  final sys = (vitals['NISysABP'] as num?)?.toDouble() ?? 0;
+  final dia = (vitals['NIDiasABP'] as num?)?.toDouble() ?? 0;
 
-  bool critical = false;
-  _predictedVitals!.forEach((key, value) {
-    if (_isVitalCritical(key, value)) {
-      critical = true;
+  // ❤️ HR
+  if (hr > 110 || hr < 50) {
+    _criticalCount['HR'] = (_criticalCount['HR'] ?? 0) + 1;
+  } else {
+    _criticalCount['HR'] = 0;
+  }
+
+  // 🌡 Temperature
+  if (temp > 38 || temp < 35.5) {
+    _criticalCount['Temp'] = (_criticalCount['Temp'] ?? 0) + 1;
+  } else {
+    _criticalCount['Temp'] = 0;
+  }
+
+  // 💧 Oxygen
+  if (spo2 < 93) {
+    _criticalCount['SaO2'] = (_criticalCount['SaO2'] ?? 0) + 1;
+  } else {
+    _criticalCount['SaO2'] = 0;
+  }
+
+  // 🩸 Blood Pressure
+  if (sys > 140 || dia > 90 || sys < 90 || dia < 60) {
+    _criticalCount['BP'] = (_criticalCount['BP'] ?? 0) + 1;
+  } else {
+    _criticalCount['BP'] = 0;
+  }
+
+  // 🚨 بعد 5 قراءات خطيرة متتالية فقط، أرسل تنبيه
+  _criticalCount.forEach((key, count) {
+    if (count >= 5) {
+      final lastAlert = _lastAlertTime[key];
+final lastAlertCount = _lastAlertReadingCount[key] ?? 0;
+final now = DateTime.now();
+
+// 👇 لا نرسل إشعار إلا إذا مر 5 دقائق أو 10 قراءات جديدة
+if (lastAlert == null ||
+    now.difference(lastAlert).inMinutes >= 5 ||
+    (_criticalCount[key]! - lastAlertCount) >= 10) {
+
+  _showAlertNotification("${_getVitalDisplayName(key)} for $_patientName");
+  _lastAlertTime[key] = now;
+  _lastAlertReadingCount[key] = _criticalCount[key]!;
+}
+
+      
+
+      _criticalCount[key] = 0; // نعيد العداد بعد الإشعار
     }
   });
-
-  if (critical) {
-    _criticalCount++;
-    if (_criticalCount >= 3) {
-      _showAlertNotification('Vitals'); // 🔔 إشعار بعد 3 قراءات خطيرة متتالية
-      _criticalCount = 0; // نعيد العدّ بعد الإشعار
-    }
-  } else {
-    _criticalCount = 0; // نعيد العدّ إذا رجعت القيم طبيعية
-  }
 }
 
-bool _isVitalCritical(String key, double? value) {
-  if (value == null) return false;
+String _getVitalDisplayName(String key) {
   switch (key) {
     case 'HR':
-      return value > 120 || value < 50;
+      return "Heart Rate";
     case 'Temp':
-      return value > 38.5 || value < 35.5;
+      return "Temperature";
     case 'SaO2':
-      return value < 90;
-    case 'NISysABP':
-      return value > 150 || value < 90;
-    case 'NIDiasABP':
-      return value > 100 || value < 50;
+      return "Oxygen Level (SaO2)";
+    case 'BP':
+      return "Blood Pressure";
     default:
-      return false;
+      return key;
   }
 }
 
 
-Future<void> _showAlertNotification(String vitalName) async {
+
+Future<void> _showAlertNotification(String vitalName, {bool isPredicted = false}) async {
+  final typeLabel = isPredicted ? "🧠 Predicted Data" : "📡 Real-Time Data";
   const AndroidNotificationDetails androidDetails =
       AndroidNotificationDetails(
-    'vital_alerts', // id
-    'Vital Alerts', // اسم القناة
+    'vital_alerts', 
+    'Vital Alerts', 
     channelDescription: 'Alerts for abnormal vital signs',
     importance: Importance.max,
     priority: Priority.high,
@@ -316,16 +417,21 @@ Future<void> _showAlertNotification(String vitalName) async {
     icon: '@mipmap/ic_launcher',
   );
 
-  const NotificationDetails generalNotificationDetails =
+  const NotificationDetails notificationDetails =
       NotificationDetails(android: androidDetails);
 
   await _notificationsPlugin.show(
-    0, // رقم الإشعار (تقدرين تغيّرينه لو بتستخدمين أكثر من إشعار)
-    '⚠️ Critical Alert',
-    'The patient’s $vitalName values are critically abnormal!',
-    generalNotificationDetails,
+    0,
+    '⚠️ Critical Alert - $_patientName',
+     '$typeLabel → Abnormal $vitalName detected for $_patientName!',
+    notificationDetails,
+    payload: jsonEncode({
+      'patientId': widget.patientId,
+      'patientName': _patientName,
+    }),
   );
 }
+
 
 
   // --- دوال منطق العمل ---
@@ -365,6 +471,15 @@ Map<String, dynamic> getBloodPressureStatus(double? systolic, double? diastolic)
   
 Future<void> _loadDataForPatient() async {
   try {
+
+    if (_patientDataCache.containsKey(widget.patientId)) {
+      print("♻️ Loaded ${widget.patientId} data from cache");
+      _patientSpecificDataset
+        ..clear()
+        ..addAll(_patientDataCache[widget.patientId]!);
+      return;
+    }
+
     final profileDoc = await FirebaseFirestore.instance
         .collection('patient_profiles')
         .doc(widget.patientId)
@@ -427,7 +542,10 @@ Future<void> _loadDataForPatient() async {
     }
     
     print("Successfully loaded ${_patientSpecificDataset.length} records for $_patientName.");
-    //_currentVitals = _patientSpecificDataset.isNotEmpty ? _patientSpecificDataset[0] : {};
+    
+    // ✅ خزّني البيانات في الكاش حتى ما تنحذف لما تغيري المريض
+    _patientDataCache[widget.patientId] = List.from(_patientSpecificDataset);
+
 
   } catch (e) {
     print("Error loading or processing patient data file: $e");
@@ -891,24 +1009,7 @@ Widget _buildNavItem({required IconData icon, required int index, required Strin
   final isSelected = _bottomNavIndex == index;
 
   return GestureDetector(
-    // onTap: () {
-    //   // --- هنا المنطق الخاص بكل زر ---
-
-    //   // الزر رقم 2 (File) سينتقل إلى شاشة الملف الذكي
-    //   if (index == 2) {
-    //     Navigator.push(
-    //       context,
-    //       MaterialPageRoute(
-    //         builder: (context) => PatientHomeScreen(),
-    //       ),
-    //     );
-    //   } else {
-    //     // باقي الأزرار ستغير الصفحة المعروضة فقط
-    //     setState(() {
-    //       _bottomNavIndex = index;
-    //     });
-    //   }
-    // },
+   
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [

@@ -9,6 +9,11 @@ import 'screens/medical_staff_home_screen.dart';
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'screens/vital_signs_screen.dart';
+
 
 
 Map<String, dynamic> patientSimulationData = {};
@@ -19,6 +24,30 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initializeService();
+  final FlutterLocalNotificationsPlugin notifications =
+    FlutterLocalNotificationsPlugin();
+
+const AndroidInitializationSettings initSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+const InitializationSettings initSettings =
+    InitializationSettings(android: initSettingsAndroid);
+
+await notifications.initialize(
+  initSettings,
+  onDidReceiveNotificationResponse: (NotificationResponse response) async {
+    if (response.payload != null) {
+      final data = jsonDecode(response.payload!);
+      final patientId = data['patientId'];
+      final patientName = data['patientName'];
+
+      runApp(MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: VitalSignsScreen(patientId: patientId),
+      ));
+    }
+  },
+);
+
   runApp(const MyApp());
 }
 
@@ -109,24 +138,59 @@ class RoleChecker extends StatelessWidget {
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
   
+  // ✅ تهيئة الإشعارات
+  final FlutterLocalNotificationsPlugin notifications =
+      FlutterLocalNotificationsPlugin();
+
+  const AndroidInitializationSettings initSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initSettings =
+      InitializationSettings(android: initSettingsAndroid);
+  await notifications.initialize(initSettings);
+
+  void showBackgroundAlert(String title, String body, String patientId, String patientName) {
+   notifications.show(
+  0,
+  title,
+  body,
+  const NotificationDetails(
+    android: AndroidNotificationDetails(
+      'vital_alerts',
+      'Vital Alerts',
+      channelDescription: 'Critical alerts for patient vitals',
+      importance: Importance.max,
+      priority: Priority.high,
+      color: Color(0xFFD32F2F),
+      icon: '@mipmap/ic_launcher',
+    ),
+  ),
+  payload: jsonEncode({
+    'patientId': patientId,
+    'patientName': patientName,
+  }),
+);
+  
+  }
   // الخريطة ستحتوي على المؤقتات النشطة فقط
   final Map<String, Timer> activeSimulations = {};
 
   // الاستماع لأمر بدء محاكاة جديدة
   service.on('startPatientSimulation').listen((data) {
-    if (data == null) return;
-    final patientId = data['patientId'] as String;
+  if (data == null) return;
+  final patientId = data['patientId'] as String;
+  final patientName = data['patientName'] ?? 'Unknown Patient'; 
+
 
     // التأكد من عدم وجود محاكاة نشطة لنفس المريض
     if (activeSimulations.containsKey(patientId)) {
-      print("Simulation for $patientId is already running.");
+      print("Simulation for $patientName is already running.");
       return;
     }
     
     final dataset = List<Map<String, dynamic>>.from(data['dataset']);
     int simulationIndex = data['startIndex'] ?? 0;
     
-    print("✅ Starting simulation for $patientId at index $simulationIndex");
+    print("✅ Starting simulation for $patientName at index $simulationIndex");
 
     // إنشاء المؤقت الدوري
     Timer patientTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -146,6 +210,53 @@ void onStart(ServiceInstance service) async {
 
       // إرسال التحديث إلى الواجهة
       service.invoke('update', {'patientId': patientId, 'vitals': encodableVitals});
+      saveVitals(patientId, encodableVitals);
+        //  معدل نبضات القلب
+  final hr = (newVitals['HR'] as num?)?.toDouble() ?? 0;
+  if (hr > 110 || hr < 50) {
+    showBackgroundAlert(
+      'Critical Heart Rate',
+      'Abnormal HR detected for patient $patientName (HR: ${hr.toStringAsFixed(1)})',
+      patientId,
+      patientName,
+    );
+  }
+
+  //  درجة الحرارة
+  final temp = (newVitals['Temp'] as num?)?.toDouble() ?? 0;
+  if (temp > 38 || temp < 35.5) {
+    showBackgroundAlert(
+      'Critical Temperature',
+      'Abnormal temperature detected for patient $patientName (Temp: ${temp.toStringAsFixed(1)}°C)',
+      patientId,
+      patientName,
+    );
+  }
+
+  //  تشبع الأكسجين
+  final spo2 = (newVitals['SaO2'] as num?)?.toDouble() ?? 0;
+  if (spo2 < 93) {
+    showBackgroundAlert(
+      'Low Oxygen Level',
+      'Patient $patientName has low oxygen level (SaO₂: ${spo2.toStringAsFixed(1)}%)',
+      patientId,
+      patientName,
+    );
+  }
+
+  //  ضغط الدم
+  final sys = (newVitals['NISysABP'] as num?)?.toDouble() ?? 0;
+  final dia = (newVitals['NIDiasABP'] as num?)?.toDouble() ?? 0;
+  if (sys > 140 || dia > 90 || sys < 90 || dia < 60) {
+    showBackgroundAlert(
+      'Abnormal Blood Pressure',
+      'Patient $patientName has abnormal BP (Sys: ${sys.toStringAsFixed(0)}, Dia: ${dia.toStringAsFixed(0)})', 
+      patientId,
+      patientName,     
+
+    );
+  }
+
       simulationIndex++;
     });
 
@@ -172,6 +283,7 @@ void onStart(ServiceInstance service) async {
     );
   }
 }
+
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();
 
@@ -189,4 +301,10 @@ Future<void> initializeService() async {
       autoStart: true,
     ),
   );
+}
+
+/// ✅ دالة حفظ العلامات الحيوية في SharedPreferences
+Future<void> saveVitals(String patientId, Map<String, dynamic> vitals) async {
+  final prefs = await SharedPreferences.getInstance();
+  prefs.setString('vitals_$patientId', jsonEncode(vitals));
 }
