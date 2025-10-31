@@ -97,7 +97,10 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         );
         
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const PatientHomeScreen()),
+          MaterialPageRoute(builder: (context) =>  PatientHomeScreen( 
+         patientId: userCredential.user!.uid,
+
+          ) ),
           (route) => false,
         );
       }

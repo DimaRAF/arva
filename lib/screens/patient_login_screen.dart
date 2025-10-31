@@ -68,7 +68,9 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
           if (mounted) {
            
             Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const PatientHomeScreen()),
+            MaterialPageRoute(builder: (context) =>  PatientHomeScreen( 
+             patientId: userCredential.user!.uid,
+          ) ),
             );
           }
         } else {

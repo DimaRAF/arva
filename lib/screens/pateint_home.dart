@@ -5,7 +5,8 @@ import 'profile_screen.dart';
 import 'uploud_medical_report.dart';
 
 class PatientHomeScreen extends StatefulWidget {
-  const PatientHomeScreen({super.key});
+  final String patientId;
+  const PatientHomeScreen({super.key, required this.patientId});
 
   @override
   State<PatientHomeScreen> createState() => _PatientHomeScreenState();
@@ -13,12 +14,28 @@ class PatientHomeScreen extends StatefulWidget {
 
 class _PatientHomeScreenState extends State<PatientHomeScreen> {
   int _selectedIndex = 0;
+  String? _currentUserRole;
+  final List<Widget> _pages = [];
 
-  final List<Widget> _pages = [
-    const _HomePageContent(), 
-    const Center(child: Text("Search Page", style: TextStyle(fontSize: 24))), 
-    const ProfileScreen(), 
-  ];
+@override
+void initState() {
+  super.initState();
+  _pages.addAll([
+    _HomePageContent(
+      patientId: widget.patientId,
+      onRoleLoaded: (role) {
+        setState(() {
+          _currentUserRole = role; // ✅ هنا يتم تحديث الدور في الأب
+        });
+      },
+    ),
+    const Center(child: Text("Search Page", style: TextStyle(fontSize: 24))),
+    const ProfileScreen(),
+  ]);
+}
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +46,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
-    );
+      bottomNavigationBar: 
+      _currentUserRole == 'Medical Staff'
+          ? null // الطبيب لا يشوف البار
+          : _buildBottomNavBar(), // المريض فقط يشوفه
+);
   }
 
   // دالة بناء شريط التنقل السفلي
@@ -83,7 +103,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 // --- تم إنشاء هذا الويدجت الجديد ليحتوي على كل محتوى الصفحة الرئيسية ---
 // هذا يجعل الكود منظماً وسهل القراءة
 class _HomePageContent extends StatefulWidget {
-  const _HomePageContent();
+  final String patientId;
+  final Function(String)? onRoleLoaded;
+  const _HomePageContent({required this.patientId, this.onRoleLoaded});
+
 
   @override
   State<_HomePageContent> createState() => __HomePageContentState();
@@ -92,6 +115,7 @@ class _HomePageContent extends StatefulWidget {
 class __HomePageContentState extends State<_HomePageContent> {
   Map<String, dynamic>? _patientData;
   bool _isLoading = true;
+  String? _currentUserRole;
 
   @override
   void initState() {
@@ -100,41 +124,70 @@ class __HomePageContentState extends State<_HomePageContent> {
   }
 
 Future<void> _fetchPatientData() async {
-    if (!mounted) return;
-    setState(() { _isLoading = true; });
+  if (!mounted) return;
+  setState(() {
+    _isLoading = true;
+  });
 
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        // 1. جلب البيانات من كلا المجموعتين
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-        DocumentSnapshot profileDoc = await FirebaseFirestore.instance.collection('patient_profiles').doc(user.uid).get();
+  try {
+    final patientId = widget.patientId;
 
-        // 2. دمج البيانات في خريطة واحدة
-        Map<String, dynamic> combinedData = {};
-        if (userDoc.exists) {
-          combinedData.addAll(userDoc.data() as Map<String, dynamic>);
-        }
-        if (profileDoc.exists) {
-          combinedData.addAll(profileDoc.data() as Map<String, dynamic>);
-        }
-        
-        if (mounted) {
-          setState(() {
-            _patientData = combinedData;
-          });
-        }
-      } catch (e) {
-        print("Error fetching patient data: $e");
-      }
+    // ✅ جلب المستخدم الحالي لمعرفة إذا كان طبيب أو مريض
+    final currentUser = FirebaseAuth.instance.currentUser;
+    String? currentUserRole;
+    if (currentUser != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+      currentUserRole = userDoc.data()?['role'];
     }
-    
+
+    // 1. جلب البيانات من كلا المجموعتين (users و patient_profiles)
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(patientId)
+        .get();
+
+    DocumentSnapshot profileDoc = await FirebaseFirestore.instance
+        .collection('patient_profiles')
+        .doc(patientId)
+        .get();
+
+    // 2. دمج البيانات في خريطة واحدة
+    Map<String, dynamic> combinedData = {};
+    if (userDoc.exists && userDoc.data() != null) {
+      combinedData.addAll(userDoc.data() as Map<String, dynamic>);
+    }
+    if (profileDoc.exists && profileDoc.data() != null) {
+      combinedData.addAll(profileDoc.data() as Map<String, dynamic>);
+    }
+
+    // ✅ حفظ الدور الحالي للمستخدم (عشان نستخدمه في الواجهة)
     if (mounted) {
       setState(() {
-        _isLoading = false;
+        _patientData = combinedData;
+        _currentUserRole = currentUserRole;
+         // <-- تمت إضافته فقط
       });
+      if (widget.onRoleLoaded != null && currentUserRole != null) {
+  widget.onRoleLoaded!(currentUserRole);
+}
+
     }
+  } catch (e) {
+    print("❌ Error fetching patient data: $e");
   }
+
+  // 4. إيقاف التحميل
+  if (mounted) {
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
+
+
 
   // --- vvv دالة جديدة لحفظ التعديلات في قاعدة البيانات vvv ---
   Future<void> _updatePatientProfile(String field, dynamic value) async {
@@ -211,34 +264,42 @@ Future<void> _fetchPatientData() async {
                   alignment: Alignment.center,
                   children: [
                     Container(
-                      height: 140,
-                      width: double.infinity,
-                      color: const Color(0xFF5FAAB1),
-                      child: SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'search',
-                                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                                suffixIcon: const Icon(Icons.close, color: Colors.grey),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(vertical: 15),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+  height: 155,
+  width: double.infinity,
+  color: const Color(0xFF5FAAB1),
+  child: SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.only(top: 30.0, left: 20.0, right: 20.0), // 👈 نزّل البحث شوي
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'search',
+          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          suffixIcon: const Icon(Icons.close, color: Colors.grey),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(vertical: 15),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    ),
+  ),
+),
+
+                    
+                     if (_currentUserRole == 'Medical Staff')
+      Positioned(
+        top: 40,
+        left: 20,
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
                     Positioned(
-                      top:165,
+                      top:175,
                       child: Container(
                         width: MediaQuery.of(context).size.width * 0.93,
                         padding: const EdgeInsets.all(25),
@@ -259,11 +320,24 @@ Future<void> _fetchPatientData() async {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text("Hi,", style: TextStyle(color: Colors.white, fontSize: 18)),
-                                Text(
-                                  _patientData?['username']?.toUpperCase() ?? 'USER',
-                                  style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                                ),
+                                if (_currentUserRole == 'Medical Staff') ...[
+  const Text(
+    "Smart File",
+    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+  
+  ), 
+  Text(
+    _patientData?['username']?.toUpperCase() ?? 'USER',
+    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+  ),]
+else ...[
+  const Text("Hi,", style: TextStyle(color: Colors.white, fontSize: 18)),
+  Text(
+    _patientData?['username']?.toUpperCase() ?? 'USER',
+    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+  ),
+],
+
                               ],
                             ),
                           ],

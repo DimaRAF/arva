@@ -19,6 +19,7 @@ import 'package:arva/ml/scaler_lite.dart';
 
 
 
+
 Map<String, dynamic> patientSimulationData = {};
 
 void main() async {
@@ -130,7 +131,7 @@ class RoleChecker extends StatelessWidget {
           return const MedicalStaffHomeScreen();
         } else {
           
-          return const PatientHomeScreen();
+          return PatientHomeScreen(patientId: user.uid);
         }
       },
     );
@@ -140,6 +141,9 @@ class RoleChecker extends StatelessWidget {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
+  final interpreter = await Interpreter.fromAsset('assets/vitals_predictor_gru.tflite');
+  final scaler = await loadScalerFromAssets('assets/vitals_scaler_params.json');
+
   
   // ✅ تهيئة الإشعارات
   final FlutterLocalNotificationsPlugin notifications =
@@ -151,29 +155,7 @@ void onStart(ServiceInstance service) async {
       InitializationSettings(android: initSettingsAndroid);
   await notifications.initialize(initSettings);
 
-  void showBackgroundAlert(String title, String body, String patientId, String patientName) {
-   notifications.show(
-  0,
-  title,
-  body,
-  const NotificationDetails(
-    android: AndroidNotificationDetails(
-      'vital_alerts',
-      'Vital Alerts',
-      channelDescription: 'Critical alerts for patient vitals',
-      importance: Importance.max,
-      priority: Priority.high,
-      color: Color(0xFFD32F2F),
-      icon: '@mipmap/ic_launcher',
-    ),
-  ),
-  payload: jsonEncode({
-    'patientId': patientId,
-    'patientName': patientName,
-  }),
-);
-  
-  }
+
   // الخريطة ستحتوي على المؤقتات النشطة فقط
   final Map<String, Timer> activeSimulations = {};
 
@@ -196,7 +178,7 @@ void onStart(ServiceInstance service) async {
     print("✅ Starting simulation for $patientName at index $simulationIndex");
 
     // إنشاء المؤقت الدوري
-    Timer patientTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    Timer patientTimer = Timer.periodic(const Duration(seconds: 5), (timer)   async {
       if (dataset.isEmpty) {
         timer.cancel();
         return;
@@ -213,7 +195,22 @@ void onStart(ServiceInstance service) async {
 
       // إرسال التحديث إلى الواجهة
       service.invoke('update', {'patientId': patientId, 'vitals': encodableVitals});
-      saveVitals(patientId, encodableVitals);
+      
+      // ✅ حفظ القيم الجديدة في SharedPreferences
+      await saveVitals(patientId, encodableVitals);
+
+// ✅ تحميل آخر 10 قراءات لتشغيل التنبؤ
+final recentHistory = await loadRecentVitals(patientId, limit: 10);
+if (recentHistory.length == 10) {
+  final prediction = runPrediction(interpreter, scaler, recentHistory);
+
+  // حفظ التنبؤ
+  await savePredictedVitals(patientId, prediction);
+
+  // فحص التنبؤ إذا فيه خطر
+  checkAndNotify(prediction, patientId, patientName, isPredicted: true);
+}
+
         //  معدل نبضات القلب
   final hr = (newVitals['HR'] as num?)?.toDouble() ?? 0;
   if (hr > 110 || hr < 50) {
@@ -287,6 +284,9 @@ void onStart(ServiceInstance service) async {
   }
 }
 
+
+
+
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();
 
@@ -310,4 +310,91 @@ Future<void> initializeService() async {
 Future<void> saveVitals(String patientId, Map<String, dynamic> vitals) async {
   final prefs = await SharedPreferences.getInstance();
   prefs.setString('vitals_$patientId', jsonEncode(vitals));
+}
+
+Future<List<Map<String, dynamic>>> loadRecentVitals(String id, {int limit = 10}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final data = prefs.getString('vitals_history_$id');
+  if (data == null) return [];
+  final decoded = List<Map<String, dynamic>>.from(jsonDecode(data));
+  return decoded.length > limit
+      ? decoded.sublist(decoded.length - limit)
+      : decoded;
+}
+
+
+
+Future<void> savePredictedVitals(String id, Map<String, dynamic> vitals) async {
+  final prefs = await SharedPreferences.getInstance();
+  prefs.setString('predicted_vitals_$id', jsonEncode(vitals));
+}
+
+
+Map<String, dynamic> runPrediction(Interpreter interpreter, MinMaxScalerLite scaler, List<Map<String, dynamic>> history) {
+  final seqNorm = history.map((r) {
+    final rawVec = [
+      (r['HR'] as num).toDouble(),
+      (r['Temp'] as num).toDouble(),
+      (r['SaO2'] as num).toDouble(),
+      (r['NISysABP'] as num).toDouble(),
+      (r['NIDiasABP'] as num).toDouble(),
+    ];
+    return scaler.normalizeVector(rawVec);
+  }).toList();
+
+  final input = [seqNorm];
+  final output = [List<double>.filled(5, 0)];
+  interpreter.run(input, output);
+
+  final denorm = scaler.denormalizeVector(output[0]);
+  return {
+    'HR': denorm[0],
+    'Temp': denorm[1],
+    'SaO2': denorm[2],
+    'NISysABP': denorm[3],
+    'NIDiasABP': denorm[4],
+  };
+}
+
+void checkAndNotify(Map<String, dynamic> vitals, String patientId, String patientName, {bool isPredicted = false}) {
+  final type = isPredicted ? "🧠 Predicted" : "📡 Real-Time";
+
+  final hr = (vitals['HR'] as num?)?.toDouble() ?? 0;
+  final temp = (vitals['Temp'] as num?)?.toDouble() ?? 0;
+  final spo2 = (vitals['SaO2'] as num?)?.toDouble() ?? 0;
+
+  if (hr > 110 || hr < 50) {
+    showBackgroundAlert('$type - Heart Rate Alert', 'Abnormal HR for $patientName (${hr.toStringAsFixed(1)})', patientId, patientName);
+  }
+  if (temp > 38 || temp < 35.5) {
+    showBackgroundAlert('$type - Temperature Alert', 'Abnormal Temp for $patientName (${temp.toStringAsFixed(1)}°C)', patientId, patientName);
+  }
+  if (spo2 < 93) {
+    showBackgroundAlert('$type - Oxygen Alert', 'Low SaO₂ for $patientName (${spo2.toStringAsFixed(1)}%)', patientId, patientName);
+  }
+}
+void showBackgroundAlert(String title, String body, String patientId, String patientName) {
+  final FlutterLocalNotificationsPlugin notifications =
+      FlutterLocalNotificationsPlugin();
+
+  notifications.show(
+    0,
+    title,
+    body,
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'vital_alerts',
+        'Vital Alerts',
+        channelDescription: 'Critical alerts for patient vitals',
+        importance: Importance.max,
+        priority: Priority.high,
+        color: Color(0xFFD32F2F),
+        icon: '@mipmap/ic_launcher',
+      ),
+    ),
+    payload: jsonEncode({
+      'patientId': patientId,
+      'patientName': patientName,
+    }),
+  );
 }

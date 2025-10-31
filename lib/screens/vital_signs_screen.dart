@@ -10,7 +10,7 @@ import 'package:arva/ml/scaler_lite.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'pateint_home.dart';
 
 class VitalSignsScreen extends StatefulWidget {
   final String patientId;
@@ -573,7 +573,7 @@ Future<void> _loadDataForPatient() async {
                 ],
               ),
             ),
-       bottomNavigationBar: _buildBottomNavBar(),
+       
     );
   }
 
@@ -871,65 +871,77 @@ Widget _buildVitalsGrid(Map<String, dynamic> data) {
   );
 }
   
-Widget _buildPatientInfoCard() {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-    decoration: BoxDecoration(
-      color: const Color(0xFF6A8EAF),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Row(
-      children: [
-       
-        CircleAvatar(
-          radius: 37,
-          backgroundColor: Colors.transparent, 
-          child: ClipOval( 
-          child: Image.asset(
-           'assets/patient_icon.png',
-           fit: BoxFit.cover, 
-      
-      
-          color: const Color.fromARGB(255, 255, 255, 255), 
-          colorBlendMode: BlendMode.srcIn, 
-      
+  Widget _buildPatientInfoCard() {
+  return GestureDetector(
+
+    onTap: () {
+      print("🩺 Navigating to patient profile with ID: ${widget.patientId}");
+      // الانتقال إلى صفحة الملف الذكي للمريض
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PatientHomeScreen( 
+            patientId: widget.patientId,
+          ) ,
         ),
-  ),
-),
-       
-        const SizedBox(width: 15),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _patientName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+      );
+    },
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      decoration: BoxDecoration(
+        color: const Color(0xFF6A8EAF),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 37,
+            backgroundColor: Colors.transparent,
+            child: ClipOval(
+              child: Image.asset(
+                'assets/patient_icon.png',
+                fit: BoxFit.cover,
+                color: const Color.fromARGB(255, 255, 255, 255),
+                colorBlendMode: BlendMode.srcIn,
               ),
             ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(
-                  Icons.bed,
-                  color: Colors.white70,
-                  size: 16,
+          ),
+          const SizedBox(width: 15),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _patientName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  "Room $_roomNumber",
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.bed,
+                    color: Colors.white70,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Room $_roomNumber",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     ),
   );
 }
+
+
   Widget _buildVitalCard({
   required IconData icon,
   required Color iconColor,
@@ -980,74 +992,6 @@ Widget _buildPatientInfoCard() {
   );
 }
 
-
-
-// دالة بناء شريط التنقل السفلي بالتصميم الجديد
-Widget _buildBottomNavBar() {
-  return Container(
-    height: 70,
-    decoration: const BoxDecoration(
-      color: Color(0xFF4C6EA0), // لون الخلفية الأزرق
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        // هنا نضع أيقونات شاشة الكادر الطبي بالترتيب
-        _buildNavItem(icon: Icons.home, index: 0, label: 'Home'),
-        _buildNavItem(icon: Icons.favorite, index: 1, label: 'Vitals'), // أيقونة العلامات الحيوية
-        _buildNavItem(icon: Icons.receipt_long, index: 2, label: 'File'), // أيقونة الملف الذكي
-        _buildNavItem(icon: Icons.person, index: 3, label: 'Profile'),
-      ],
-    ),
-  );
-}
-
-// دالة بناء كل أيقونة في شريط التنقل (نفس تصميم شاشة المريض)
-Widget _buildNavItem({required IconData icon, required int index, required String label}) {
-  // تأكد من أن اسم المتغير هنا يطابق اسم متغير الحالة في شاشتك
-  // في شاشتك اسمه _bottomNavIndex
-  final isSelected = _bottomNavIndex == index;
-
-  return GestureDetector(
-   
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        isSelected
-            ? Transform.translate(
-                offset: const Offset(0, -15),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xFF6A8EAF), // لون الدائرة المرتفعة
-                     boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 10,
-                          offset: Offset(0, 5),
-                        ),
-                      ],
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 30),
-                ),
-              )
-            : Icon(icon, color: Colors.white.withOpacity(0.7), size: 28),
-        
-        // إضافة النص تحت الأيقونة
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
-    ),
-  );
-}
 }
 
 class HeartbeatPainter extends CustomPainter {
