@@ -88,7 +88,7 @@ class PdfExtractor {
 
         // استبعاد أسماء ليست تحاليل
         final badName = RegExp(
-          r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name)$',
+          r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name|Patient ID)$',
           caseSensitive: false,
         );
         if (badName.hasMatch(rawName)) continue;
