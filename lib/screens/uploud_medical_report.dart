@@ -179,8 +179,15 @@ class _ActionButton extends StatelessWidget {
   final String label;
   final Widget? trailing;
   final VoidCallback onTap;
-  const _ActionButton({required this.leading, required this.label, this.trailing, required this.onTap});
-
+  final VoidCallback? onTrailingTap;
+  const _ActionButton({
+    required this.leading,
+    required this.label,
+    this.trailing,
+    required this.onTap,
+    this.onTrailingTap
+  });
+  
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

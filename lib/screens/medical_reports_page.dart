@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'results_page.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
 
-// 1. تم تعديل الكلاس ليستخدم مسار الصورة المحلي بدلاً من الرابط
+
 class ReportItem {
   final String title;
   final String date;
-  final String iconPath; // <--- تم تغيير iconUrl إلى iconPath
+  final String iconPath; 
   final Color backgroundColor;
 
   ReportItem({
     required this.title,
     required this.date,
-    required this.iconPath, // <--- تغيير هنا
+    required this.iconPath, 
     required this.backgroundColor,
   });
 }
@@ -21,12 +23,14 @@ class MedicalReportsPage extends StatefulWidget {
 
   @override
   State<MedicalReportsPage> createState() => _MedicalReportsPageState();
+
+  
 }
 
 class _MedicalReportsPageState extends State<MedicalReportsPage> {
   final TextEditingController _searchController = TextEditingController();
 
-  // 2. تم تحديث القائمة لتستخدم مسارات الصور المحلية
+  
   final List<ReportItem> reports = [
     ReportItem(
       title: 'Blood Test',

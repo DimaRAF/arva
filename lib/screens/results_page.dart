@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 //import 'recommendation_page.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:io';
+import '../models/lab_test.dart';
+import '../services/pdf_extractor.dart';
+import '../services/inference_service.dart';
+import '../services/ui_mapping.dart';
+
 
 
 class AppColors {
@@ -84,72 +91,18 @@ class ResultsPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 24),
+                    const DynamicResultsFromAsset(assetPdfPath: 'assets/fileName.pdf'),
+                    const SizedBox(height: 16),
 
-                  ResultCard(
-                    testName: '(WBC)',
-                    status: 'slightly elevated',
-                    value: '11.7',
-                    backgroundColor: AppColors.elevatedBg,
-                    rangeMin: '4×10^9/L',
-                    rangeMax: '11×10^9/L',
-                    indicatorPosition: 0.85,
-                  ),
-                  const SizedBox(height: 12),
 
-                  ResultCard(
-                    testName: '(MCV)',
-                    status: 'slightly lower',
-                    value: '75.4',
-                    backgroundColor: AppColors.elevatedBg,
-                    rangeMin: '80fl',
-                    rangeMax: '95fl',
-                    indicatorPosition: 0.12,
-                  ),
-                  const SizedBox(height: 12),
+                  
 
-                  ResultCard(
-                    testName: '(MCH)',
-                    status: 'slightly lower',
-                    value: '24.8',
-                    backgroundColor: AppColors.warningBg,
-                    rangeMin: '31 pg',
-                    rangeMax: '36 pg',
-                    indicatorPosition: 0.12,
-                    // onTap: () {
-                    //     // 3. عند الضغط، انتقل إلى صفحة التفاصيل
-                    //     Navigator.of(context).push(
-                    //       MaterialPageRoute(builder: (context) => const BloodTest()),
-                    //     );
-                    //   },
-                  ),
-                  const SizedBox(height: 12),
+                  
 
-                  ResultCard(
-                    testName: '(Hct)',
-                    status: 'normal',
-                    value: '41',
-                    backgroundColor: AppColors.medicalSoftGrey,
-                    rangeMin: '37',
-                    rangeMax: '47',
-                    indicatorPosition: 0.60,
-                  ),
-                  const SizedBox(height: 16),
+                  
+                 
 
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.medicalSoftGrey,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: const Text(
-                      'Overall, the CBC results suggest a possible infection or inflammation, '
-                      'but further evaluation is needed to determine the underlying cause. '
-                      'It is important to consult with a healthcare professional to interpret '
-                      'the results and receive appropriate treatment or further testing.',
-                      style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black),
-                    ),
-                  ),
+                  
                 ],
               ),
             ),
@@ -349,4 +302,111 @@ class TrianglePainter extends CustomPainter {
   }
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+
+class DynamicResultsFromAsset extends StatelessWidget {
+  final String assetPdfPath;
+  const DynamicResultsFromAsset({super.key, required this.assetPdfPath});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<_UiRow>>(
+      future: _loadRows(assetPdfPath),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snap.hasError) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.elevatedBg, borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text('${snap.error}', style: const TextStyle(color: AppColors.medicalDark)),
+          );
+        }
+        final rows = snap.data ?? const <_UiRow>[];
+        if (rows.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('No tests found in the report.'),
+          );
+        }
+        return Column(
+          children: [
+            for (final r in rows) ...[
+              ResultCard(
+                testName: r.testName,
+                status: r.status,
+                value: r.value,
+                backgroundColor: r.bg,
+                rangeMin: r.minLabel,
+                rangeMax: r.maxLabel,
+                indicatorPosition: r.indicator,
+              ),
+              const SizedBox(height: 12),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  // === Helpers ===
+  static Future<List<_UiRow>> _loadRows(String assetPdfPath) async {
+    // Parse PDF مباشرة من الـ assets
+final tests = await PdfExtractor.parseAsset(assetPdfPath);
+
+
+    // 3) شغّلي المودل لكل تحليل، وابني صفوف العرض
+    final out = <_UiRow>[];
+for (final t in tests) {
+  final res = await InferenceService.decide(t); // res.tri & res.source
+  final hasRange = t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
+
+  out.add(_UiRow(
+    testName: '(${t.code})',
+    status: UiMapping.status(res.tri, res.source, hasRange: hasRange),
+    value: _fmtVal(t.value),
+    bg: UiMapping.bg(res.tri, res.source),
+    minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
+    maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',
+    indicator: UiMapping.indicator(t.value, t.refMin, t.refMax),
+  ));
+}
+
+    return out;
+  }
+
+  static String _fmtVal(double v) =>
+      v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
+
+  static String _fmtRange(double v, String code) {
+    final u = code.toUpperCase();
+    if (u == 'WBC') return '${v.toStringAsFixed(0)}×10^9/L';
+    if (u == 'MCV') return '${v.toStringAsFixed(0)} fL';
+    if (u == 'MCH') return '${v.toStringAsFixed(0)} pg';
+    if (u == 'HCT') return v.toStringAsFixed(0);
+    return v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
+  }
+}
+
+// نموذج بيانات العرض (نفس شكل الكروت عندك)
+class _UiRow {
+  final String testName, status, value, minLabel, maxLabel;
+  final double indicator;
+  final Color bg;
+  _UiRow({
+    required this.testName,
+    required this.status,
+    required this.value,
+    required this.bg,
+    required this.minLabel,
+    required this.maxLabel,
+    required this.indicator,
+  });
 }
