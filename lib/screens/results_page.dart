@@ -386,13 +386,10 @@ for (final t in tests) {
       v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
 
   static String _fmtRange(double v, String code) {
-    final u = code.toUpperCase();
-    if (u == 'WBC') return '${v.toStringAsFixed(0)}×10^9/L';
-    if (u == 'MCV') return '${v.toStringAsFixed(0)} fL';
-    if (u == 'MCH') return '${v.toStringAsFixed(0)} pg';
-    if (u == 'HCT') return v.toStringAsFixed(0);
-    return v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
-  }
+  // بدون وحدات نهائياً
+  return v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
+}
+
 }
 
 // نموذج بيانات العرض (نفس شكل الكروت عندك)
