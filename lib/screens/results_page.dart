@@ -7,8 +7,6 @@ import '../services/pdf_extractor.dart';
 import '../services/inference_service.dart';
 import '../services/ui_mapping.dart';
 
-
-
 class AppColors {
   static const medicalBg = Color(0xFF5FAAB1);
   static const medicalCard = Color(0xFFF6FBFA);
@@ -29,7 +27,6 @@ class ResultsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // تم إزالة SafeArea من هنا ووضعها داخل Scaffold
     return Scaffold(
       backgroundColor: AppColors.medicalBg,
       body: SafeArea(
@@ -56,10 +53,8 @@ class ResultsPage extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        
                         GestureDetector(
                           onTap: () {
-                            
                             Navigator.of(context).pop();
                           },
                           child: Container(
@@ -74,7 +69,6 @@ class ResultsPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        
                         const Spacer(),
                         const Text(
                           'Results',
@@ -93,24 +87,17 @@ class ResultsPage extends StatelessWidget {
                     const SizedBox(height: 24),
                     const DynamicResultsFromAsset(assetPdfPath: 'assets/fileName.pdf'),
                     const SizedBox(height: 16),
-
-
-                  
-
-                  
-
-                  
-                 
-
-                  
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ), 
-    );  
+
+
+
+        );     
   }
 }
 
@@ -121,7 +108,12 @@ class ResultCard extends StatelessWidget {
   final Color backgroundColor;
   final String rangeMin;
   final String rangeMax;
-  final double indicatorPosition; 
+
+  // === NEW: نمرّر القيم الرقمية للبار ===
+  final double valueNum;
+  final double loNum;
+  final double hiNum;
+
   final VoidCallback? onTap;
 
   const ResultCard({
@@ -132,13 +124,15 @@ class ResultCard extends StatelessWidget {
     required this.backgroundColor,
     required this.rangeMin,
     required this.rangeMax,
-    required this.indicatorPosition,
+    required this.valueNum, // NEW
+    required this.loNum,    // NEW
+    required this.hiNum,    // NEW
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-   return InkWell(
+    return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
@@ -148,124 +142,164 @@ class ResultCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         padding: const EdgeInsets.all(16),
-      child: Stack(
-        children: [
-          // Icon
-          const Positioned(
-            left: 4,
-            top: 6,
-            child: SizedBox(width: 37, height: 45, child: CustomPaint(painter: BloodDropPainter())),
-          ),
-
-          // Value
-          Positioned(
-            right: 6,
-            top: 8,
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                color: AppColors.medicalDark,
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.24,
+        child: Stack(
+          children: [
+            const Positioned(
+              left: 4,
+              top: 6,
+              child: SizedBox(width: 37, height: 45, child: CustomPaint(painter: BloodDropPainter())),
+            ),
+            Positioned(
+              right: 6,
+              top: 8,
+              child: Text(
+                value,
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  color: AppColors.medicalDark,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.24,
+                ),
               ),
             ),
-          ),
-
-          // Labels
-          Positioned(
-            left: 56,
-            top: 8,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  testName,
-                  style: const TextStyle(
-                    color: AppColors.medicalDark,
-                    fontSize: 18,
-                    height: 1.5,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  status,
-                  style: const TextStyle(
-                    color: AppColors.medicalGrey,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Progress and indicator
-          Positioned(
-            left: 8,
-            right: 8,
-            top: 84,
-            child: _SegmentBar(indicator: indicatorPosition),
-          ),
-
-          // Range text
-          Positioned(
-            left: 56,
-            right: 56,
-            top: 104,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(rangeMin, style: const TextStyle(color: AppColors.medicalGrey, fontSize: 10, fontWeight: FontWeight.w500)),
-                Text(rangeMax, style: const TextStyle(color: AppColors.medicalGrey, fontSize: 10, fontWeight: FontWeight.w500)),
-              ],
-            ),
-          ),
-        ],
+            // Labels (name + status) with ellipsis
+Positioned(
+  left: 56,
+  right: 84, // حجز مساحة للرقم على اليمين (عدّليها إذا احتجتِ)
+  top: 8,
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        testName,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis, // ← نقاط ...
+        style: const TextStyle(
+          color: AppColors.medicalDark,
+          fontSize: 18,
+          height: 1.5,
+          fontWeight: FontWeight.w400,
+        ),
       ),
-    ),
+      const SizedBox(height: 2),
+      Text(
+        status,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis, // (اختياري) لو طولت حالة الحالة
+        style: const TextStyle(
+          color: AppColors.medicalGrey,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.12,
+        ),
+      ),
+    ],
+  ),
+),
+
+            // === NEW: شريط ديناميكي مع قيمة/حدود ===
+            Positioned(
+              left: 8,
+              right: 8,
+              top: 84,
+              child: _SegmentBar(value: valueNum, lo: loNum, hi: hiNum),
+            ),
+            Positioned(
+              left: 56,
+              right: 56,
+              top: 104,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(rangeMin, style: const TextStyle(color: AppColors.medicalGrey, fontSize: 10, fontWeight: FontWeight.w500)),
+                  Text(rangeMax, style: const TextStyle(color: AppColors.medicalGrey, fontSize: 10, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
+// === NEW: شريط أخضر يطابق refMin..refMax تماماً والمؤشر على القيمة فعلياً ===
 class _SegmentBar extends StatelessWidget {
-  final double indicator; // 0..1
-  const _SegmentBar({required this.indicator});
+  final double value, lo, hi;
+  const _SegmentBar({required this.value, required this.lo, required this.hi});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth;
-      
-      final yellowW = w * 0.086;
-      final greenW = w * 0.618;
-      final redW = w * 0.296;
-      final indX = (w * indicator).clamp(0.0, w);
 
-      return SizedBox(
-        height: 12,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Row(
-              children: [
-                Container(width: yellowW, height: 6, decoration: const BoxDecoration(color: AppColors.warning, borderRadius: BorderRadius.horizontal(left: Radius.circular(999)))),
-                Container(width: greenW, height: 6, color: AppColors.normal),
-                Container(width: redW, height: 6, decoration: const BoxDecoration(color: AppColors.elevated, borderRadius: BorderRadius.horizontal(right: Radius.circular(999)))),
-              ],
-            ),
-            Positioned(
-              top: -6,
-              left: indX - 6,
-              child: const SizedBox(width: 12, height: 10, child: CustomPaint(painter: TrianglePainter())),
-            ),
-          ],
-        ),
-      );
+      final hasRange = lo.isFinite && hi.isFinite && hi > lo;
+      if (!hasRange) {
+        // شريط افتراضي عند غياب الرينج
+        final y = w * 0.15, g = w * 0.70, r = w - y - g, indX = w * 0.5;
+        return _buildBar(y, g, r, indX);
+      }
+
+      // وسّعي المجال حول الرينج مع هامش وضمني القيمة
+      final margin = (hi - lo) * 0.25;
+      double start = lo - margin;
+      double end = hi + margin;
+      if (value.isFinite) {
+        if (value < start) start = value;
+        if (value > end) end = value;
+      }
+      if (end <= start) end = start + 1;
+
+      final total = end - start;
+      final yellowW = ((lo - start) / total) * w;
+      final greenW  = ((hi - lo)   / total) * w;
+      final redW    = w - yellowW - greenW;
+
+      double indX = ((value - start) / total) * w;
+      if (!indX.isFinite) indX = w * 0.5;
+      indX = indX.clamp(0.0, w);
+
+      return _buildBar(yellowW, greenW, redW, indX);
     });
+  }
+
+  Widget _buildBar(double yellowW, double greenW, double redW, double indX) {
+    return SizedBox(
+      height: 12,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: yellowW,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: AppColors.warning,
+                  borderRadius: BorderRadius.horizontal(left: Radius.circular(999)),
+                ),
+              ),
+              Container(width: greenW, height: 6, color: AppColors.normal),
+              Container(
+                width: redW,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: AppColors.elevated,
+                  borderRadius: BorderRadius.horizontal(right: Radius.circular(999)),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            top: -6,
+            left: indX - 6,
+            child: const SizedBox(width: 12, height: 10, child: CustomPaint(painter: TrianglePainter())),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -303,7 +337,6 @@ class TrianglePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
 
 class DynamicResultsFromAsset extends StatelessWidget {
   final String assetPdfPath;
@@ -346,7 +379,9 @@ class DynamicResultsFromAsset extends StatelessWidget {
                 backgroundColor: r.bg,
                 rangeMin: r.minLabel,
                 rangeMax: r.maxLabel,
-                indicatorPosition: r.indicator,
+                valueNum: r.valueNum, // NEW
+                loNum: r.loNum,       // NEW
+                hiNum: r.hiNum,       // NEW
               ),
               const SizedBox(height: 12),
             ],
@@ -356,29 +391,26 @@ class DynamicResultsFromAsset extends StatelessWidget {
     );
   }
 
-  // === Helpers ===
   static Future<List<_UiRow>> _loadRows(String assetPdfPath) async {
-    // Parse PDF مباشرة من الـ assets
-final tests = await PdfExtractor.parseAsset(assetPdfPath);
+    final tests = await PdfExtractor.parseAsset(assetPdfPath);
 
-
-    // 3) شغّلي المودل لكل تحليل، وابني صفوف العرض
     final out = <_UiRow>[];
-for (final t in tests) {
-  final res = await InferenceService.decide(t); // res.tri & res.source
-  final hasRange = t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
+    for (final t in tests) {
+      final res = await InferenceService.decide(t);
+      final hasRange = t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
 
-  out.add(_UiRow(
-    testName: '(${t.code})',
-    status: UiMapping.status(res.tri, res.source, hasRange: hasRange),
-    value: _fmtVal(t.value),
-    bg: UiMapping.bg(res.tri, res.source),
-    minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
-    maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',
-    indicator: UiMapping.indicator(t.value, t.refMin, t.refMax),
-  ));
-}
-
+      out.add(_UiRow(
+        testName: '(${t.code})',
+        status: UiMapping.status(res.tri, res.source, hasRange: hasRange),
+        value: _fmtVal(t.value),
+        bg: UiMapping.bg(res.tri, res.source),
+        minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
+        maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',
+        valueNum: t.value,                              // NEW
+        loNum: hasRange ? t.refMin : double.nan,        // NEW
+        hiNum: hasRange ? t.refMax : double.nan,        // NEW
+      ));
+    }
     return out;
   }
 
@@ -386,17 +418,19 @@ for (final t in tests) {
       v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
 
   static String _fmtRange(double v, String code) {
-  // بدون وحدات نهائياً
-  return v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
+    // بدون وحدات
+    return v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
+  }
 }
 
-}
-
-// نموذج بيانات العرض (نفس شكل الكروت عندك)
+// نموذج بيانات العرض
 class _UiRow {
   final String testName, status, value, minLabel, maxLabel;
-  final double indicator;
   final Color bg;
+
+  // NEW: أرقام للبار
+  final double valueNum, loNum, hiNum;
+
   _UiRow({
     required this.testName,
     required this.status,
@@ -404,6 +438,8 @@ class _UiRow {
     required this.bg,
     required this.minLabel,
     required this.maxLabel,
-    required this.indicator,
+    required this.valueNum,
+    required this.loNum,
+    required this.hiNum,
   });
 }

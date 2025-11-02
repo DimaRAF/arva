@@ -22,49 +22,46 @@ class PdfExtractor {
     final doc = PdfDocument(inputBytes: bytes);
     final ext = PdfTextExtractor(doc);
 
-   const unitPattern =
-  r'(?:'
-  r'10\^\d+\/[A-Za-z]+'                          // x10^n/...
-  r'|g\/dL|mg\/dL|µg\/mL|ug\/mL|ng\/mL|pg\/mL'   // تركيز شائع
-  r'|mmol\/L|µ?mol\/L'                           // مولارية
-  r'|IU\/L|U\/L|mIU\/L|µIU\/L|uIU\/L'            // IU لكل لتر
-  r'|uIU\/mL|µIU\/mL|mIU\/mL'                    // IU لكل مل
-  r'|fL|pL|nL|pg|ng|%'                           // وحدات مفردة
-  r'|10\^9\/L|10\^6\/µL|10\^3\/µL'               // صور CBC
-  r'|cells\/µL|K\/µL|x10\^\d+\/u?l'              // صيغ بديلة
-  r')';
+    // جميع صيغ الوحدات الشائعة
+    const unitPattern =
+        r'(?:'
+        r'10\^\d+\/[A-Za-z]+'
+        r'|g\/dL|mg\/dL|µg\/mL|ug\/mL|ng\/mL|pg\/mL'
+        r'|mmol\/L|µ?mol\/L'
+        r'|IU\/L|U\/L|mIU\/L|µIU\/L|uIU\/L|uIU\/mL|µIU\/mL|mIU\/mL'
+        r'|fL|pL|nL|pg|ng|%'
+        r'|10\^9\/L|10\^6\/µL|10\^3\/µL'
+        r'|cells\/µL|K\/µL|x10\^\d+\/u?l'
+        r')';
 
-
-    // صف: name value [unit] refmin - refmax
-    // (1)=name, (2)=value, (3)=refmin, (4)=refmax
+    // صف: name  value  [unit]  ...  a-b
     final rowRe = RegExp(
-      r'([A-Za-z][A-Za-z0-9 /()\-\+:%\.]*?)\s+'         // name
-      r'(-?\d+(?:\.\d+)?)\s*'                           // value
-      r'(?:' + unitPattern + r')?\s*'                   // optional unit
-      r'(?:[^\n]{0,80}?)'                               // noise
-      r'(-?\d+(?:\.\d+)?)\s*[-–]\s*(-?\d+(?:\.\d+)?)',  // range
+      r'([A-Za-z][A-Za-z0-9 /()\-\+:%\.]*?)\s+'      // (1) الاسم
+      r'(-?\d+(?:\.\d+)?)\s*'                        // (2) القيمة
+      r'(?:' + unitPattern + r')?\s*'                //     وحدة (اختياري)
+      r'(?:[^\n]{0,80}?)'                            //     ضجيج
+      r'(-?\d+(?:\.\d+)?)\s*[-–]\s*(-?\d+(?:\.\d+)?)', // (3)(4) الرينج
       caseSensitive: false,
       dotAll: true,
     );
 
-    // جُمل/عناوين نرفضها كأسماء تحاليل
+    // سطور/عناوين ليست تحاليل
     final badName = RegExp(
-      r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Patient\s*ID|File\s*No|Lab\s*No|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name|Less\s*than)$',
+      r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Patient\s*ID|File\s*No|Lab\s*No|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name|Less\s*than|ul)$',
       caseSensitive: false,
     );
 
-    // جُمل تفسيرية (مثل: less than / ideal / good / bad / deficient …)
+    // جُمل تفسيرية
     final commentLine = RegExp(
       r'\b(less\s*than|greater\s*than|means\s+you|ideal|good|bad|deficient|insufficient|sufficient|normal\s*range|comment|interpretation|gfr\s+of|under\s+\d)\b',
       caseSensitive: false,
     );
 
-    // رموز مفردة L/H أو وحدة لوحدها
+    // رموز مفردة أو وحدة فقط
     final tokenOnly = RegExp(r'^\(?[LH]\)?$', caseSensitive: false);
-    final unitOnly  = RegExp('^$unitPattern\$', caseSensitive: false);
+    final unitOnly = RegExp('^(?:' + unitPattern + r')$', caseSensitive: false);
 
-    // نمط لنِسَب من نوع: AST/ALT Ratio 1.1 … < 2
-    // (1)=name, (2)=value, (3)=max
+    // نسب من نوع: AST/ALT Ratio 1.1 … < 2
     final ratioRe = RegExp(
       r'([A-Za-z/ ]+Ratio)\s*(-?\d+(?:\.\d+)?)\D*<\s*(-?\d+(?:\.\d+)?)',
       caseSensitive: false,
@@ -92,13 +89,13 @@ class PdfExtractor {
       );
       text = text.replaceAll(dateTimeRe, ' ');
 
-      // افصل الوحدة عن القيمة: mg/dL3.33 → mg/dL 3.33
+      // أضف مسافة بعد الوحدة إن تبعها رقم: mg/dL3.33 → mg/dL 3.33
       text = text.replaceAllMapped(
-        RegExp('($unitPattern)(?=\\d)', caseSensitive: false),
-        (m) => '${m[0]} ',
+        RegExp('(' + unitPattern + r')(?=\d)', caseSensitive: false),
+        (m) => '${m[1]} ',
       );
 
-      // افصل حرف/قوس قبل رقم: count4.72 → count 4.72
+      // مسافة بين حرف/قوس ورقم مباشر: count4.72 → count 4.72
       text = text.replaceAllMapped(
         RegExp(r'([A-Za-z\)])(?=\d)'),
         (m) => '${m[1]} ',
@@ -110,61 +107,23 @@ class PdfExtractor {
         (m) => '${m[1]} ',
       );
 
-      // مسافات مكررة
-      text = text.replaceAllMapped(RegExp(r'[ ]{2,}'), (m) => ' ');
+      // طي المسافات
+      text = text.replaceAll(RegExp(r'[ ]{2,}'), ' ');
 
-      // صفوف "name value … a-b"
-      for (final m in rowRe.allMatches(text)) {
+      // مطابقة صفوف التحاليل
+      final matches = rowRe.allMatches(text);
+      debugPrint('[PDF] page $i found rows=${matches.length}');
+
+      for (final m in matches) {
         final rawName = (m.group(1) ?? '').trim();
-        final valStr  = (m.group(2) ?? '').trim();
-        final loStr   = (m.group(3) ?? '').trim();
-        final hiStr   = (m.group(4) ?? '').trim();
-
         if (badName.hasMatch(rawName)) continue;
 
-// تنظيف الاسم من الوحدات أينما ظهرت + الأقواس الفارغة + المسافات
-var fixedName = rawName
-    .replaceAll(RegExp('(?:$unitPattern)\$', caseSensitive: false), '')
-    .replaceAll(RegExp(unitPattern, caseSensitive: false), '')
-    .replaceAll(RegExp(r'\(\s*\)', caseSensitive: false), '')
-    .replaceAll(RegExp(r'\s{2,}'), ' ')
-    .trim();
+        final valStr = (m.group(2) ?? '').trim();
+        final loStr = (m.group(3) ?? '').trim();
+        final hiStr = (m.group(4) ?? '').trim();
 
-// أحياناً القيمة تكون لازقة بآخر الاسم: "count4.72" → "count 4.72"
-if (valStr.isNotEmpty &&
-    fixedName.toLowerCase().endsWith(valStr.toLowerCase())) {
-  fixedName = fixedName.substring(0, fixedName.length - valStr.length).trim();
-}
-
-// إن أصبح الاسم وحدة فقط (مثل "uL" أو "(uL)") → تجاهل السطر
-final onlyUnit = RegExp(r'^\(?\s*(?:uL|µL|mL)\s*\)?$', caseSensitive: false);
-if (fixedName.isEmpty || onlyUnit.hasMatch(fixedName)) {
-  continue; // لا نضيف هذا كتحليل
-}
-
-final nameForCanon = fixedName;
-
-
-// أحيانًا القيمة تلزق بآخر الاسم: "count4.72" → افصلها
-if (valStr.isNotEmpty &&
-    fixedName.toLowerCase().endsWith(valStr.toLowerCase())) {
-  fixedName = fixedName.substring(0, fixedName.length - valStr.length).trim();
-}
-
-
-
-// 2) شيل أي وحدة ظهرت جوّا الاسم (مثلاً "Insulin Level uIU/mL")
-fixedName = fixedName.replaceAll(
-  RegExp(unitPattern, caseSensitive: false),
-  '',
-).trim();
-
-// 3) شيل الأقواس الفارغة الناتجة عن إزالة الوحدة
-fixedName = fixedName.replaceAll(RegExp(r'\(\s*\)'), '').trim();
-
-// 4) وحّد المسافات
-fixedName = fixedName.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
-
+        // اسم مُنقّى
+        var fixedName = rawName;
 
         // لو القيمة ملتصقة بنهاية الاسم
         if (valStr.isNotEmpty &&
@@ -173,7 +132,27 @@ fixedName = fixedName.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
               fixedName.substring(0, fixedName.length - valStr.length).trim();
         }
 
-        // فلتر جُمل تفسيرية / رموز / وحدة فقط
+        // احذف الوحدة فقط إذا كانت في "ذيل" الاسم (اختياري بين أقواس)
+        final unitTail = RegExp(
+          r'\s*\(?(?:' + unitPattern + r')\)?\s*$',
+          caseSensitive: false,
+        );
+        fixedName = fixedName.replaceAll(unitTail, '').trim();
+
+        // إن أصبح الاسم وحدة فقط → تجاهل
+        final onlyUnitName = RegExp(
+          r'^\(?\s*(?:' + unitPattern + r')\s*\)?$',
+          caseSensitive: false,
+        );
+        if (fixedName.isEmpty || onlyUnitName.hasMatch(fixedName)) continue;
+
+        // تنظيف إضافي: أقواس فارغة + مسافات
+        fixedName = fixedName
+            .replaceAll(RegExp(r'\(\s*\)'), '')
+            .replaceAll(RegExp(r'\s{2,}'), ' ')
+            .trim();
+
+        // فلترة جُمل تفسيرية/رموز
         if (fixedName.length < 2 ||
             tokenOnly.hasMatch(fixedName) ||
             unitOnly.hasMatch(fixedName) ||
@@ -181,12 +160,12 @@ fixedName = fixedName.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
           continue;
         }
 
-        final value  = double.tryParse(valStr);
+        final value = double.tryParse(valStr);
         final refMin = double.tryParse(loStr);
         final refMax = double.tryParse(hiStr);
         if (value == null) continue;
 
-        // حارس للرّينج: تجاهل سنوات/سالب
+        // حارس للرينج: تجاهل سنوات/قيم سالبة غير منطقية
         double? rMin = refMin;
         double? rMax = refMax;
         bool isYear(num x) => x >= 1900 && x <= 2100;
@@ -197,6 +176,7 @@ fixedName = fixedName.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
           }
         }
 
+        // ربط بالقاموس
         final canonical = await TermDictionary.canonicalize(fixedName);
         if (canonical == null) {
           tests.add(LabTest(
@@ -209,12 +189,13 @@ fixedName = fixedName.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
           continue;
         }
 
+        // ✅ عند التطابق مع القاموس: خذ الرينج من القاموس فقط
         final info = await TermDictionary.info(canonical);
-        final double lo = (rMin ?? info?.refMin) ?? double.nan;
-        final double hi = (rMax ?? info?.refMax) ?? double.nan;
+        final double lo = info?.refMin ?? double.nan;
+        final double hi = info?.refMax ?? double.nan;
 
         tests.add(LabTest(
-          code: canonical.toUpperCase(),
+          code: canonical,
           name: canonical,
           value: value,
           refMin: lo,
@@ -222,10 +203,17 @@ fixedName = fixedName.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
         ));
       }
 
-      // صفوف نسب: "… Ratio 1.1 … < 2"
+      // مطابقة صيغ Ratio: "... Ratio 1.1 ... < 2"
       for (final m in ratioRe.allMatches(text)) {
         var n = (m.group(1) ?? '').trim();
         if (badName.hasMatch(n) || commentLine.hasMatch(n)) continue;
+
+        // نظّف ذيل الاسم من الوحدة إن وُجدت
+        final unitTail = RegExp(
+          r'\s*\(?(?:' + unitPattern + r')\)?\s*$',
+          caseSensitive: false,
+        );
+        n = n.replaceAll(unitTail, '').trim();
 
         final vStr = (m.group(2) ?? '').trim();
         final mxStr = (m.group(3) ?? '').trim();
@@ -238,8 +226,8 @@ fixedName = fixedName.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
           code: canonical,
           name: canonical,
           value: value,
-          refMin: double.nan,
-          refMax: max ?? double.nan,
+          refMin: double.nan,          // حد أدنى غير معروف
+          refMax: max ?? double.nan,   // حد أعلى فقط
         ));
       }
     }

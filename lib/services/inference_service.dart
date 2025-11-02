@@ -58,42 +58,62 @@ class InferenceService {
     return (output[0][0] as double);
   }
 
-  /// القرار النهائي = (proba >= threshold_by_test ? Abnormal : Normal)
-  /// للواجهة: لو Abnormal وحدود موجودة:
-  ///   value < low  -> low
-  ///   value > high -> high
-  /// وإلا normal.
-static Future<PredResult> decide(LabTest t) async {
+ static Future<PredResult> decide(LabTest t) async {
   await _ensure();
 
-  final hasLabel = ModelAssets.nameToIdx!.containsKey(t.name) || ModelAssets.nameToIdx!.containsKey(t.code);
+  final labels = ModelAssets.nameToIdx ?? const <String, int>{};
+  final thMap  = ModelAssets.thresholds ?? const <String, double>{};
 
-  // 1) إذا المودل يعرف التحليل → استخدم المودل
-  if (hasLabel) {
-    final p = await predictAbnormalProb(t);
-    final th = ModelAssets.thresholds![t.name] ??
-               ModelAssets.thresholds![t.code] ?? 0.5;
-    final isAbn = p >= th;
-    if (!isAbn) {
-      return PredResult(PredTri.normal, DecisionSource.model);
+  // مفاتيح كما هي (نكتفي بـ trim فقط، بدون تغيير حالة الحروف)
+  final codeKey = (t.code ?? '').trim();
+  final nameKey = (t.name ?? '').trim();
+
+  // هل التحليل معروف للمودل؟
+  String? key;
+  if (codeKey.isNotEmpty && labels.containsKey(codeKey)) {
+    key = codeKey;
+  } else if (nameKey.isNotEmpty && labels.containsKey(nameKey)) {
+    key = nameKey;
+  } else {
+    // محاولة مطابقة حساسة للحالة لكن تسمح باختلاف بسيط في المسافات الطرفية فقط
+    // (لو بدك Case-Insensitive Exact بدون Uppercasing ممكن تضيفي مقارنة toLowerCase هنا)
+    for (final k in labels.keys) {
+      if (k.trim() == codeKey || k.trim() == nameKey) {
+        key = k;
+        break;
+      }
     }
-    if (t.value.isFinite && t.refMin.isFinite && t.refMax.isFinite) {
-      if (t.value < t.refMin) return PredResult(PredTri.low, DecisionSource.model);
-      if (t.value > t.refMax) return PredResult(PredTri.high, DecisionSource.model);
-    }
-    return PredResult(PredTri.high, DecisionSource.model);
   }
 
-  // 2) لو التحليل جديد لكن عندك حدود → قاعدة fallback
+  if (key != null) {
+    // ✅ القرار من المودل فقط
+    final p  = await predictAbnormalProb(t);
+    final th = thMap[key] ?? 0.5;
+    final isAbn = p >= th;
+
+    if (!isAbn) {
+      return const PredResult(PredTri.normal, DecisionSource.model);
+    }
+
+    // إن توفر رينج، نستخدمه فقط لتحديد الاتجاه (عرض)
+    final hasRange = t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
+    if (hasRange) {
+      if (t.value < t.refMin) return const PredResult(PredTri.low,  DecisionSource.model);
+      if (t.value > t.refMax) return const PredResult(PredTri.high, DecisionSource.model);
+    }
+    // لو ما في رينج أو داخل الرينج لكن المودل قال Abnormal → اعتبريها High افتراضياً
+    return const PredResult(PredTri.high, DecisionSource.model);
+  }
+
+  // ❗️غير معروف للمودل → fallback بالرينج إن وُجد
   final hasRange = t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
   if (hasRange) {
-    if (t.value < t.refMin) return PredResult(PredTri.low, DecisionSource.rule);
-    if (t.value > t.refMax) return PredResult(PredTri.high, DecisionSource.rule);
-    return PredResult(PredTri.normal, DecisionSource.rule);
+    if (t.value < t.refMin) return const PredResult(PredTri.low,  DecisionSource.rule);
+    if (t.value > t.refMax) return const PredResult(PredTri.high, DecisionSource.rule);
+    return const PredResult(PredTri.normal, DecisionSource.rule);
   }
 
-  // 3) لا مودل ولا حدود → نعرض القيمة فقط
+  // لا مودل ولا رينج → قيمة فقط
   return const PredResult(PredTri.normal, DecisionSource.unknown);
 }
-
 }
