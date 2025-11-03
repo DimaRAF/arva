@@ -99,8 +99,9 @@ flutter:
     - assets/model/label_map.json
     - assets/model/scaler.json
     - assets/model/thresholds.json
-    - assets/fileName.pdf
+    - assets/lamatestresults.pdf
     - assets/medical_term_full.xlsx 
+    - assets/saratestresults.pdf
 
 
 

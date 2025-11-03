@@ -1,59 +1,57 @@
 import 'package:flutter/material.dart';
 import 'results_page.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:path/path.dart' as p;
-
 
 class ReportItem {
   final String title;
   final String date;
-  final String iconPath; 
+  final String iconPath;
   final Color backgroundColor;
 
   ReportItem({
     required this.title,
     required this.date,
-    required this.iconPath, 
+    required this.iconPath,
     required this.backgroundColor,
   });
 }
 
 class MedicalReportsPage extends StatefulWidget {
-  const MedicalReportsPage({super.key});
+  /// لو انتي Medical Staff مرّري UID المريض هنا.
+  /// لو تُركت null، لاحقاً تقدري تفتحي ResultsPage بدون patientId (فتقرأ UID الحالي).
+  final String? patientId;
+
+  const MedicalReportsPage({super.key, this.patientId});
 
   @override
   State<MedicalReportsPage> createState() => _MedicalReportsPageState();
-
-  
 }
 
 class _MedicalReportsPageState extends State<MedicalReportsPage> {
   final TextEditingController _searchController = TextEditingController();
 
-  
   final List<ReportItem> reports = [
     ReportItem(
       title: 'Blood Test',
       date: '03 Mar 2025',
-      iconPath: 'assets/blood_test.png', 
+      iconPath: 'assets/blood_test.png',
       backgroundColor: const Color(0xFF5FAAB1),
     ),
     ReportItem(
       title: 'Lungs Check',
       date: '20 Feb 2025',
-      iconPath: 'assets/lungs_check.png', 
+      iconPath: 'assets/lungs_check.png',
       backgroundColor: const Color(0xFFB695C0),
     ),
     ReportItem(
       title: 'Lab Culture',
       date: '11 Jan 2025',
-      iconPath: 'assets/analysis.png', 
+      iconPath: 'assets/analysis.png',
       backgroundColor: const Color(0xFF5FAAB1),
     ),
     ReportItem(
       title: 'Genetic Analysis',
       date: '26 Dec 2024',
-      iconPath: 'assets/DNA.png', 
+      iconPath: 'assets/DNA.png',
       backgroundColor: const Color(0xFFB695C0),
     ),
   ];
@@ -69,14 +67,10 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Row(
-                children: [
-                  const Icon(
-                    Icons.folder_outlined,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
+                children: const [
+                  Icon(Icons.folder_outlined, color: Colors.white, size: 32),
+                  SizedBox(width: 16),
+                  Expanded(
                     child: Text(
                       'Medical Report',
                       style: TextStyle(
@@ -120,24 +114,13 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                               color: Colors.grey[600],
                               fontSize: 16,
                             ),
-                            prefixIcon: Icon(
-                              Icons.search,
-                              color: Colors.grey[600],
-                            ),
+                            prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
                             suffixIcon: IconButton(
-                              icon: Icon(
-                                Icons.close,
-                                color: Colors.grey[600],
-                              ),
-                              onPressed: () {
-                                _searchController.clear();
-                              },
+                              icon: Icon(Icons.close, color: Colors.grey[600]),
+                              onPressed: _searchController.clear,
                             ),
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           ),
                         ),
                       ),
@@ -150,19 +133,9 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Row(
                         children: [
-                          Expanded(
-                            child: _FilterButton(
-                              label: 'Filter by date',
-                              onTap: () {},
-                            ),
-                          ),
+                          Expanded(child: _FilterButton(label: 'Filter by date', onTap: () {})),
                           const SizedBox(width: 16),
-                          Expanded(
-                            child: _FilterButton(
-                              label: 'Type',
-                              onTap: () {},
-                            ),
-                          ),
+                          Expanded(child: _FilterButton(label: 'Type', onTap: () {})),
                         ],
                       ),
                     ),
@@ -181,9 +154,14 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                             child: _ReportCard(
                               report: report,
                               onTap: () {
+                                // ⚠️ لا تستخدم const هنا، ومرّري patientId إن وُجد:
                                 Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (context) => const ResultsPage()),
-                                  );
+                                  MaterialPageRoute(
+                                    builder: (context) => ResultsPage(
+                                      patientId: widget.patientId, // قد تكون null (مريض نفسه)
+                                    ),
+                                  ),
+                                );
                               },
                             ),
                           );
@@ -196,31 +174,11 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                       padding: const EdgeInsets.all(24.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              child: const Icon(
-                                Icons.arrow_back,
-                                color: Color(0xFF4C6EA0),
-                                size: 28,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF4C6EA0),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
+                        children: const [
+                          // Back
+                          _BackBtn(),
+                          // Add (placeholder)
+                          _AddBtn(),
                         ],
                       ),
                     ),
@@ -231,6 +189,35 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BackBtn extends StatelessWidget {
+  const _BackBtn();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        child: const Icon(Icons.arrow_back, color: Color(0xFF4C6EA0), size: 28),
+      ),
+    );
+  }
+}
+
+class _AddBtn extends StatelessWidget {
+  const _AddBtn();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: const BoxDecoration(color: Color(0xFF4C6EA0), shape: BoxShape.circle),
+      child: const Icon(Icons.add, color: Colors.white, size: 28),
     );
   }
 }
@@ -247,17 +234,10 @@ class _FilterButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF6B8CAE),
-          borderRadius: BorderRadius.circular(24),
-        ),
+        decoration: BoxDecoration(color: const Color(0xFF6B8CAE), borderRadius: BorderRadius.circular(24)),
         child: Text(
           label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
           textAlign: TextAlign.center,
         ),
       ),
@@ -277,87 +257,49 @@ class _ReportCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: report.backgroundColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
+        decoration: BoxDecoration(color: report.backgroundColor, borderRadius: BorderRadius.circular(20)),
         child: Row(
           children: [
             // Icon
             Container(
               width: 48,
               height: 48,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
               child: Center(
-                
                 child: Image.asset(
-                  report.iconPath, 
+                  report.iconPath,
                   width: 32,
                   height: 32,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stack) => const Icon(
-                    Icons.medical_services,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                  errorBuilder: (context, error, stack) =>
+                      const Icon(Icons.medical_services, color: Colors.white, size: 24),
                 ),
               ),
             ),
-
             const SizedBox(width: 16),
-
-            // Text content
+            // Texts
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    report.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text(report.title,
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
-                  Text(
-                    'Date: ${report.date}',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 14,
-                    ),
-                  ),
+                  Text('Date: ${report.date}',
+                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
                 ],
               ),
             ),
-
             // View button
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(16),
-              ),
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(16)),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'View',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  Text('View', style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14, fontWeight: FontWeight.w500)),
                   const SizedBox(width: 4),
-                  Icon(
-                    Icons.visibility_outlined,
-                    color: Colors.white.withOpacity(0.9),
-                    size: 16,
-                  ),
+                  Icon(Icons.visibility_outlined, color: Colors.white.withOpacity(0.9), size: 16),
                 ],
               ),
             ),

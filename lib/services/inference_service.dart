@@ -25,7 +25,7 @@ class InferenceService {
     final data = await rootBundle.load('assets/model/medical_model.tflite');
     final f = File('${(await Directory.systemTemp.createTemp()).path}/m.tflite');
     await f.writeAsBytes(data.buffer.asUint8List());
-    _it = await Interpreter.fromFile(f);
+    _it = Interpreter.fromFile(f);
   }
 
   // مطابقة اسم التحليل كما هو في label_map.json (محاولة ذكية بسيطة)
@@ -55,7 +55,7 @@ class InferenceService {
     final input = [feats];
     final output = List.generate(1, (_) => List.filled(1, 0.0));
     _it!.run(input, output);
-    return (output[0][0] as double);
+    return output[0][0];
   }
 
  static Future<PredResult> decide(LabTest t) async {

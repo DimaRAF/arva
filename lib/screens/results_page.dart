@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 //import 'recommendation_page.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'dart:io';
-import '../models/lab_test.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/pdf_extractor.dart';
 import '../services/inference_service.dart';
 import '../services/ui_mapping.dart';
@@ -23,7 +22,34 @@ class AppColors {
 }
 
 class ResultsPage extends StatelessWidget {
-  const ResultsPage({super.key});
+  /// NEW: لو كنتِ دكتورة وجاية من ملف مريض، مرّري patientId لهذا المريض
+  final String? patientId;
+  const ResultsPage({super.key, this.patientId});
+
+  /// NEW: إذا وصلنا patientId نستخدمه، وإلا نرجع لـ uid تبع المستخدم الحالي
+  Future<String?> _resolveAssetPdfPath() async {
+    final id = patientId ?? FirebaseAuth.instance.currentUser?.uid;
+    if (id == null) return null;
+
+    Future<String?> readFrom(String coll) async {
+      final doc = await FirebaseFirestore.instance.collection(coll).doc(id).get();
+      if (!doc.exists) return null;
+      final data = doc.data();
+      if (data == null) return null;
+
+      // حطي اسم الحقل اللي بتستخدميه في patient_profiles (مثلاً reportPdfName)
+      final raw = (data['reportPdfName'] ?? data['reportFileName'] ?? data['reportAsset']) as String?;
+      if (raw == null || raw.trim().isEmpty) return null;
+
+      return raw.startsWith('assets/') ? raw : 'assets/$raw';
+    }
+
+    // جرّبي patient_profiles أولاً ثم users
+    final p = await readFrom('patient_profiles') ?? await readFrom('users');
+    // (اختياري للتشخيص)
+    // debugPrint('Resolved report for id=$id -> $p');
+    return p;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,14 +65,7 @@ class ResultsPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.medicalCard,
                   borderRadius: BorderRadius.circular(38),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x1A000000),
-                      blurRadius: 40,
-                      spreadRadius: 0,
-                      offset: Offset(0, 0),
-                    )
-                  ],
+                  boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 40)],
                 ),
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
                 child: Column(
@@ -54,38 +73,42 @@ class ResultsPage extends StatelessWidget {
                     Row(
                       children: [
                         GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).pop();
-                          },
+                          onTap: () => Navigator.of(context).pop(),
                           child: Container(
-                            width: 42,
-                            height: 44,
-                            decoration: const BoxDecoration(
-                              color: AppColors.closeBtn,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Center(
-                              child: Icon(Icons.close, color: Colors.white, size: 20),
-                            ),
+                            width: 42, height: 44,
+                            decoration: const BoxDecoration(color: AppColors.closeBtn, shape: BoxShape.circle),
+                            child: const Center(child: Icon(Icons.close, color: Colors.white, size: 20)),
                           ),
                         ),
                         const Spacer(),
-                        const Text(
-                          'Results',
-                          style: TextStyle(
-                            color: Color(0xFF0E1B3D),
-                            fontSize: 30,
-                            height: 32 / 30,
-                            letterSpacing: -1.5,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
+                        const Text('Results', style: TextStyle(color: Color(0xFF0E1B3D), fontSize: 30, fontWeight: FontWeight.w400)),
                         const Spacer(),
                         const SizedBox(width: 42),
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const DynamicResultsFromAsset(assetPdfPath: 'assets/fileName.pdf'),
+
+                    // نحدد ملف التقرير من Firestore بحسب patientId (إن وُجد)
+                    FutureBuilder<String?>(
+                      future: _resolveAssetPdfPath(),
+                      builder: (context, snap) {
+                        if (snap.connectionState == ConnectionState.waiting) {
+                          return const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        if (snap.hasError) {
+                          return _errorBox('can not read the file name ${snap.error}');
+                        }
+                        final assetPath = snap.data;
+                        if (assetPath == null) {
+                          return _errorBox('No test file for this patient');
+                        }
+                        return DynamicResultsFromAsset(assetPdfPath: assetPath);
+                      },
+                    ),
+
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -94,12 +117,17 @@ class ResultsPage extends StatelessWidget {
           ),
         ),
       ),
-
-
-
-        );     
+    );
   }
+
+  Widget _errorBox(String msg) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(color: AppColors.elevatedBg, borderRadius: BorderRadius.circular(12)),
+    child: Text(msg, style: const TextStyle(color: AppColors.medicalDark)),
+  );
 }
+
+
 
 class ResultCard extends StatelessWidget {
   final String testName;
@@ -164,40 +192,40 @@ class ResultCard extends StatelessWidget {
               ),
             ),
             // Labels (name + status) with ellipsis
-Positioned(
-  left: 56,
-  right: 84, // حجز مساحة للرقم على اليمين (عدّليها إذا احتجتِ)
-  top: 8,
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        testName,
-        maxLines: 1,
-        softWrap: false,
-        overflow: TextOverflow.ellipsis, // ← نقاط ...
-        style: const TextStyle(
-          color: AppColors.medicalDark,
-          fontSize: 18,
-          height: 1.5,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        status,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis, // (اختياري) لو طولت حالة الحالة
-        style: const TextStyle(
-          color: AppColors.medicalGrey,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          letterSpacing: -0.12,
-        ),
-      ),
-    ],
-  ),
-),
+            Positioned(
+              left: 56,
+              right: 84,
+              top: 8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    testName,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.medicalDark,
+                      fontSize: 18,
+                      height: 1.5,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    status,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.medicalGrey,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
             // === NEW: شريط ديناميكي مع قيمة/حدود ===
             Positioned(
@@ -237,12 +265,10 @@ class _SegmentBar extends StatelessWidget {
 
       final hasRange = lo.isFinite && hi.isFinite && hi > lo;
       if (!hasRange) {
-        // شريط افتراضي عند غياب الرينج
         final y = w * 0.15, g = w * 0.70, r = w - y - g, indX = w * 0.5;
         return _buildBar(y, g, r, indX);
       }
 
-      // وسّعي المجال حول الرينج مع هامش وضمني القيمة
       final margin = (hi - lo) * 0.25;
       double start = lo - margin;
       double end = hi + margin;
@@ -406,9 +432,9 @@ class DynamicResultsFromAsset extends StatelessWidget {
         bg: UiMapping.bg(res.tri, res.source),
         minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
         maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',
-        valueNum: t.value,                              // NEW
-        loNum: hasRange ? t.refMin : double.nan,        // NEW
-        hiNum: hasRange ? t.refMax : double.nan,        // NEW
+        valueNum: t.value,                       // NEW
+        loNum: hasRange ? t.refMin : double.nan, // NEW
+        hiNum: hasRange ? t.refMax : double.nan, // NEW
       ));
     }
     return out;
@@ -423,7 +449,6 @@ class DynamicResultsFromAsset extends StatelessWidget {
   }
 }
 
-// نموذج بيانات العرض
 class _UiRow {
   final String testName, status, value, minLabel, maxLabel;
   final Color bg;

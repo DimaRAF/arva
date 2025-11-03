@@ -4,7 +4,8 @@ import 'medical_reports_page.dart';
 
 
 class MedicalReportHomeScreen extends StatelessWidget {
-  const MedicalReportHomeScreen({super.key});
+  final String? patientId;
+  const MedicalReportHomeScreen({super.key, this.patientId});
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +155,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const MedicalReportsPage(),
+                              builder: (context) =>  MedicalReportsPage(patientId: patientId,),
                             ),
                           );
 
@@ -184,8 +185,8 @@ class _ActionButton extends StatelessWidget {
     required this.leading,
     required this.label,
     this.trailing,
-    required this.onTap,
-    this.onTrailingTap
+    this.onTrailingTap,
+    required this.onTap
   });
   
   @override

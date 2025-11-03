@@ -1,5 +1,4 @@
 // services/pdf_extractor.dart
-import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -47,7 +46,7 @@ class PdfExtractor {
 
     // سطور/عناوين ليست تحاليل
     final badName = RegExp(
-      r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Patient\s*ID|File\s*No|Lab\s*No|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name|Less\s*than|ul)$',
+      r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Patient\s*ID|File\s*No|Lab\s*No|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name|Less\s*than|ul|Collection Date and Time:)$',
       caseSensitive: false,
     );
 

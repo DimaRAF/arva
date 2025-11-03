@@ -406,7 +406,7 @@ else ...[
                                 onTap: () {
                                   // 2. عند الضغط، انتقل إلى الواجهة الجديدة
                                   Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (context) => const MedicalReportHomeScreen()),
+                                    MaterialPageRoute(builder: (context) =>  MedicalReportHomeScreen(patientId: widget.patientId,)),
                                     );
 
                                 },

@@ -89,6 +89,8 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
           'age': null,
           'roomNumber': null,
           'assignedDoctorId': null,
+          'dataFilename': null,
+          'reportFileName':null,
         });
 
         if (!mounted) return;
