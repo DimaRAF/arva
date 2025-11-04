@@ -1,5 +1,6 @@
 // services/pdf_extractor.dart
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:flutter/foundation.dart';
@@ -7,16 +8,24 @@ import '../models/lab_test.dart';
 import 'term_dictionary.dart';
 
 class PdfExtractor {
+  /// قراءة من مسار ملف محلي
   static Future<List<LabTest>> parse(String pdfPath) async {
     final bytes = await File(pdfPath).readAsBytes();
     return _parseBytes(Uint8List.fromList(bytes));
   }
 
+  /// قراءة من أصول (assets)
   static Future<List<LabTest>> parseAsset(String assetPath) async {
     final data = await rootBundle.load(assetPath);
     return _parseBytes(data.buffer.asUint8List());
   }
 
+  /// ✅ واجهة عامة لتمرير بايتات الملف مباشرة (مثالية لملف مختار من الجوال)
+  static Future<List<LabTest>> parseBytes(Uint8List bytes) async {
+    return _parseBytes(bytes);
+  }
+
+  /// المنفِّذ الفعلي لتحليل البايتات
   static Future<List<LabTest>> _parseBytes(Uint8List bytes) async {
     final doc = PdfDocument(inputBytes: bytes);
     final ext = PdfTextExtractor(doc);
@@ -188,7 +197,7 @@ class PdfExtractor {
           continue;
         }
 
-        // ✅ عند التطابق مع القاموس: خذ الرينج من القاموس فقط
+        // عند التطابق مع القاموس: خذ الرينج من القاموس فقط
         final info = await TermDictionary.info(canonical);
         final double lo = info?.refMin ?? double.nan;
         final double hi = info?.refMax ?? double.nan;

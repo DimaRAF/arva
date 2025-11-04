@@ -1,12 +1,30 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'medical_reports_page.dart';
 import 'results_page.dart';
-
-
 
 class MedicalReportHomeScreen extends StatelessWidget {
   final String? patientId;
   const MedicalReportHomeScreen({super.key, this.patientId});
+
+  Future<void> _pickAndShowResult(BuildContext context) async {
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      withData: true, // نأخذ bytes مباشرة بدون حفظ
+    );
+    if (picked == null) return; // المستخدم ألغى
+    final Uint8List? bytes = picked.files.single.bytes;
+    if (bytes == null) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ResultsPage(pdfBytes: bytes), // نمرّر الملف للنتائج
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,16 +51,13 @@ class MedicalReportHomeScreen extends StatelessWidget {
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF2C5360),
                         shape: const CircleBorder(),
-                        
                         padding: const EdgeInsets.all(20),
                         elevation: 6,
                         shadowColor: Colors.black26,
                       ),
-                      
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      
                       child: const Icon(Icons.close, size: 18, color: Color(0xFF355A66)),
                     ),
                   ),
@@ -50,7 +65,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 6),
 
-                
+                // الدائرة الكبيرة مع الصورة
                 SizedBox(
                   height: circleSize + 24,
                   child: Center(
@@ -86,11 +101,10 @@ class MedicalReportHomeScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: isSmall ? 10 : 20),
                             child: Image.asset(
-                              'assets/analysis.png', 
+                              'assets/analysis.png',
                               fit: BoxFit.contain,
                               width: circleSize * 0.7,
                               height: circleSize * 0.7,
@@ -124,11 +138,8 @@ class MedicalReportHomeScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       _ActionButton(
-                        
-                        leading: _IconBox(
-                          child: Image.asset(
-                            'assets/DNA.png', 
-                          ),
+                        leading: const _IconBox(
+                          child: Image(image: AssetImage('assets/DNA.png')),
                         ),
                         label: 'Upload from Phone',
                         trailing: Container(
@@ -138,28 +149,24 @@ class MedicalReportHomeScreen extends StatelessWidget {
                             color: const Color(0xFFC6B4DE),
                             borderRadius: BorderRadius.circular(40),
                           ),
-                          child: const Icon(Icons.upload_outlined, size: 20, color: Color.fromARGB(255, 255, 255, 255)),
+                          child: const Icon(Icons.upload_outlined, size: 20, color: Colors.white),
                         ),
-                        onTap: () {},
+                        onTap: () => _pickAndShowResult(context),           // اضغطي على الكرت
+                        onTrailingTap: () => _pickAndShowResult(context),   // أو على السهم
                       ),
                       const SizedBox(height: 16),
-                       _ActionButton(
-                        
-                        leading: _IconBox(
-                          child: Image.asset(
-                            'assets/Hospital.png', 
-                          ),
+                      _ActionButton(
+                        leading: const _IconBox(
+                          child: Image(image: AssetImage('assets/Hospital.png')),
                         ),
                         label: 'Last Report',
                         onTap: () {
-
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>  MedicalReportsPage(patientId: patientId,),
+                              builder: (context) => MedicalReportsPage(patientId: patientId),
                             ),
                           );
-
                         },
                       ),
                     ],
@@ -175,21 +182,22 @@ class MedicalReportHomeScreen extends StatelessWidget {
   }
 }
 
-
+// (الدوال المساعدة)
 class _ActionButton extends StatelessWidget {
   final Widget leading;
   final String label;
   final Widget? trailing;
   final VoidCallback onTap;
   final VoidCallback? onTrailingTap;
+
   const _ActionButton({
     required this.leading,
     required this.label,
     this.trailing,
     this.onTrailingTap,
-    required this.onTap
+    required this.onTap,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -213,7 +221,10 @@ class _ActionButton extends StatelessWidget {
                 style: const TextStyle(color: Color(0xFF003F5F), fontSize: 16),
               ),
             ),
-            if (trailing != null) trailing!,
+            if (trailing != null)
+              (onTrailingTap != null)
+                  ? GestureDetector(onTap: onTrailingTap, child: trailing!)
+                  : trailing!,
           ],
         ),
       ),
