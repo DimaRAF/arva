@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_screen.dart'; 
 import 'uploud_medical_report.dart';
+import 'recommendation_page.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final String patientId;
@@ -416,7 +417,7 @@ else ...[
                               ),
                               _buildServiceButton(imagePath: 'assets/drugs.png', label: 'Drugs', onTap: () {}),
 
-                              _buildServiceButton(imagePath: 'assets/report.png', label: 'Report', onTap: () {}),
+                              _buildServiceButton(imagePath: 'assets/report.png', label: 'Report', onTap: () {Navigator.push(context, MaterialPageRoute(builder: (_) => const RecommendationsScreen()));}),
                               ],
                               ),
                               ],

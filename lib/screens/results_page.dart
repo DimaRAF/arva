@@ -1,11 +1,12 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-//import 'recommendation_page.dart';
+import 'recommendation_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/pdf_extractor.dart';
 import '../services/inference_service.dart';
 import '../services/ui_mapping.dart';
+
 
 class AppColors {
   static const medicalBg = Color(0xFF5FAAB1);
@@ -212,6 +213,21 @@ class ResultCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Stack(
           children: [
+            
+Positioned(
+  right: -9,
+  bottom: 14,
+  child: InkWell(
+    onTap: onTap,                    // نفس الـ onTap الممرّر للكرت
+    customBorder: const CircleBorder(),
+    child: Container(
+      width: 60,
+      height: 85,
+      child: const Icon(Icons.arrow_forward_ios, size: 20, color: Color.fromARGB(255, 182, 199, 214)),
+    ),
+  ),
+),
+
             const Positioned(
               left: 4,
               top: 6,
@@ -473,6 +489,16 @@ class DynamicResultsFromAsset extends StatelessWidget {
                 valueNum: r.valueNum, // NEW
                 loNum: r.loNum, // NEW
                 hiNum: r.hiNum, // NEW
+                onTap: () {
+    // مبدئياً نفتح صفحة الريكومنديشن العامة.
+    // لاحقًا تقدري تمرّري params وتخصصي المحتوى لكل تحليل.
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const RecommendationsScreen(),
+      ),
+    );
+  },
               ),
               const SizedBox(height: 12),
             ],

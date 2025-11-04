@@ -102,6 +102,10 @@ flutter:
     - assets/lamatestresults.pdf
     - assets/medical_term_full.xlsx 
     - assets/saratestresults.pdf
+    - assets/fork&knife.png
+    - assets/pill.png
+    - assets/injection.png
+
 
 
 
