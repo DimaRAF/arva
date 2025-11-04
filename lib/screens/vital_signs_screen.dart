@@ -715,35 +715,47 @@ Future<void> _loadDataForPatient() async {
     );
   }
 Widget _buildHeader() {
-  // تم حذف const لأن Row أصبح يحتوي على دالة onTap
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const Text(
-        'Vital signs',
-        style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF22364B)),
-      ),
-      // 1. استخدمنا InkWell لجعل الزر قابلاً للنقر
-      InkWell(
-        // لجعل تأثير الضغطة دائريًا
-        customBorder: const CircleBorder(), 
-        // 2. الدالة التي سيتم تنفيذها عند الضغط
-        onTap: () {
-          // هذا السطر يقوم بالرجوع إلى الشاشة السابقة
-          Navigator.of(context).pop();
-        },
-        child: const CircleAvatar(
-          backgroundColor: Color(0xFF4C6EA0),
-          // 3. قمنا بتغيير الأيقونة إلى سهم للخلف
-          child: Icon(Icons.arrow_forward_outlined, color: Colors.white),
+  const double kBtnSize = 44; // قطر الزر
+
+  return Padding(
+    padding: const EdgeInsets.only(top: 4, bottom: 8),
+    child: Row(
+      children: [
+        // زر الرجوع يسار داخل دائرة
+        SizedBox(
+          width: kBtnSize,
+          height: kBtnSize,
+          child: Material(
+            color: const Color(0xFF4C6EA0),
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () => Navigator.of(context).pop(),
+              child: const Icon(Icons.arrow_back, color: Colors.white),
+            ),
+          ),
         ),
-      ),
-    ],
+
+        // العنوان بالنص
+        Expanded(
+          child: Center(
+            child: Text(
+              'Vital signs',
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 35,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF22364B),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: kBtnSize, height: kBtnSize),
+      ],
+    ),
   );
 }
+
 
 Widget _buildHeartRateCard(int heartRate) {
   // تحديد حالة نبض القلب
@@ -911,7 +923,7 @@ Widget _buildVitalsGrid(Map<String, dynamic> data) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _patientName,
+                _patientName +"'s smart file",
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

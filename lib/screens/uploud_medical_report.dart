@@ -49,7 +49,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 6),
 
-                // الدائرة الكبيرة مع الصورة
+                
                 SizedBox(
                   height: circleSize + 24,
                   child: Center(
@@ -85,11 +85,11 @@ class MedicalReportHomeScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          // تم استبدال الصورة بصورة من ملفات المشروع
+                          
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: isSmall ? 10 : 20),
                             child: Image.asset(
-                              'assets/analysis.png', // تأكد أن هذا المسار صحيح
+                              'assets/analysis.png', 
                               fit: BoxFit.contain,
                               width: circleSize * 0.7,
                               height: circleSize * 0.7,
@@ -174,7 +174,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
   }
 }
 
-// (الدوال المساعدة تبقى كما هي بدون تغيير)
+
 class _ActionButton extends StatelessWidget {
   final Widget leading;
   final String label;

@@ -38,20 +38,34 @@ void initState() {
 
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: 
-      _currentUserRole == 'Medical Staff'
-          ? null // الطبيب لا يشوف البار
-          : _buildBottomNavBar(), // المريض فقط يشوفه
-);
-  }
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.white,
+
+    body: IndexedStack(
+      index: _selectedIndex,
+      children: _pages,
+    ),
+
+    // ⬇️ أخفي البار للميديكال ستاف كما هو
+    bottomNavigationBar: 
+      _currentUserRole == 'Medical Staff' ? null : _buildBottomNavBar(),
+
+    // ⬇️ زر دائري أزرق بأسفل اليسار للميديكال ستاف فقط
+    
+    floatingActionButton: _currentUserRole == 'Medical Staff'
+        ? FloatingActionButton(
+          heroTag: 'docBackFab',
+          shape: const CircleBorder(),
+            backgroundColor: const Color(0xFF4C6EA0),
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Icon(Icons.arrow_back, color: Colors.white),
+          )
+        : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+  );
+}
+
 
   // دالة بناء شريط التنقل السفلي
   Widget _buildBottomNavBar() {
@@ -287,17 +301,6 @@ Future<void> _fetchPatientData() async {
     ),
   ),
 ),
-
-                    
-                     if (_currentUserRole == 'Medical Staff')
-      Positioned(
-        top: 40,
-        left: 20,
-        child: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
                     Positioned(
                       top:175,
                       child: Container(

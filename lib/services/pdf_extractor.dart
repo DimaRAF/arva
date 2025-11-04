@@ -46,7 +46,7 @@ class PdfExtractor {
 
     // سطور/عناوين ليست تحاليل
     final badName = RegExp(
-      r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Patient\s*ID|File\s*No|Lab\s*No|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name|Less\s*than|ul|Collection Date and Time:)$',
+      r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Patient\s*ID|File\s*No|Lab\s*No|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name|Less\s*than|ul|Collection Date and Time:|DOB)$',
       caseSensitive: false,
     );
 
