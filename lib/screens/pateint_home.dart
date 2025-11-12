@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_screen.dart'; 
 import 'uploud_medical_report.dart';
 import 'recommendation_page.dart';
+import 'medication_list.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final String patientId;
@@ -415,7 +416,17 @@ else ...[
 
                                 },
                               ),
-                              _buildServiceButton(imagePath: 'assets/drugs.png', label: 'Drugs', onTap: () {}),
+                             _buildServiceButton(
+  imagePath: 'assets/drugs.png',
+  label: 'Drugs',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) =>  MedicationScreen(patientId: widget.patientId,)),
+    );
+  },
+),
+
 
                               _buildServiceButton(imagePath: 'assets/report.png', label: 'Report', onTap: () {Navigator.push(context, MaterialPageRoute(builder: (_) => const RecommendationsScreen()));}),
                               ],

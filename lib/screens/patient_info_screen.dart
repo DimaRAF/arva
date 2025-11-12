@@ -93,6 +93,24 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
           'reportFileName':null,
         });
 
+        // إنشاء مجموعة الأدوية للمريض مع أول دواء (مثال)
+await FirebaseFirestore.instance
+    .collection('patient_profiles')
+    .doc(userId)
+    .collection('medications')
+    .add({
+  'drugName': null,
+  "Diseas" : null,
+  'dose': null,
+  'frequency': null,
+  "Duration" :null,
+  "test_name" : null,
+  "last_value" : null,
+  'status': null,
+  'createdAt': Timestamp.now(), 
+});
+
+
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
