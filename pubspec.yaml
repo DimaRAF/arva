@@ -107,6 +107,8 @@ flutter:
     - assets/injection.png
     - assets/medicine_box.png
     - assets/Thermometer.png
+    - assets/medication_model/model.tflite
+    
 
 
 

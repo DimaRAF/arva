@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/pdf_extractor.dart';
 import '../services/inference_service.dart';
 import '../services/ui_mapping.dart';
+import 'package:arva/screens/ai/update_medications.dart';
 
 
 class AppColors {
@@ -507,30 +508,61 @@ class DynamicResultsFromAsset extends StatelessWidget {
       },
     );
   }
+static Future<List<_UiRow>> _loadRows(String assetPdfPath, {String? patientId}) async {
+  final tests = await PdfExtractor.parseAsset(assetPdfPath);
 
-  static Future<List<_UiRow>> _loadRows(String assetPdfPath) async {
-    final tests = await PdfExtractor.parseAsset(assetPdfPath);
+  // 🧠 تحديد هوية المستخدم
+  final targetId = patientId ?? FirebaseAuth.instance.currentUser?.uid;
+  String? doctorId;
 
-    final out = <_UiRow>[];
-    for (final t in tests) {
-      final res = await InferenceService.decide(t);
-      final hasRange =
-          t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
+  if (targetId != null) {
+    try {
+      // 🔹 نجيب Doctor ID من ملف المريض
+      final patientDoc = await FirebaseFirestore.instance
+          .collection('patient_profiles')
+          .doc(targetId)
+          .get();
 
-      out.add(_UiRow(
-        testName: '(${t.code})',
-        status: UiMapping.status(res.tri, res.source, hasRange: hasRange),
-        value: _fmtVal(t.value),
-        bg: UiMapping.bg(res.tri, res.source),
-        minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
-        maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',
-        valueNum: t.value, // NEW
-        loNum: hasRange ? t.refMin : double.nan, // NEW
-        hiNum: hasRange ? t.refMax : double.nan, // NEW
-      ));
+      if (patientDoc.exists) {
+        doctorId = patientDoc.data()?['assignedDoctorId'];
+      }
+
+      
+      await MedicationAutomation.runAutoMedicationPipeline(
+        targetId,                          // معرف المريض
+        doctorId ?? "UNKNOWN_DOCTOR",      // معرف الدكتور
+        assetPdfPath,                      // التقرير من الـ assets
+      );
+
+      debugPrint('✅ تم تشغيل موديل الأدوية بناءً على القيم المستخرجة من التقرير');
+    } catch (e) {
+      debugPrint('⚠ فشل تشغيل موديل الأدوية: $e');
     }
-    return out;
+  } else {
+    debugPrint('⚠ لم يتم العثور على مستخدم حالي لتشغيل المودل');
   }
+
+  // 🎨 بناء واجهة عرض نتائج التحاليل نفسها
+  final out = <_UiRow>[];
+  for (final t in tests) {
+    final res = await InferenceService.decide(t);
+    final hasRange =
+        t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
+
+    out.add(_UiRow(
+      testName: '(${t.code})',
+      status: UiMapping.status(res.tri, res.source, hasRange: hasRange),
+      value: _fmtVal(t.value),
+      bg: UiMapping.bg(res.tri, res.source),
+      minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
+      maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',
+      valueNum: t.value,
+      loNum: hasRange ? t.refMin : double.nan,
+      hiNum: hasRange ? t.refMax : double.nan,
+    ));
+  }
+  return out;
+}
 
   static String _fmtVal(double v) =>
       v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
