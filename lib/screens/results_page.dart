@@ -220,7 +220,7 @@ Positioned(
   child: InkWell(
     onTap: onTap,                    // نفس الـ onTap الممرّر للكرت
     customBorder: const CircleBorder(),
-    child: Container(
+    child: SizedBox(
       width: 60,
       height: 85,
       child: const Icon(Icons.arrow_forward_ios, size: 20, color: Color.fromARGB(255, 182, 199, 214)),

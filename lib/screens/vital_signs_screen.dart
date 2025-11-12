@@ -923,7 +923,7 @@ Widget _buildVitalsGrid(Map<String, dynamic> data) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _patientName +"'s smart file",
+                "$_patientName's smart file",
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
