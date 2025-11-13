@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:arva/services/pdf_extractor.dart';
