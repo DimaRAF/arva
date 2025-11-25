@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:convert';                      // 🔔 NEW
 import 'package:flutter/material.dart';
 import 'recommendation_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,7 +8,45 @@ import '../services/pdf_extractor.dart';
 import '../services/inference_service.dart';
 import '../services/ui_mapping.dart';
 import 'package:arva/screens/ai/update_medications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // 🔔 NEW
 
+// 🔔 NEW: بلجن الإشعارات (يفترض إنه مهيّأ في مكان مناسب مثل main)
+final FlutterLocalNotificationsPlugin _notificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+// 🔔 NEW: دالة إشعار للأدوية (نفس مبدأ _showAlertNotification اللي عندك)
+Future<void> _showMedicationNotification({
+  required String patientId,
+  String? patientName,
+}) async {
+  final String name =
+      (patientName != null && patientName.isNotEmpty) ? patientName : 'the patient';
+
+  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    'medication_alerts', // ID للقناة
+    'Medication Alerts', // اسم القناة
+    channelDescription: 'Alerts for new predicted medication doses',
+    importance: Importance.max,
+    priority: Priority.high,
+    color: Color(0xFF5FAAB1),
+    icon: '@mipmap/ic_launcher',
+  );
+
+  const NotificationDetails notificationDetails =
+      NotificationDetails(android: androidDetails);
+
+  await _notificationsPlugin.show(
+    1, // ID الإشعار (تقدري تغيريه لو تحتاجي)
+    '💊 Medication Update - $name',
+    'New AI-predicted medication doses are ready for your review.',
+    notificationDetails,
+    payload: jsonEncode({
+      'type': 'medication',
+      'patientId': patientId,
+      'patientName': name,
+    }),
+  );
+}
 
 class AppColors {
   static const medicalBg = Color(0xFF5FAAB1);
@@ -146,7 +185,9 @@ class ResultsPage extends StatelessWidget {
                             return _errorBox('No test file for this patient');
                           }
                           return DynamicResultsFromAsset(
-                              assetPdfPath: assetPath);
+                            assetPdfPath: assetPath,
+                            patientId: patientId,
+                          );
                         },
                       ),
 
@@ -214,21 +255,23 @@ class ResultCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Stack(
           children: [
-            
-Positioned(
-  right: -9,
-  bottom: 14,
-  child: InkWell(
-    onTap: onTap,                   
-    customBorder: const CircleBorder(),
-    child: SizedBox(
-      width: 60,
-      height: 85,
-      child: const Icon(Icons.arrow_forward_ios, size: 20, color: Color.fromARGB(255, 182, 199, 214)),
-    ),
-  ),
-),
-
+            Positioned(
+              right: -9,
+              bottom: 14,
+              child: InkWell(
+                onTap: onTap,
+                customBorder: const CircleBorder(),
+                child: const SizedBox(
+                  width: 60,
+                  height: 85,
+                  child: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 20,
+                    color: Color.fromARGB(255, 182, 199, 214),
+                  ),
+                ),
+              ),
+            ),
             const Positioned(
               left: 4,
               top: 6,
@@ -446,12 +489,18 @@ class TrianglePainter extends CustomPainter {
 
 class DynamicResultsFromAsset extends StatelessWidget {
   final String assetPdfPath;
-  const DynamicResultsFromAsset({super.key, required this.assetPdfPath});
+  final String? patientId;
+
+  const DynamicResultsFromAsset({
+    super.key,
+    required this.assetPdfPath,
+    this.patientId,
+  });
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_UiRow>>(
-      future: _loadRows(assetPdfPath),
+      future: _loadRows(assetPdfPath, patientId),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return const Padding(
@@ -487,19 +536,18 @@ class DynamicResultsFromAsset extends StatelessWidget {
                 backgroundColor: r.bg,
                 rangeMin: r.minLabel,
                 rangeMax: r.maxLabel,
-                valueNum: r.valueNum, // NEW
-                loNum: r.loNum, // NEW
-                hiNum: r.hiNum, // NEW
+                valueNum: r.valueNum,
+                loNum: r.loNum,
+                hiNum: r.hiNum,
                 onTap: () {
-    // مبدئياً نفتح صفحة الريكومنديشن العامة.
-    // لاحقًا تقدري تمرّري params وتخصصي المحتوى لكل تحليل.
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const RecommendationsScreen(),
-      ),
-    );
-  },
+                  // مبدئياً نفتح صفحة الريكومنديشن العامة.
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RecommendationsScreen(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 12),
             ],
@@ -508,61 +556,74 @@ class DynamicResultsFromAsset extends StatelessWidget {
       },
     );
   }
-static Future<List<_UiRow>> _loadRows(String assetPdfPath, {String? patientId}) async {
-  final tests = await PdfExtractor.parseAsset(assetPdfPath);
 
-  // 🧠 تحديد هوية المستخدم
-  final targetId = patientId ?? FirebaseAuth.instance.currentUser?.uid;
-  String? doctorId;
+  // 🔧 هنا التعديل الأساسي: patientId صار باراميتر عادي مو مسمّى
+  static Future<List<_UiRow>> _loadRows(
+    String assetPdfPath,
+    String? patientId,
+  ) async {
+    final tests = await PdfExtractor.parseAsset(assetPdfPath);
 
-  if (targetId != null) {
-    try {
-      // 🔹 نجيب Doctor ID من ملف المريض
-      final patientDoc = await FirebaseFirestore.instance
-          .collection('patient_profiles')
-          .doc(targetId)
-          .get();
+    // 🧠 تحديد هوية المستخدم
+    final targetId = patientId ?? FirebaseAuth.instance.currentUser?.uid;
+    String? doctorId;
+    String? patientName; // 🔔 NEW
 
-      if (patientDoc.exists) {
-        doctorId = patientDoc.data()?['assignedDoctorId'];
+    if (targetId != null) {
+      try {
+        // 🔹 نجيب Doctor ID من ملف المريض
+        final patientDoc = await FirebaseFirestore.instance
+            .collection('patient_profiles')
+            .doc(targetId)
+            .get();
+
+        if (patientDoc.exists) {
+          final data = patientDoc.data();
+          doctorId = data?['assignedDoctorId'];
+          patientName = data?['username'] ?? data?['name']; // 🔔 NEW
+        }
+
+        await MedicationAutomation.runAutoMedicationPipeline(
+          targetId, // معرف المريض
+          doctorId ?? "UNKNOWN_DOCTOR", // معرف الدكتور
+          assetPdfPath, // التقرير من الـ assets
+        );
+
+        debugPrint('✅ تم تشغيل موديل الأدوية بناءً على القيم المستخرجة من التقرير');
+
+        // 🔔 NEW: إشعار للدكتور بوجود تنبؤ جديد
+        await _showMedicationNotification(
+          patientId: targetId,
+          patientName: patientName,
+        );
+      } catch (e) {
+        debugPrint('⚠ فشل تشغيل موديل الأدوية: $e');
       }
-
-      
-      await MedicationAutomation.runAutoMedicationPipeline(
-        targetId,                          // معرف المريض
-        doctorId ?? "UNKNOWN_DOCTOR",      // معرف الدكتور
-        assetPdfPath,                      // التقرير من الـ assets
-      );
-
-      debugPrint('✅ تم تشغيل موديل الأدوية بناءً على القيم المستخرجة من التقرير');
-    } catch (e) {
-      debugPrint('⚠ فشل تشغيل موديل الأدوية: $e');
+    } else {
+      debugPrint('⚠ لم يتم العثور على مستخدم حالي لتشغيل المودل');
     }
-  } else {
-    debugPrint('⚠ لم يتم العثور على مستخدم حالي لتشغيل المودل');
-  }
 
-  // 🎨 بناء واجهة عرض نتائج التحاليل نفسها
-  final out = <_UiRow>[];
-  for (final t in tests) {
-    final res = await InferenceService.decide(t);
-    final hasRange =
-        t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
+    // 🎨 بناء واجهة عرض نتائج التحاليل نفسها
+    final out = <_UiRow>[];
+    for (final t in tests) {
+      final res = await InferenceService.decide(t);
+      final hasRange =
+          t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
 
-    out.add(_UiRow(
-      testName: '(${t.code})',
-      status: UiMapping.status(res.tri, res.source, hasRange: hasRange),
-      value: _fmtVal(t.value),
-      bg: UiMapping.bg(res.tri, res.source),
-      minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
-      maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',
-      valueNum: t.value,
-      loNum: hasRange ? t.refMin : double.nan,
-      hiNum: hasRange ? t.refMax : double.nan,
-    ));
+      out.add(_UiRow(
+        testName: '(${t.code})',
+        status: UiMapping.status(res.tri, res.source, hasRange: hasRange),
+        value: _fmtVal(t.value),
+        bg: UiMapping.bg(res.tri, res.source),
+        minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
+        maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',
+        valueNum: t.value,
+        loNum: hasRange ? t.refMin : double.nan,
+        hiNum: hasRange ? t.refMax : double.nan,
+      ));
+    }
+    return out;
   }
-  return out;
-}
 
   static String _fmtVal(double v) =>
       v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
@@ -629,9 +690,7 @@ class DynamicResultsFromBytes extends StatelessWidget {
   }
 
   static Future<List<_UiRow>> _loadRows(Uint8List bytes) async {
-    
     final tests = await PdfExtractor.parseBytes(bytes);
-
 
     final out = <_UiRow>[];
     for (final t in tests) {

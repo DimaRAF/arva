@@ -50,11 +50,11 @@
         "9": "Maintenance (30 days)",
         "10": "No medication",
         "11": "Stop medication",
-        "12": NaN
+        "12": "None"
     },
     "Frequency": {
         "0": "Daily",
         "1": "Weekly",
-        "2": NaN
+        "2": "None"
     }
 }

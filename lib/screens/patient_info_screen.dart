@@ -93,22 +93,39 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
           'reportFileName':null,
         });
 
-        // إنشاء مجموعة الأدوية للمريض مع أول دواء (مثال)
+// إنشاء مجموعة الأدوية للمريض مع أول دواء (حتى لو فاضي كبداية)
 await FirebaseFirestore.instance
     .collection('patient_profiles')
     .doc(userId)
     .collection('medications')
     .add({
-  'drugName': null,
-  "Diseas" : null,
-  'dose': null,
-  'frequency': null,
-  "Duration" :null,
-  "test_name" : null,
-  "last_value" : null,
-  'status': null,
-  'createdAt': Timestamp.now(), 
+  // الأساسيات
+  'disease': null,          // مثال: "Diabetes" / "Hypertension" / "Vitamin D Deficiency"
+  'drug_name': null,        // مثال: "Metformin 500mg"
+  'test_name': null,        // مثال: "HbA1c" / "Vitamin D" / "LDL Cholesterol"
+
+  // الجرعة المعتمدة حالياً (اللي يشوفها المريض)
+  'dosage': null,           // مثال: "500 mg"
+  'duration': null,         // مثال: "8 weeks"
+  'frequency': null,        // مثال: "Daily" / "Weekly"
+
+  // آخر قيمة تحليل استخدمناها لهذا الدواء
+  'value': null,            // مثال: 7.5 (HbA1c) أو 18.0 (Vitamin D)
+
+  // حقول التنبؤ (pending) من مودل الأدوية
+  'pending_dosage': null,
+  'pending_duration': null,
+  'pending_frequency': null,
+  'pending_test_name': null,
+  'pending_test_value': null,
+  'pending_status': 'none', // none | pending | approved | rejected
+  'pending_updated_at': null,
+
+  // ميتا داتا
+  'createdAt': Timestamp.now(),
+  'last_updated': null,
 });
+
 
 
         if (!mounted) return;

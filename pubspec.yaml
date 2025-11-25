@@ -108,6 +108,9 @@ flutter:
     - assets/medicine_box.png
     - assets/Thermometer.png
     - assets/medication_model/model.tflite
+    - assets/medication_model/label_encoders.json
+    - assets/medication_model/target_encoders.json
+    - assets/medication_model/scaler (1).json
     
 
 

@@ -43,9 +43,29 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
 
       if (doc.exists) {
         medData = doc.data();
-        doseController.text = medData?['dose'] ?? '';
-        freqController.text = medData?['frequency'] ?? '';
-        durationController.text = medData?['Duration'] ?? '';
+
+        final approvedDosage = medData?['dosage'];
+        final approvedFreq = medData?['frequency'];
+        final approvedDuration = medData?['duration'];
+
+        final pendingDosage = medData?['pending_dosage'];
+        final pendingFreq = medData?['pending_frequency'];
+        final pendingDuration = medData?['pending_duration'];
+
+        // ✅ لو الدكتور: شوف التنبؤ (pending) أولاً لو موجود
+        if (widget.isDoctorView) {
+          doseController.text =
+              (pendingDosage ?? approvedDosage ?? '').toString();
+          freqController.text =
+              (pendingFreq ?? approvedFreq ?? '').toString();
+          durationController.text =
+              (pendingDuration ?? approvedDuration ?? '').toString();
+        } else {
+          // ✅ لو المريض: شوف فقط القيم المعتمدة
+          doseController.text = (approvedDosage ?? '').toString();
+          freqController.text = (approvedFreq ?? '').toString();
+          durationController.text = (approvedDuration ?? '').toString();
+        }
       }
     } catch (e) {
       debugPrint('❌ Error loading data: $e');
@@ -61,11 +81,26 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
           .collection('medications')
           .doc(widget.medId);
 
+      final newDosage = doseController.text.trim();
+      final newFreq = freqController.text.trim();
+      final newDuration = durationController.text.trim();
+
       await docRef.update({
-        'dose': doseController.text.trim(),
-        'frequency': freqController.text.trim(),
-        'Duration': durationController.text.trim(),
-        'status': 'Approved',
+        // ✅ الجرعة المعتمدة للمريض
+        'dosage': newDosage,
+        'frequency': newFreq,
+        'duration': newDuration,
+
+        // ✅ تصفير حقول التنبؤ بعد الموافقة
+        'pending_dosage': null,
+        'pending_frequency': null,
+        'pending_duration': null,
+        'pending_test_name': null,
+        'pending_test_value': null,
+        'status': 'Approved', // استخدمي نفس حقل status اللي في الأوتوميشن
+        'pending_updated_at': FieldValue.serverTimestamp(),
+
+        'last_updated': FieldValue.serverTimestamp(),
       });
 
       setState(() => isEditing = false);
@@ -92,12 +127,36 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
     if (isLoading) {
       return const Scaffold(
         backgroundColor: Color(0xFFCED5F7),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFF5FAAB1))),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF5FAAB1)),
+        ),
       );
     }
 
-    final drugName = medData?['drugName'] ?? 'Unknown Drug';
-    final disease = medData?['Diseas'] ?? 'No Disease Info';
+    final drugName = medData?['drug_name'] ?? 'Unknown Drug';
+    final disease = medData?['disease'] ?? 'No Disease Info';
+    final status = (medData?['status'] ?? '').toString();
+
+    final displayDose =
+        doseController.text.isEmpty ? '-' : doseController.text;
+    final displayFreq = freqController.text;
+    final displayDuration = durationController.text;
+
+    // 📝 النص حسب نوع المستخدم
+    String mainText;
+    if (widget.isDoctorView) {
+      mainText =
+          'Based on the patient’s new test results, please review and approve or change the dose to $displayDose $displayFreq $displayDuration.';
+    } else {
+      if (status == 'Pending') {
+        // لسه الدكتور ما وافق
+        mainText =
+            'Your doctor is reviewing an updated dose. Your current prescribed dose is $displayDose $displayFreq $displayDuration.';
+      } else {
+        mainText =
+            'Your current prescribed dose is $displayDose $displayFreq $displayDuration.';
+      }
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFCED5F7),
@@ -117,14 +176,20 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
             Positioned(
               right: 28 * s,
               top: safeTop + 50 * s,
-              child: Image.asset('assets/medicine_box.png',
-                  width: 172 * s, height: 172 * s),
+              child: Image.asset(
+                'assets/medicine_box.png',
+                width: 172 * s,
+                height: 172 * s,
+              ),
             ),
             Positioned(
               left: 78 * s,
               top: safeTop + 115 * s,
-              child: Image.asset('assets/Thermometer.png',
-                  width: 80 * s, height: 58 * s),
+              child: Image.asset(
+                'assets/Thermometer.png',
+                width: 80 * s,
+                height: 58 * s,
+              ),
             ),
 
             // زر الرجوع
@@ -147,8 +212,11 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                       ),
                     ],
                   ),
-                  child: Icon(Icons.arrow_forward,
-                      color: Colors.white, size: 20 * s),
+                  child: Icon(
+                    Icons.arrow_forward,
+                    color: Colors.white,
+                    size: 20 * s,
+                  ),
                 ),
               ),
             ),
@@ -185,7 +253,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                                 Text(
                                   'Medication and Drugs',
                                   style: TextStyle(
-                                    color: Color(0xFF0E1B3D),
+                                    color: const Color(0xFF0E1B3D),
                                     fontSize: 22 * s,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -196,10 +264,13 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                                 Container(
                                   width: double.infinity,
                                   padding: EdgeInsets.symmetric(
-                                      vertical: 16 * s, horizontal: 10 * s),
+                                    vertical: 16 * s,
+                                    horizontal: 10 * s,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF5FAAB1),
-                                    borderRadius: BorderRadius.circular(26 * s),
+                                    borderRadius:
+                                        BorderRadius.circular(26 * s),
                                   ),
                                   child: Column(
                                     children: [
@@ -224,13 +295,12 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                                 ),
                                 SizedBox(height: 28 * s),
 
-                                // النص أو الحقول
                                 if (!isEditing)
                                   Text(
-                                    'Based on the patient’s new test results, please review and approve or change the dose to ${medData?['dose'] ?? '-'} ${medData?['frequency'] ?? ''} ${medData?['Duration'] ?? ''}.',
+                                    mainText,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      color: Color(0xFF2B2B2B),
+                                      color: const Color(0xFF2B2B2B),
                                       fontSize: 14 * s,
                                       fontWeight: FontWeight.w600,
                                       height: 1.6,
@@ -239,16 +309,18 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                                 else ...[
                                   _editableField("Dose", doseController, s),
                                   SizedBox(height: 12 * s),
-                                  _editableField("Frequency", freqController, s),
+                                  _editableField(
+                                      "Frequency", freqController, s),
                                   SizedBox(height: 12 * s),
-                                  _editableField("Duration", durationController, s),
+                                  _editableField(
+                                      "Duration", durationController, s),
                                 ],
                               ],
                             ),
                           ),
                         ),
 
-                        // ✅ الأزرار تظهر فقط إذا الدكتور داخل
+                        // ✅ الأزرار فقط للدكتور
                         if (widget.isDoctorView)
                           Padding(
                             padding: EdgeInsets.only(top: 20 * s),
@@ -256,7 +328,6 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 if (!isEditing) ...[
-                                  // 🔴 Change Dose
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: () =>
@@ -268,7 +339,8 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                                               BorderRadius.circular(22 * s),
                                         ),
                                         padding: EdgeInsets.symmetric(
-                                            vertical: 16 * s),
+                                          vertical: 16 * s,
+                                        ),
                                       ),
                                       child: const Text(
                                         'Change Dose',
@@ -280,18 +352,19 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                                     ),
                                   ),
                                   SizedBox(width: 12 * s),
-                                  // 🔵 Approve
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: _approveAndSave,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xFF6B7FB0),
+                                        backgroundColor:
+                                            const Color(0xFF6B7FB0),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(22 * s),
                                         ),
                                         padding: EdgeInsets.symmetric(
-                                            vertical: 16 * s),
+                                          vertical: 16 * s,
+                                        ),
                                       ),
                                       child: const Text(
                                         'Approve',
@@ -303,18 +376,19 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                                     ),
                                   ),
                                 ] else ...[
-                                  // ✅ فقط زر واحد في وضع التعديل
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: _approveAndSave,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xFF6B7FB0),
+                                        backgroundColor:
+                                            const Color(0xFF6B7FB0),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(22 * s),
                                         ),
                                         padding: EdgeInsets.symmetric(
-                                            vertical: 16 * s),
+                                          vertical: 16 * s,
+                                        ),
                                       ),
                                       child: const Text(
                                         'Approve & Save',
@@ -341,7 +415,8 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
     );
   }
 
-  Widget _editableField(String label, TextEditingController controller, double s) {
+  Widget _editableField(
+      String label, TextEditingController controller, double s) {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
