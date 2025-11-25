@@ -58,10 +58,10 @@
         "48": "Welvida M 500mg/50mg Tablet"
     },
     "test_name": {
-        "0": "Fasting Blood Glucose",
-        "1": "Ferritin",
+        "0": "Fasting blood sugar",
+        "1": "Ferritin In Serum",
         "2": "LDL Cholesterol",
         "3": "Systolic BP",
-        "4": "Vitamin D"
+        "4": "Vitamin D (25 OH)"
     }
 }

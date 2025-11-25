@@ -2,63 +2,121 @@ import 'package:excel/excel.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class TermInfo {
-  final String canonical;        // من عمود medical term (لا تغيّريه)
+  final String canonical;        // الاسم القياسي من عمود original_medical term
   final double? refMin;          // Lowest_Normal
   final double? refMax;          // Highest_Normal
   final String unit;             // Unit
-  const TermInfo({required this.canonical, this.refMin, this.refMax, required this.unit});
+  const TermInfo({
+    required this.canonical,
+    this.refMin,
+    this.refMax,
+    required this.unit,
+  });
 }
 
 class TermDictionary {
   static bool _loaded = false;
-  static final Map<String, TermInfo> _byCanonical = {};    // "WBC" -> info
-  static final Map<String, String> _aliasToCanonical = {}; // "WHITE BLOOD CELLS" -> "WBC"
 
-  /// استدعيها مرّة قبل الاستخدام (مثلًا في initState لأول صفحة)
+  /// "Iron"  -> info (رينج + وحدة)
+  static final Map<String, TermInfo> _byCanonical = {};
+
+  /// "IRON (FE)" / "SERUM IRON" / "Fe" -> "Iron"
+  static final Map<String, String> _aliasToCanonical = {};
+
+  /// استدعيها مرّة قبل الاستخدام (مثلاً في initState لأول صفحة)
   static Future<void> ensureLoaded() async {
     if (_loaded) return;
-    final bytes = await rootBundle.load('assets/medical_term_full.xlsx');
-    final excel = Excel.decodeBytes(bytes.buffer.asUint8List());
 
+    final bytes = await rootBundle.load('assets/ALL_medical term.xlsx');
+    final excel = Excel.decodeBytes(bytes.buffer.asUint8List());
     final sheet = excel.tables[excel.tables.keys.first]!;
-    // رؤوس الأعمدة بالضبط كما أرسلتي (نقرأ case-insensitive)
+
+    // رؤوس الأعمدة (lowercase عشان ما نهتم بحالة الحروف)
     final headers = sheet.rows.first
         .map((c) => (c?.value?.toString().trim() ?? '').toLowerCase())
         .toList();
 
-    final int idxName  = headers.indexOf('medical term');
-    final int idxLo    = headers.indexOf('lowest_normal');
-    final int idxHi    = headers.indexOf('highest_normal');
-    final int idxUnit  = headers.indexOf('unit');
+    // 👇 نحاول أولاً باستخدام الهيكل الجديد:
+    // original_medical term + medical term1..4
+    final int idxOriginal = headers.indexOf('original_medical term');
+    final int idxMT1      = headers.indexOf('medical term1');
+    final int idxMT2      = headers.indexOf('medical term2');
+    final int idxMT3      = headers.indexOf('medical term3');
+    final int idxMT4      = headers.indexOf('medical term4');
 
-    if (idxName < 0) { throw Exception('❌ Column "medical term" not found in Excel'); }
+   
+    final int idxCanonicalCol =
+        (idxOriginal >= 0) ? idxOriginal : headers.indexOf('medical term');
+
+    if (idxCanonicalCol < 0) {
+      throw Exception(
+          '❌ Neither "original_medical term" nor "medical term" column found in Excel');
+    }
+
+    final int idxLo   = headers.indexOf('lowest_normal');
+    final int idxHi   = headers.indexOf('highest_normal');
+    final int idxUnit = headers.indexOf('unit');
 
     for (int r = 1; r < sheet.rows.length; r++) {
       final row = sheet.rows[r];
-      final String name = _s(row, idxName);
-      if (name.isEmpty) continue;
+
+      // الاسم القياسي (اللي في original_medical term لو موجود)
+      final String canonicalName = _s(row, idxCanonicalCol);
+      if (canonicalName.isEmpty) continue;
 
       final double? lo  = _d(row, idxLo);
       final double? hi  = _d(row, idxHi);
       final String unit = _s(row, idxUnit);
 
-      final canon = _canon(name);
-      final info = TermInfo(canonical: canon, refMin: lo, refMax: hi, unit: unit);
+      final String canon = _canon(canonicalName);
+
+      // خزّن معلومات الرينج + الوحدة حسب الاسم القياسي
+      final info = TermInfo(
+        canonical: canon,
+        refMin: lo,
+        refMax: hi,
+        unit: unit,
+      );
       _byCanonical[canon] = info;
 
-      // aliases الأساسية: نفس الاسم بصيغ مختلفة (upper/strip) + بدون أقواس/زخارف
-      for (final alias in _generateAliases(name)) {
-        _aliasToCanonical[alias] = canon;
+      // نجمع كل المرادفات في هذه السطر:
+      final Set<String> rawNames = {canonicalName};
+
+      if (idxMT1 >= 0) {
+        final s = _s(row, idxMT1);
+        if (s.isNotEmpty) rawNames.add(s);
       }
-      // أضف أيضًا الصيغة المختصرة إن كانت موجودة ضمن الاسم (مثل WBC داخل "Total Leucocytic Count (WBC)")
-      final short = _extractShort(name);
-      if (short != null) {
-        _aliasToCanonical[_norm(short)] = canon;
+      if (idxMT2 >= 0) {
+        final s = _s(row, idxMT2);
+        if (s.isNotEmpty) rawNames.add(s);
+      }
+      if (idxMT3 >= 0) {
+        final s = _s(row, idxMT3);
+        if (s.isNotEmpty) rawNames.add(s);
+      }
+      if (idxMT4 >= 0) {
+        final s = _s(row, idxMT4);
+        if (s.isNotEmpty) rawNames.add(s);
+      }
+
+      // لكل اسم خام (canonical + المرادفات) نولّد aliases مطبَّعة
+      for (final raw in rawNames) {
+        for (final alias in _generateAliases(raw)) {
+          _aliasToCanonical[alias] = canon;
+        }
+
+        // ولو فيه اختصار بين قوسين مثلاً (Fe) أو (WBC) نضيفه أيضاً
+        final short = _extractShort(raw);
+        if (short != null) {
+          _aliasToCanonical[_norm(short)] = canon;
+        }
       }
     }
 
     _loaded = true;
   }
+
+  // ===== Helpers على حالها تقريباً =====
 
   static String _s(List<Data?> row, int idx) {
     if (idx < 0) return '';
@@ -74,7 +132,10 @@ class TermDictionary {
     return double.tryParse(s);
   }
 
-  static String _canon(String s) => s.trim();    // نستخدم الاسم كما هو من العمود
+  // الاسم القياسي نخليه زي ما هو مع trim بسيط
+  static String _canon(String s) => s.trim();
+
+  // نسخة مطبَّعة للبحث: upper + إزالة الرموز الزائدة
   static String _norm(String s) => s
       .toUpperCase()
       .replaceAll(RegExp(r'[\t\r\n]'), ' ')
@@ -84,8 +145,9 @@ class TermDictionary {
 
   static Iterable<String> _generateAliases(String name) {
     final aliases = <String>{};
-    aliases.add(_norm(name));              // النسخة المطَبَّعة
-    aliases.add(_norm(name.replaceAll(RegExp(r'\(.*?\)'), ''))); // بدون أقواس
+    aliases.add(_norm(name)); // النسخة المطَبَّعة كاملة
+    // نسخة بدون الأقواس مثلاً: "Iron (Fe)" → "Iron"
+    aliases.add(_norm(name.replaceAll(RegExp(r'\(.*?\)'), '')));
     return aliases.where((e) => e.isNotEmpty);
   }
 
@@ -97,13 +159,14 @@ class TermDictionary {
     return s;
   }
 
-  /// يحوّل اسم من الـPDF إلى الاسم القياسي من عمود medical term (أو null إذا ما وجد)
+  /// يحوّل اسم من الـPDF (أو من التقرير) إلى الاسم القياسي من عمود original_medical term
+  /// مثلاً: "Iron (Fe)" أو "SERUM IRON" → "Iron"
   static Future<String?> canonicalize(String pdfName) async {
     await ensureLoaded();
     return _aliasToCanonical[_norm(pdfName)];
   }
 
-  /// يرجّع معلومات التحليل حسب الاسم القياسي (نفس عمود medical term)
+  /// يرجّع معلومات التحليل حسب الاسم القياسي (نفس عمود original_medical term)
   static Future<TermInfo?> info(String canonical) async {
     await ensureLoaded();
     return _byCanonical[canonical];

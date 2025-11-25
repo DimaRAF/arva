@@ -100,7 +100,7 @@ flutter:
     - assets/model/scaler.json
     - assets/model/thresholds.json
     - assets/lamatestresults.pdf
-    - assets/medical_term_full.xlsx 
+    - assets/ALL_medical term.xlsx
     - assets/saratestresults.pdf
     - assets/fork&knife.png
     - assets/pill.png

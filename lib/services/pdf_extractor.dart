@@ -31,15 +31,15 @@ class PdfExtractor {
 
     // جميع صيغ الوحدات الشائعة
     const unitPattern =
-        r'(?:'
-        r'10\^\d+\/[A-Za-z]+'
-        r'|g\/dL|mg\/dL|µg\/mL|ug\/mL|ng\/mL|pg\/mL'
-        r'|mmol\/L|µ?mol\/L'
-        r'|IU\/L|U\/L|mIU\/L|µIU\/L|uIU\/L|uIU\/mL|µIU\/mL|mIU\/mL'
-        r'|fL|pL|nL|pg|ng|%'
-        r'|10\^9\/L|10\^6\/µL|10\^3\/µL'
-        r'|cells\/µL|K\/µL|x10\^\d+\/u?l'
-        r')';
+    r'(?:'
+    r'10\^\d+\/[A-Za-z]+'
+    r'|g\/dL|mg\/dL|µg\/mL|ug\/mL|ng\/mL|pg\/mL|ug\/dL'
+    r'|mmol\/L|µ?mol\/L'
+    r'|IU\/L|U\/L|mIU\/L|µIU\/L|uIU\/L|uIU\/mL|µIU\/mL|mIU\/mL'
+    r'|fL|pL|nL|pg|ng|%'
+    r'|10\^9\/L|10\^6\/µL|10\^3\/µL'
+    r'|cells\/µL|K\/µL|x10\^\d+\/u?l'
+    r')';
 
     // صف: name  value  [unit]  ...  a-b
     final rowRe = RegExp(
@@ -54,7 +54,7 @@ class PdfExtractor {
 
     // سطور/عناوين ليست تحاليل
     final badName = RegExp(
-      r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Patient\s*ID|File\s*No|Lab\s*No|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name|Less\s*than|ul|Collection Date and Time:|DOB)$',
+      r'^(?:Patient\s*Name|Gender|Age|Visit\s*Number|Patient\s*ID|File\s*No|Lab\s*No|Result|Reference\s*Range|Refrence\s*Range|Unit|Registered|Authenticated|Printed|\(AM\)|\(PM\)|AM|PM|Branch\s*Name|Less\s*than|ul|(Fe)u|Collection Date and Time:|DOB)$',
       caseSensitive: false,
     );
 
