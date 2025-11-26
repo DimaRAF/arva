@@ -1,0 +1,8 @@
+{
+    "test_accuracy_percent": 91.52288436889648,
+    "test_loss": 0.21582277119159698,
+    "train_accuracy_last_epoch_percent": 90.68742394447327,
+    "val_accuracy_last_epoch_percent": 91.52288436889648,
+    "num_classes": 168,
+    "num_samples": 146925
+}

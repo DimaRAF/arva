@@ -474,13 +474,13 @@ class __HomePageContentState extends State<_HomePageContent> {
                             imagePath: 'assets/report.png',
                             label: 'Report',
                             onTap: () {
-                              Navigator.push(
+                              /*Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
                                       const RecommendationsScreen(),
                                 ),
-                              );
+                              );*/
                             },
                           ),
                         ],

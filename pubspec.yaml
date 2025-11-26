@@ -111,6 +111,12 @@ flutter:
     - assets/medication_model/label_encoders.json
     - assets/medication_model/target_encoders.json
     - assets/medication_model/scaler (1).json
+    - assets/recommendations_models/descriptions.json
+    - assets/recommendations_models/label_encoders.json
+    - assets/recommendations_models/scaler (1).json
+    - assets/recommendations_models/target_encoders.json
+    - assets/recommendations_models/lab_reco_model.tflite
+    - assets/recommendations_models/metrics (1).json
     
 
 

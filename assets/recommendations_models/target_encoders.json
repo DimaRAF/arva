@@ -1,0 +1,508 @@
+{
+    "Recommendation": {
+        "0": {
+            "recommendation": "Adopt anti-inflammatory habits like not smoking, managing weight, staying active, and follow up with your doctor if the value remains high or you have ongoing symptoms."
+        },
+        "1": {
+            "recommendation": "Adopt anti-inflammatory habits such as avoiding smoking and ultra-processed foods, and speak to your doctor if high monocytes persist with other abnormal tests or symptoms."
+        },
+        "2": {
+            "recommendation": "Avoid anabolic steroids and unregulated â€œtestosterone boosters,â€‌ and consult your doctor if you notice acne, mood swings, or unusual hair or muscle changes."
+        },
+        "3": {
+            "recommendation": "Avoid excessive calcium supplements without medical advice, drink enough water, and discuss the result with your doctor if you have kidney stones or bone symptoms."
+        },
+        "4": {
+            "recommendation": "Avoid excessive high-dose vitamin C supplements, especially if you have kidney stone risk, and try to rely more on food sources."
+        },
+        "5": {
+            "recommendation": "Avoid extreme high-protein, low-plant diets, stay hydrated, and review your liver and immune tests with your doctor if this pattern persists."
+        },
+        "6": {
+            "recommendation": "Avoid high-dose B12 supplements or injections without medical advice and review your results with your doctor if levels stay high."
+        },
+        "7": {
+            "recommendation": "Avoid high-dose folate supplements without medical advice, especially if you take other medications or have vitamin B12 issues."
+        },
+        "8": {
+            "recommendation": "Avoid high-dose niacin supplements for cholesterol or â€œflushâ€‌ products without medical supervision because they can affect the liver."
+        },
+        "9": {
+            "recommendation": "Avoid high-dose vitamin A supplements or frequent liver consumption without medical advice because excess vitamin A can be harmful."
+        },
+        "10": {
+            "recommendation": "Avoid high-dose vitamin D supplements without medical follow-up and discuss your dosage with your doctor, especially if you also take calcium."
+        },
+        "11": {
+            "recommendation": "Avoid high-potassium foods and salt substitutes containing potassium, and follow your doctorâ€™s guidance closely, especially if you have kidney or heart conditions."
+        },
+        "12": {
+            "recommendation": "Avoid long-term high-dose B6 supplements without medical advice because they may cause nerve-related side effects."
+        },
+        "13": {
+            "recommendation": "Avoid magnesium supplements or laxatives without medical advice, stay hydrated, and talk to your doctor if you have kidney problems or muscle weakness."
+        },
+        "14": {
+            "recommendation": "Avoid overuse of stimulant drinks and unprescribed thyroid or weight-loss products, and follow up with your doctor if you feel shaky, sweaty, or unusually restless."
+        },
+        "15": {
+            "recommendation": "Avoid overusing antacids or bicarbonate-containing remedies without advice, stay hydrated, and follow your doctorâ€™s guidance if you have kidney or lung problems."
+        },
+        "16": {
+            "recommendation": "Avoid skipping meals, carry a small healthy snack if you stay long hours outside, and choose carbohydrates with fiber to prevent sugar drops."
+        },
+        "17": {
+            "recommendation": "Avoid taking thyroid or â€œenergyâ€‌ supplements without medical advice and follow your doctorâ€™s instructions about check-ups and medication if you use thyroid pills."
+        },
+        "18": {
+            "recommendation": "Avoid unnecessary copper supplements and be cautious with unregulated herbal or mineral products, especially if you have liver disease."
+        },
+        "19": {
+            "recommendation": "Avoid unnecessary high-dose B-complex supplements and maintain a varied diet rather than relying mainly on pills for vitamins."
+        },
+        "20": {
+            "recommendation": "Avoid unnecessary iron supplements, keep a balanced diet, and follow up with your doctor if iron stays high or you have liver or joint symptoms."
+        },
+        "21": {
+            "recommendation": "Avoid unnecessary iron supplements, maintain a healthy weight, and discuss high ferritin with your doctor, especially if you have liver disease, inflammation, or metabolic issues."
+        },
+        "22": {
+            "recommendation": "Avoid unnecessary zinc supplements or high-dose cold remedies and review your intake with your doctor if levels stay high."
+        },
+        "23": {
+            "recommendation": "Because Anti-TPO relates to autoimmune thyroid disease, follow your doctorâ€™s advice closely, keep a healthy lifestyle, and do not start or stop thyroid medication or supplements without medical guidance."
+        },
+        "24": {
+            "recommendation": "Build up your iron stores with iron-rich foods and regular balanced meals, and ask your doctor if you often feel tired or dizzy."
+        },
+        "25": {
+            "recommendation": "Choose meals that combine iron, B12, and folate sources (e.g., meat, fish, eggs, beans, and leafy greens) to support hemoglobin in each red blood cell."
+        },
+        "26": {
+            "recommendation": "Cut down on sugary drinks and refined carbs, avoid late heavy meals, stay physically active, and discuss possible prediabetes with your doctor if this pattern repeats."
+        },
+        "27": {
+            "recommendation": "Cut down on sugary drinks, sweets, large late-night meals, and refined carbs, increase physical activity, and consider weight management with your doctorâ€™s guidance."
+        },
+        "28": {
+            "recommendation": "Discuss persistent basophil elevation with your doctor, especially if you have allergy symptoms, and try to avoid known allergens and irritants when possible."
+        },
+        "29": {
+            "recommendation": "Do not adjust thyroid medication doses on your own; take them exactly as prescribed and inform your doctor if you notice palpitations, anxiety, or unexplained weight loss."
+        },
+        "30": {
+            "recommendation": "Do not change or stop thyroid medication on your own; follow your doctorâ€™s plan and tell them if you develop symptoms like fast heartbeat, heat intolerance, or nervousness."
+        },
+        "31": {
+            "recommendation": "Do not overuse high-dose biotin supplements as they can interfere with some lab tests; always tell your doctor if you take them."
+        },
+        "32": {
+            "recommendation": "Do not take high-dose thiamine supplements without a clear medical reason and keep focusing on getting vitamins mainly from a balanced diet."
+        },
+        "33": {
+            "recommendation": "Do not take high-dose vitamin E supplements routinely without medical guidance because they may increase bleeding risk in some people."
+        },
+        "34": {
+            "recommendation": "Drink adequate fluids, avoid very high-protein fad diets without medical supervision, and check with your doctor if high protein persists or you have kidney or liver issues."
+        },
+        "35": {
+            "recommendation": "Drink enough water during the day and moderate your intake of red meat and high-protein foods, following your doctorâ€™s advice if you have kidney or heart problems."
+        },
+        "36": {
+            "recommendation": "Eat folate-rich foods such as leafy green vegetables, legumes, citrus fruits, and fortified grains to support blood and nerve health."
+        },
+        "37": {
+            "recommendation": "Eat green leafy vegetables like spinach, kale, and parsley regularly to support normal blood clotting, unless your doctor has restricted vitamin K."
+        },
+        "38": {
+            "recommendation": "Ensure adequate intake of phosphorus and protein through foods like dairy, meat, legumes, and whole grains, following your doctorâ€™s advice if you have bone or kidney issues."
+        },
+        "39": {
+            "recommendation": "Ensure enough vitamin B12 and folate in your diet, limit alcohol intake, and discuss persistent changes with your doctor if you feel tired or unwell."
+        },
+        "40": {
+            "recommendation": "Ensure you get enough protein and iron from foods like lean meat, eggs, legumes, and whole grains, especially if you have chronic illness."
+        },
+        "41": {
+            "recommendation": "Ensure you get enough protein from sources like lean meat, fish, eggs, dairy, and legumes, and stay well hydrated unless your doctor advises otherwise."
+        },
+        "42": {
+            "recommendation": "Focus on a nutrient-rich diet with iron, B12, and folate, and talk to your doctor if RDW is high together with anemia or other abnormal blood tests."
+        },
+        "43": {
+            "recommendation": "Focus on anti-inflammatory choicesâ€”more fruits, vegetables, whole grains, less fried and processed foodsâ€”and discuss persistent elevation with your doctor."
+        },
+        "44": {
+            "recommendation": "Focus on weight control, daily physical activity, and reducing refined carbohydrates and sugary foods, and review your insulin resistance or diabetes plan with your doctor."
+        },
+        "45": {
+            "recommendation": "Focus on weight management, regular physical activity, and reducing refined carbs and sugary foods, and follow your doctorâ€™s advice if you have insulin resistance or type 2 diabetes."
+        },
+        "46": {
+            "recommendation": "Follow your doctorâ€™s advice on salt and fluid intake, and avoid drinking excessive amounts of water in a short time without medical guidance."
+        },
+        "47": {
+            "recommendation": "Get biotin from foods like eggs (well cooked), nuts, seeds, and whole grains instead of depending only on hair/skin pills."
+        },
+        "48": {
+            "recommendation": "Help support testosterone naturally with resistance exercise, enough sleep, stress reduction, and a balanced diet rich in protein and healthy fats."
+        },
+        "49": {
+            "recommendation": "Help your thyroid by managing stress, sleeping well, and avoiding frequent crash diets or severe calorie restriction."
+        },
+        "50": {
+            "recommendation": "High saturation can be seen with iron overload, so avoid extra iron and vitamin C supplements without medical advice and consult your doctor for further assessment."
+        },
+        "51": {
+            "recommendation": "High transferrin can reflect low iron stores, so increase iron-rich foods with vitamin C and review your iron status with your doctor."
+        },
+        "52": {
+            "recommendation": "If reticulocytes are high with anemia or recent blood loss, follow your doctorâ€™s plan and maintain good nutrition and hydration to help your bone marrow recover."
+        },
+        "53": {
+            "recommendation": "If you are on thyroid medication, try to take it at the same time every day on an empty stomach and avoid taking it together with calcium or iron supplements unless your doctor advises."
+        },
+        "54": {
+            "recommendation": "If you have allergies, asthma, or digestive symptoms, work with your doctor to identify triggers and try to avoid allergens such as dust, smoke, or certain foods."
+        },
+        "55": {
+            "recommendation": "If you recently had a sore throat or skin infection, follow your doctorâ€™s advice, complete any prescribed antibiotics, and monitor for joint pain or fever."
+        },
+        "56": {
+            "recommendation": "Improve your 2â€“3 week sugar control by reducing sugary drinks and snacks, choosing whole grains and vegetables, staying active, and reviewing your diabetes or prediabetes plan with your doctor."
+        },
+        "57": {
+            "recommendation": "Improve your vitamin D by getting safe sun exposure several times per week and including vitamin Dâ€“rich foods like fatty fish, fortified dairy, and eggs if allowed."
+        },
+        "58": {
+            "recommendation": "Include a variety of foods such as whole grains, eggs, legumes, and vegetables to naturally cover your B5 needs."
+        },
+        "59": {
+            "recommendation": "Include calcium-rich foods such as dairy products, fortified plant milk, and leafy greens, and get safe sun exposure to support vitamin D."
+        },
+        "60": {
+            "recommendation": "Include magnesium-rich foods such as nuts, seeds, whole grains, and leafy green vegetables, and avoid excessive caffeine if possible."
+        },
+        "61": {
+            "recommendation": "Include potassium-rich foods such as bananas, oranges, potatoes, and leafy greens in your diet if your doctor has not restricted them."
+        },
+        "62": {
+            "recommendation": "Include vitamin Aâ€“rich foods such as carrots, sweet potatoes, leafy greens, eggs, and dairy to support vision and immune health."
+        },
+        "63": {
+            "recommendation": "Include vitamin Eâ€“rich foods like nuts, seeds, and vegetable oils in moderate amounts as part of a balanced diet."
+        },
+        "64": {
+            "recommendation": "Include zinc-rich foods such as meat, seafood, dairy, nuts, and seeds in your meals, and avoid long-term supplements without medical advice."
+        },
+        "65": {
+            "recommendation": "Increase riboflavin intake with foods like dairy products, eggs, lean meat, and green vegetables and avoid skipping meals frequently."
+        },
+        "66": {
+            "recommendation": "Increase vitamin C with fruits and vegetables such as oranges, strawberries, kiwi, peppers, and tomatoes throughout the day."
+        },
+        "67": {
+            "recommendation": "Keep a balanced diet without excessive iron supplementation unless prescribed, and review results with your doctor if other iron tests are abnormal."
+        },
+        "68": {
+            "recommendation": "Keep a healthy lifestyle and follow up with your doctor if the elevation is persistent or associated with symptoms like weight loss, night sweats, or prolonged fatigue."
+        },
+        "69": {
+            "recommendation": "Keep a healthy lifestyle with regular physical activity and a balanced diet to support your immune and respiratory health."
+        },
+        "70": {
+            "recommendation": "Keep a stable weight and balanced meals, and avoid frequent overeating or very high-sugar snacks to help maintain healthy triglyceride levels."
+        },
+        "71": {
+            "recommendation": "Keep a varied, balanced diet and continue routine check-ups to monitor your red blood cell indices over time."
+        },
+        "72": {
+            "recommendation": "Keep cortisol in a healthy range by maintaining a regular sleepâ€“wake schedule, eating regular balanced meals, and avoiding extreme dieting."
+        },
+        "73": {
+            "recommendation": "Keep good general health with adequate hydration, balanced nutrition, and regular check-ups if you have inherited blood conditions."
+        },
+        "74": {
+            "recommendation": "Keep your LDL in a favorable range by limiting saturated fats and processed foods while choosing more vegetables, whole grains, and healthy fats."
+        },
+        "75": {
+            "recommendation": "Keep your fasting sugar stable with regular, balanced meals, avoiding very long fasting, and including fiber-rich foods like vegetables, whole grains, and legumes."
+        },
+        "76": {
+            "recommendation": "Keep your hormones balanced with regular sleep, stress management, and avoiding unnecessary use of certain medications or herbal â€œhormoneâ€‌ products without medical advice."
+        },
+        "77": {
+            "recommendation": "Keep your insulin stable with regular meals, avoiding long fasting or heavy sugary snacks, and staying moderately active."
+        },
+        "78": {
+            "recommendation": "Keep your intake of vitamin Kâ€“rich foods steady from day to day, especially if you use blood-thinning medications, and follow your doctorâ€™s instructions."
+        },
+        "79": {
+            "recommendation": "Keep your kidneys healthy by staying hydrated, avoiding unnecessary over-the-counter painkillers, and maintaining regular physical activity."
+        },
+        "80": {
+            "recommendation": "Keep your short-term sugar control steady with consistent meal patterns and balanced carbs, especially if you are adjusting diabetes treatment with your doctor."
+        },
+        "81": {
+            "recommendation": "Keep your sugar stable by eating regular balanced meals with complex carbohydrates, protein, and fiber, and avoid long periods of fasting without food."
+        },
+        "82": {
+            "recommendation": "Keep your thyroid supported with regular sleep, a varied diet including enough protein, and avoiding sudden extreme diets or prolonged fasting without medical guidance."
+        },
+        "83": {
+            "recommendation": "Limit added salt and very salty foods (such as chips, pickles, and processed foods) and stay adequately hydrated unless your doctor has prescribed fluid restriction."
+        },
+        "84": {
+            "recommendation": "Limit alcohol if you drink, avoid unnecessary medications and herbal supplements, choose a balanced diet lower in fried and very fatty foods, and follow up with your doctor about liver health."
+        },
+        "85": {
+            "recommendation": "Limit alcohol if you drink, avoid unnecessary medicines and herbal products, choose lighter, less fatty meals, and follow up with your doctor about your liver tests."
+        },
+        "86": {
+            "recommendation": "Limit alcohol, avoid unnecessary medicines, and see your doctor if you notice yellowing of the eyes or dark urine."
+        },
+        "87": {
+            "recommendation": "Limit fried foods and fatty meats, choose lean proteins and healthy oils, increase vegetables and whole grains, and review your heart risk with your doctor."
+        },
+        "88": {
+            "recommendation": "Limit processed foods and cola drinks, follow any kidney diet instructions from your doctor, and review high phosphorus levels especially if you have chronic kidney disease."
+        },
+        "89": {
+            "recommendation": "Limit sweets, sugary drinks, and large portions of white bread or rice, spread your carbs across the day, and ask your doctor if frequent high readings need further testing."
+        },
+        "90": {
+            "recommendation": "Limit use of painkillers like NSAIDs without medical advice, drink adequate fluids, and review this result with your doctor, especially if you have diabetes, hypertension, or kidney disease."
+        },
+        "91": {
+            "recommendation": "Maintain a balanced diet and regular check-ups, and inform your doctor if high values appear with symptoms like fatigue or shortness of breath."
+        },
+        "92": {
+            "recommendation": "Maintain a balanced diet with adequate protein and iron, and discuss with your doctor if you have chronic illnesses that can affect iron handling."
+        },
+        "93": {
+            "recommendation": "Maintain a balanced intake of fluids and electrolytes by drinking water regularly and eating a varied, moderate-salt diet."
+        },
+        "94": {
+            "recommendation": "Maintain a balanced protein intake and stay well hydrated unless your doctor has given you specific fluid or protein restrictions."
+        },
+        "95": {
+            "recommendation": "Maintain a healthy lifestyle with a balanced diet and avoid using medications or supplements without medical advice."
+        },
+        "96": {
+            "recommendation": "Maintain a healthy lifestyle, avoid smoking and excess alcohol, and follow up with your doctor if high globulin persists or other tests are abnormal."
+        },
+        "97": {
+            "recommendation": "Maintain a healthy weight and balanced diet, and stay active to support stable uric acid levels."
+        },
+        "98": {
+            "recommendation": "Maintain a healthy weight, limit alcohol and smoking, and do not use hormonal pills or herbal â€œestrogen boostersâ€‌ without medical supervision."
+        },
+        "99": {
+            "recommendation": "Maintain a heart- and body-healthy lifestyle with regular exercise, a diet rich in vegetables and whole grains, and avoiding smoking."
+        },
+        "100": {
+            "recommendation": "Maintain a heart-healthy pattern with a balanced intake of healthy fats (like olive oil, nuts, and fish) rather than extremely low-fat or highly processed diets."
+        },
+        "101": {
+            "recommendation": "Maintain a kidney-friendly lifestyle with good hydration, regular exercise, and avoiding unnecessary high-protein fad diets unless your doctor approves them."
+        },
+        "102": {
+            "recommendation": "Maintain a varied diet that includes nuts, seeds, whole grains, and organ meats, and discuss persistent low levels with your doctor if you have neurological or anemia symptoms."
+        },
+        "103": {
+            "recommendation": "Maintain bone and liver health with adequate intake of calcium and vitamin D, regular safe sun exposure, and physical activity like walking"
+        },
+        "104": {
+            "recommendation": "Maintain general thyroid and immune health with a balanced diet, stress management, and regular follow-up if you have a known thyroid condition."
+        },
+        "105": {
+            "recommendation": "Maintain good protein and immune health with a balanced diet that includes lean proteins, legumes, nuts, and plenty of fruits and vegetables."
+        },
+        "106": {
+            "recommendation": "Maintain joint health with regular gentle exercise, a healthy weight, and avoiding smoking to reduce overall inflammation"
+        },
+        "107": {
+            "recommendation": "Maintain liver and bile health with a balanced diet, healthy weight, and avoiding heavy, very fatty meals on a regular basis."
+        },
+        "108": {
+            "recommendation": "Maintain overall health with regular physical activity, balanced nutrition, and sufficient sleep to support normal immune function."
+        },
+        "109": {
+            "recommendation": "Maintain overall thyroid and immune health with a balanced diet, stress reduction, and regular follow-up if you already have a thyroid condition."
+        },
+        "110": {
+            "recommendation": "Maintain your healthy habitsâ€”regular activity, not smoking, and a balanced dietâ€”because higher HDL is usually protective for the heart."
+        },
+        "111": {
+            "recommendation": "No lifestyle recommendations â€“ please consult your doctor as soon as possible."
+        },
+        "112": {
+            "recommendation": "No specific lifestyle recommendations â€“ value is in the mid-normal range."
+        },
+        "113": {
+            "recommendation": "Pay attention to persistent bone pain or digestive symptoms, keep a balanced diet, and discuss repeated high ALP with your doctor to check bone and liver health."
+        },
+        "114": {
+            "recommendation": "Protect your joints with low-impact activity, avoid smoking, and discuss persistent high RF with your doctor especially if you have joint pain or morning stiffness."
+        },
+        "115": {
+            "recommendation": "Protect your kidneys by staying hydrated, controlling blood pressure and blood sugar if you have them, and limiting frequent use of painkillers like NSAIDs without medical advice."
+        },
+        "116": {
+            "recommendation": "Protect yourself from infections by washing your hands regularly, avoiding close contact with sick people when possible, and following your doctorâ€™s advice on vaccinations."
+        },
+        "117": {
+            "recommendation": "Raise and support your â€œgoodâ€‌ cholesterol by being physically active, avoiding smoking, and including healthy fats like olive oil, nuts, and fatty fish in your diet."
+        },
+        "118": {
+            "recommendation": "Reduce caffeine and chronic stress as much as you can, practice relaxation techniques, stay active, and consult your doctor if high levels persist or you feel constantly exhausted or anxious."
+        },
+        "119": {
+            "recommendation": "Reduce excessive salt and processed foods, stay adequately hydrated, and follow any specific fluid or salt recommendations from your doctor."
+        },
+        "120": {
+            "recommendation": "Reduce fried foods, fatty and processed meats, and full-fat dairy, increase fiber (vegetables, fruits, oats), stay active, and talk with your doctor about your cardiovascular risk."
+        },
+        "121": {
+            "recommendation": "Reduce intake of red meat, organ meats, sugary drinks, and excessive fructose, drink plenty of water, and discuss repeated high levels with your doctor, especially if you have joint pain."
+        },
+        "122": {
+            "recommendation": "Reduce or stop alcohol if you drink, avoid unnecessary medications and herbal supplements, maintain a healthy weight, and follow up with your doctor about your liver function."
+        },
+        "123": {
+            "recommendation": "Reduce stress, avoid frequent nipple stimulation or squeezing, and talk to your doctor if you notice breast discharge, menstrual changes, or fertility problems."
+        },
+        "124": {
+            "recommendation": "Reduce sugary drinks and refined carbohydrates, choose whole grains and vegetables, stay active, and follow up with your doctor about possible prediabetes risk."
+        },
+        "125": {
+            "recommendation": "Reduce very fatty foods, avoid alcohol, and consult your doctor if you have persistent abdominal pain, pale stools, or yellowing of the skin."
+        },
+        "126": {
+            "recommendation": "Since Anti-Tg is linked to autoimmune thyroid disease, follow your doctorâ€™s plan closely and avoid starting or stopping thyroid medications or supplements without medical advice."
+        },
+        "127": {
+            "recommendation": "Since high UIBC can suggest low iron saturation, increase dietary iron and vitamin C and follow up with your doctor for full iron status evaluation."
+        },
+        "128": {
+            "recommendation": "Skip unnecessary high-dose B5 supplements and focus on a balanced diet unless your doctor has advised otherwise."
+        },
+        "129": {
+            "recommendation": "Stay hydrated, avoid unnecessary medications that affect red blood cells, and talk to your doctor if you notice jaundice, dark urine, or unusual fatigue."
+        },
+        "130": {
+            "recommendation": "Stay hydrated, manage stress, and see your doctor if high neutrophils are accompanied by fever, pain, or other signs of infection."
+        },
+        "131": {
+            "recommendation": "Stay well hydrated throughout the day and consult your doctor if you smoke, live at high altitude, or notice symptoms like headaches or shortness of breath."
+        },
+        "132": {
+            "recommendation": "Stay well hydrated, avoid extreme high-protein diets without medical guidance, and review your results with your doctor if albumin stays high or other tests are abnormal."
+        },
+        "133": {
+            "recommendation": "Stay well hydrated, avoid smoking, and consult your doctor if you notice symptoms like headache, dizziness, or shortness of breath."
+        },
+        "134": {
+            "recommendation": "Stay well hydrated, avoid smoking, and follow up with your doctor if the value remains high or you have fever, pain, or signs of infection."
+        },
+        "135": {
+            "recommendation": "Stay well hydrated, avoid smoking, and talk to your doctor if you notice symptoms like headache, dizziness, or shortness of breath."
+        },
+        "136": {
+            "recommendation": "Stay well hydrated, avoid smoking, keep active, and discuss this result with your doctor if you notice easy clotting, pain, or swelling in the legs or chest."
+        },
+        "137": {
+            "recommendation": "Stay well hydrated, follow a balanced diet, and review your results with your doctor if changes persist or you have other abnormal blood values."
+        },
+        "138": {
+            "recommendation": "Support B6 by eating foods like fish, poultry, potatoes, bananas, and chickpeas as part of your regular meals."
+        },
+        "139": {
+            "recommendation": "Support healthy estrogen levels with a balanced diet that includes healthy fats, regular physical activity, and enough calcium and vitamin D according to your doctorâ€™s advice."
+        },
+        "140": {
+            "recommendation": "Support healthy platelets by eating a balanced diet, staying hydrated, and avoiding unnecessary medicines that affect clotting unless your doctor approves them."
+        },
+        "141": {
+            "recommendation": "Support healthy red blood cell production with adequate iron, B12, and folate intake and regular balanced meals, and avoid frequent restrictive dieting."
+        },
+        "142": {
+            "recommendation": "Support healthy red blood cell size with iron-, B12-, and folate-rich foods such as lean meat, eggs, legumes, and leafy green vegetables."
+        },
+        "143": {
+            "recommendation": "Support healthy thyroid balance with regular sleep, stress management, and avoiding crash diets or unprescribed thyroid/weight-loss products."
+        },
+        "144": {
+            "recommendation": "Support healthy thyroid function with enough sleep, stress management, and a balanced diet that includes iodine sources like iodized salt and seafood if allowed by your doctor."
+        },
+        "145": {
+            "recommendation": "Support liver health by avoiding unnecessary alcohol and minimizing use of over-the-counter medicines unless prescribed."
+        },
+        "146": {
+            "recommendation": "Support overall health with enough sleep, a balanced diet, and regular physical activity to help keep inflammation low."
+        },
+        "147": {
+            "recommendation": "Support your B1 level by eating whole grains, legumes, nuts, and lean meats and avoiding heavy reliance on highly processed, low-nutrient foods."
+        },
+        "148": {
+            "recommendation": "Support your B12 level by eating foods like meat, fish, eggs, and dairy (or fortified products if you avoid animal foods) and ask your doctor about supplements if you feel tired or numb."
+        },
+        "149": {
+            "recommendation": "Support your B3 level with foods like poultry, fish, meat, whole grains, and legumes instead of relying on highly processed snacks."
+        },
+        "150": {
+            "recommendation": "Support your acidâ€“base balance by drinking enough fluids, eating regular balanced meals, and avoiding extreme low-carb or starvation diets without medical supervision."
+        },
+        "151": {
+            "recommendation": "Support your albumin level with adequate protein intake, good hydration, and addressing any unintentional weight loss or poor appetite with your doctor."
+        },
+        "152": {
+            "recommendation": "Support your blood health with a balanced diet that includes more iron-rich foods such as lean red meat, legumes, and dark leafy greens."
+        },
+        "153": {
+            "recommendation": "Support your blood health with adequate iron and protein intake and avoid frequent meal skipping."
+        },
+        "154": {
+            "recommendation": "Support your blood production with a balanced diet rich in iron and vitamins (such as lean meat, beans, and leafy greens) and avoid skipping meals."
+        },
+        "155": {
+            "recommendation": "Support your immune and protein status with a balanced diet that includes enough protein from sources like lean meat, dairy, legumes, and nuts."
+        },
+        "156": {
+            "recommendation": "Support your immune health with enough sleep, balanced nutrition, and good hygiene like regular handwashing to reduce throat and skin infections."
+        },
+        "157": {
+            "recommendation": "Support your immune system with enough sleep, a balanced diet rich in fruits and vegetables, and good hand hygiene to reduce infections."
+        },
+        "158": {
+            "recommendation": "Support your immune system with enough sleep, stress management, and a diet rich in whole foods rather than highly processed foods."
+        },
+        "159": {
+            "recommendation": "Support your iron stores by eating iron-rich foods such as lean red meat, liver, beans, lentils, and dark leafy greens along with vitamin C sources."
+        },
+        "160": {
+            "recommendation": "Support your liver and muscle health with a balanced diet, regular physical activity, and avoiding unnecessary medications or supplements."
+        },
+        "161": {
+            "recommendation": "Support your liver by maintaining a healthy weight, staying active, and avoiding unnecessary medications or supplements without medical advice."
+        },
+        "162": {
+            "recommendation": "Support your liver with a balanced diet, enough fluids, and avoiding unnecessary alcohol or medications that can strain the liver."
+        },
+        "163": {
+            "recommendation": "Support your pancreas and insulin production with regular meals, moderate exercise, and avoiding highly restrictive crash diets unless supervised by a doctor."
+        },
+        "164": {
+            "recommendation": "Support your red blood cell production with a balanced diet rich in iron, vitamin B12, and folate (such as lean meat, eggs, beans, and leafy green vegetables)."
+        },
+        "165": {
+            "recommendation": "Take any thyroid medication exactly as prescribed, maintain a healthy weight, and talk to your doctor if you feel unusually tired, cold, or notice weight gain."
+        },
+        "166": {
+            "recommendation": "This may reflect low iron stores, so focus on iron-rich foods and vitamin C intake and ask your doctor if further iron studies or treatment are needed."
+        },
+        "167": {
+            "recommendation": "This may suggest early low iron, so include iron-rich foods with vitamin C and follow your doctorâ€™s advice if you have anemia symptoms."
+        }
+    }
+}

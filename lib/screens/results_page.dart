@@ -544,7 +544,8 @@ class DynamicResultsFromAsset extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const RecommendationsScreen(),
+                      builder: (_) =>  RecommendationsScreen(testName: r.testName,
+                        value: r.valueNum,),
                     ),
                   );
                 },
@@ -680,6 +681,17 @@ class DynamicResultsFromBytes extends StatelessWidget {
                 valueNum: r.valueNum,
                 loNum: r.loNum,
                 hiNum: r.hiNum,
+                onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RecommendationsScreen(
+                testName: r.testName,
+                value: r.valueNum,
+              ),
+            ),
+          );
+        },
               ),
               const SizedBox(height: 12),
             ],

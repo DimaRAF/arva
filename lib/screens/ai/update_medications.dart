@@ -94,7 +94,7 @@ class MedicationAutomation {
         .loadString('assets/medication_model/label_encoders.json');
     final labelJson = jsonDecode(labelStr) as Map<String, dynamic>;
 
-    Map<String, int> _buildReverse(Map<String, dynamic> m) {
+    Map<String, int> buildReverse(Map<String, dynamic> m) {
       final out = <String, int>{};
       m.forEach((k, v) {
         if (v != null) {
@@ -105,18 +105,18 @@ class MedicationAutomation {
     }
 
     _diseaseToId =
-        _buildReverse(Map<String, dynamic>.from(labelJson['Disease']));
+        buildReverse(Map<String, dynamic>.from(labelJson['Disease']));
     _drugToId =
-        _buildReverse(Map<String, dynamic>.from(labelJson['Drug_Name']));
+        buildReverse(Map<String, dynamic>.from(labelJson['Drug_Name']));
     _testToId =
-        _buildReverse(Map<String, dynamic>.from(labelJson['test_name']));
+        buildReverse(Map<String, dynamic>.from(labelJson['test_name']));
 
     // 3) تحميل target_encoders.json
     final targetStr = await rootBundle
         .loadString('assets/medication_model/target_encoders.json');
     final targetJson = jsonDecode(targetStr) as Map<String, dynamic>;
 
-    Map<int, String> _buildTarget(Map<String, dynamic> m) {
+    Map<int, String> buildTarget(Map<String, dynamic> m) {
       final out = <int, String>{};
       m.forEach((k, v) {
         if (v != null) {
@@ -127,11 +127,11 @@ class MedicationAutomation {
     }
 
     _dosageLabels =
-        _buildTarget(Map<String, dynamic>.from(targetJson['Dosage']));
+        buildTarget(Map<String, dynamic>.from(targetJson['Dosage']));
     _durationLabels =
-        _buildTarget(Map<String, dynamic>.from(targetJson['Duration']));
+        buildTarget(Map<String, dynamic>.from(targetJson['Duration']));
     _frequencyLabels =
-        _buildTarget(Map<String, dynamic>.from(targetJson['Frequency']));
+        buildTarget(Map<String, dynamic>.from(targetJson['Frequency']));
 
     // 4) تحميل scaler.json
     final scalerStr = await rootBundle
@@ -346,7 +346,7 @@ class MedicationAutomation {
     _interpreter.runForMultipleInputs([input], outputs);
 
     // 5) argmax لكل مخرج
-    int _argMax(List<double> list) {
+    int argMax(List<double> list) {
       var maxIdx = 0;
       var maxVal = list[0];
       for (var i = 1; i < list.length; i++) {
@@ -359,11 +359,11 @@ class MedicationAutomation {
     }
 
     final dosageIdx =
-        _argMax((outputs[_dosageOutSlot!] as List<List<double>>)[0]);
+        argMax((outputs[_dosageOutSlot!] as List<List<double>>)[0]);
     final durationIdx =
-        _argMax((outputs[_durationOutSlot!] as List<List<double>>)[0]);
+        argMax((outputs[_durationOutSlot!] as List<List<double>>)[0]);
     final freqIdx =
-        _argMax((outputs[_freqOutSlot!] as List<List<double>>)[0]);
+        argMax((outputs[_freqOutSlot!] as List<List<double>>)[0]);
 
     final dosageLabel = _dosageLabels![dosageIdx] ?? '';
     final durationLabel = _durationLabels![durationIdx] ?? '';
