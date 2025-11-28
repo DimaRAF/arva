@@ -5,7 +5,8 @@ import 'profile_screen.dart';
 import 'uploud_medical_report.dart';
 import 'recommendation_page.dart';
 import 'medication_list.dart';
-import 'medication_approval_listener.dart'; // ✅ NEW
+import 'medication_approval_listener.dart'; 
+import 'lab_files_screen.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final String patientId;
@@ -474,13 +475,13 @@ class __HomePageContentState extends State<_HomePageContent> {
                             imagePath: 'assets/report.png',
                             label: 'Report',
                             onTap: () {
-                              /*Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const RecommendationsScreen(),
-                                ),
-                              );*/
+                              Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (_) => MedicalReportsPage(patientId: widget.patientId),
+  ),
+);
+
                             },
                           ),
                         ],
@@ -493,17 +494,17 @@ class __HomePageContentState extends State<_HomePageContent> {
           );
   }
 
-  // --- vvv تم تعديل هذه الدالة vvv ---
+  
   Widget _buildInfoCard({
     required String title,
     required String value,
     required IconData icon,
     required Color color,
     required Color iconColor,
-    required VoidCallback onTap, // تم إضافة دالة الضغط
+    required VoidCallback onTap,
   }) {
     return InkWell(
-      // تم تغليف الكرت بـ InkWell
+      
       onTap: onTap,
       borderRadius: BorderRadius.circular(25),
       child: Container(

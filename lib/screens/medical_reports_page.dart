@@ -16,8 +16,7 @@ class ReportItem {
 }
 
 class MedicalReportsPage extends StatefulWidget {
-  /// لو انتي Medical Staff مرّري UID المريض هنا.
-  /// لو تُركت null، لاحقاً تقدري تفتحي ResultsPage بدون patientId (فتقرأ UID الحالي).
+  
   final String? patientId;
 
   const MedicalReportsPage({super.key, this.patientId});
@@ -154,11 +153,11 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                             child: _ReportCard(
                               report: report,
                               onTap: () {
-                                // ⚠️ لا تستخدم const هنا، ومرّري patientId إن وُجد:
+                               
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => ResultsPage(
-                                      patientId: widget.patientId, // قد تكون null (مريض نفسه)
+                                      patientId: widget.patientId,
                                     ),
                                   ),
                                 );

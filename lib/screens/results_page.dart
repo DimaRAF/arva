@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'dart:convert';                      // 🔔 NEW
+import 'dart:convert';                      
 import 'package:flutter/material.dart';
 import 'recommendation_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,13 +8,13 @@ import '../services/pdf_extractor.dart';
 import '../services/inference_service.dart';
 import '../services/ui_mapping.dart';
 import 'package:arva/screens/ai/update_medications.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // 🔔 NEW
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-// 🔔 NEW: بلجن الإشعارات (يفترض إنه مهيّأ في مكان مناسب مثل main)
+
 final FlutterLocalNotificationsPlugin _notificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-// 🔔 NEW: دالة إشعار للأدوية (نفس مبدأ _showAlertNotification اللي عندك)
+
 Future<void> _showMedicationNotification({
   required String patientId,
   String? patientName,
@@ -36,7 +36,7 @@ Future<void> _showMedicationNotification({
       NotificationDetails(android: androidDetails);
 
   await _notificationsPlugin.show(
-    1, // ID الإشعار (تقدري تغيريه لو تحتاجي)
+    1,
     '💊 Medication Update - $name',
     'New AI-predicted medication doses are ready for your review.',
     notificationDetails,
@@ -64,13 +64,13 @@ class AppColors {
 }
 
 class ResultsPage extends StatelessWidget {
-  /// إذا الدكتورة اخترت ملف من الجوال نمرّر الـ bytes مباشرة
+  
   final Uint8List? pdfBytes;
 
-  /// لو كنتِ دكتورة وجاية من ملف مريض، مرّري patientId لهذا المريض
+  
   final String? patientId;
 
-  /// (اختياري) لو حابة تمرّري مسار أصل (asset) مباشرة
+ 
   final String? assetPdfPath;
 
   const ResultsPage({
@@ -80,10 +80,8 @@ class ResultsPage extends StatelessWidget {
     this.assetPdfPath,
   });
 
-  /// إذا وصلنا patientId نستخدمه، وإلا نرجع لـ uid تبع المستخدم الحالي
   Future<String?> _resolveAssetPdfPath() async {
-    // لو تم تمرير assetPdfPath مباشرة استخدمه فوراً
-    if (assetPdfPath != null && assetPdfPath!.trim().isNotEmpty) {
+     if (assetPdfPath != null && assetPdfPath!.trim().isNotEmpty) {
       return assetPdfPath!;
     }
 
@@ -97,8 +95,7 @@ class ResultsPage extends StatelessWidget {
       final data = doc.data();
       if (data == null) return null;
 
-      // غطّي كل الأسماء المحتملة للحقل
-      final raw = (data['reportPdfName'] ??
+       final raw = (data['reportPdfName'] ??
           data['reportFileName'] ??
           data['reportAsset']) as String?;
       if (raw == null || raw.trim().isEmpty) return null;
@@ -106,8 +103,7 @@ class ResultsPage extends StatelessWidget {
       return raw.startsWith('assets/') ? raw : 'assets/$raw';
     }
 
-    // جرّبي patient_profiles أولاً ثم users
-    final p = await readFrom('patient_profiles') ?? await readFrom('users');
+     final p = await readFrom('patient_profiles') ?? await readFrom('users');
     return p;
   }
 
@@ -158,10 +154,6 @@ class ResultsPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 24),
-
-                    // أولوية القراءة:
-                    // 1) لو فيه pdfBytes: نقرأ مباشرة من الذاكرة
-                    // 2) وإلا نحلّ مسار الأصل (assets) من فايرستور أو من الحقل الممرّر
                     if (pdfBytes != null)
                       DynamicResultsFromBytes(pdfBytes: pdfBytes!)
                     else
@@ -220,8 +212,7 @@ class ResultCard extends StatelessWidget {
   final String rangeMin;
   final String rangeMax;
 
-  // === NEW: نمرّر القيم الرقمية للبار ===
-  final double valueNum;
+   final double valueNum;
   final double loNum;
   final double hiNum;
 
@@ -235,9 +226,9 @@ class ResultCard extends StatelessWidget {
     required this.backgroundColor,
     required this.rangeMin,
     required this.rangeMax,
-    required this.valueNum, // NEW
-    required this.loNum, // NEW
-    required this.hiNum, // NEW
+    required this.valueNum,
+    required this.loNum,  
+    required this.hiNum,  
     this.onTap,
   });
 
@@ -294,7 +285,7 @@ class ResultCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Labels (name + status) with ellipsis
+            
             Positioned(
               left: 56,
               right: 84,
@@ -330,7 +321,6 @@ class ResultCard extends StatelessWidget {
               ),
             ),
 
-            // === NEW: شريط ديناميكي مع قيمة/حدود ===
             Positioned(
               left: 8,
               right: 8,
@@ -364,7 +354,6 @@ class ResultCard extends StatelessWidget {
   }
 }
 
-// === NEW: شريط أخضر يطابق refMin..refMax تماماً والمؤشر على القيمة فعلياً ===
 class _SegmentBar extends StatelessWidget {
   final double value, lo, hi;
   const _SegmentBar({required this.value, required this.lo, required this.hi});
@@ -558,7 +547,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
     );
   }
 
-  // 🔧 هنا التعديل الأساسي: patientId صار باراميتر عادي مو مسمّى
+  
   static Future<List<_UiRow>> _loadRows(
     String assetPdfPath,
     String? patientId,
@@ -568,11 +557,10 @@ class DynamicResultsFromAsset extends StatelessWidget {
     // 🧠 تحديد هوية المستخدم
     final targetId = patientId ?? FirebaseAuth.instance.currentUser?.uid;
     String? doctorId;
-    String? patientName; // 🔔 NEW
+    String? patientName; 
 
     if (targetId != null) {
       try {
-        // 🔹 نجيب Doctor ID من ملف المريض
         final patientDoc = await FirebaseFirestore.instance
             .collection('patient_profiles')
             .doc(targetId)
@@ -581,7 +569,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
         if (patientDoc.exists) {
           final data = patientDoc.data();
           doctorId = data?['assignedDoctorId'];
-          patientName = data?['username'] ?? data?['name']; // 🔔 NEW
+          patientName = data?['username'] ?? data?['name']; 
         }
 
         await MedicationAutomation.runAutoMedicationPipeline(
@@ -592,7 +580,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
 
         debugPrint('✅ تم تشغيل موديل الأدوية بناءً على القيم المستخرجة من التقرير');
 
-        // 🔔 NEW: إشعار للدكتور بوجود تنبؤ جديد
+        //  إشعار للدكتور بوجود تنبؤ جديد
         await _showMedicationNotification(
           patientId: targetId,
           patientName: patientName,

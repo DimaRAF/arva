@@ -65,7 +65,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 6),
 
-                // الدائرة الكبيرة مع الصورة
+               
                 SizedBox(
                   height: circleSize + 24,
                   child: Center(

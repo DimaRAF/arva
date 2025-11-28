@@ -31,19 +31,24 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   /// تحميل JSON + تشغيل مودل TFLite
   Future<_RecoResult> _loadAndPredict() async {
     // 1) تحميل الوصف لكل تحليل
-    final descStr = await rootBundle.loadString('assets/recommendations_models/descriptions.json');
+    final descStr = await rootBundle
+        .loadString('assets/recommendations_models/descriptions.json');
     final Map<String, dynamic> descJson = jsonDecode(descStr);
 
     // اسم التحليل اللي نستخدمه كمفتاح في الـ JSON
     String canonicalName = widget.testName.trim();
-    // لو جاي مثل "(Hemoglobin)" نشيل الأقواس
-    canonicalName = canonicalName.replaceAll(RegExp(r'[\(\)]'), '').trim();
+    // لو الاسم كله داخل قوسين فقط نشيل القوسين الخارجيين ونترك أي شيء داخل الاسم مثل (ALT)
+    if (canonicalName.startsWith('(') && canonicalName.endsWith(')')) {
+      canonicalName =
+          canonicalName.substring(1, canonicalName.length - 1).trim();
+    }
 
     final description =
         (descJson[canonicalName] as String?) ?? 'No description available.';
 
     // 2) تحميل ال scaler
-    final scalerStr = await rootBundle.loadString('assets/recommendations_models/scaler (1).json');
+    final scalerStr = await rootBundle
+        .loadString('assets/recommendations_models/scaler (1).json');
     final scalerJson = jsonDecode(scalerStr) as Map<String, dynamic>;
     final double vMin = (scalerJson['min'][0] as num).toDouble();
     final double vMax = (scalerJson['max'][0] as num).toDouble();
@@ -51,7 +56,8 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         (widget.value - vMin) / (vMax - vMin + 1e-8); // نفس اللي في بايثون
 
     // 3) تحميل label_encoders.json وعمل term → index
-    final labelsStr = await rootBundle.loadString('assets/recommendations_models/label_encoders.json');
+    final labelsStr = await rootBundle
+        .loadString('assets/recommendations_models/label_encoders.json');
     final labelsJson = jsonDecode(labelsStr) as Map<String, dynamic>;
     final Map<String, dynamic> medMap =
         labelsJson['medical_term'] as Map<String, dynamic>;
@@ -81,8 +87,8 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     inputVector[nInputs - 1] = scaledValue;
 
     // 5) تحميل target_encoders.json لمعرفة عدد الكلاسات
-    final targetsStr =
-        await rootBundle.loadString('assets/recommendations_models/target_encoders.json');
+    final targetsStr = await rootBundle
+        .loadString('assets/recommendations_models/target_encoders.json');
     final targetsJson = jsonDecode(targetsStr) as Map<String, dynamic>;
     final Map<String, dynamic> recMap =
         targetsJson['Recommendation'] as Map<String, dynamic>;
@@ -230,8 +236,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                           _PillCard(
                             alignLeft: false,
                             background: Colors.white,
-                            text:
-                                '${widget.testName}  |  Value: $valueStr',
+                            text: '${widget.testName}  |  Value: $valueStr',
                           ),
 
                           const SizedBox(height: 20),
