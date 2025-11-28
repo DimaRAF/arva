@@ -117,6 +117,9 @@ flutter:
     - assets/recommendations_models/target_encoders.json
     - assets/recommendations_models/lab_reco_model.tflite
     - assets/recommendations_models/metrics (1).json
+    - assets/Vital_Signs_state/vitals_label_info.json
+    - assets/Vital_Signs_state/vitals_scaler.json
+    - assets/Vital_Signs_state/vitals_multi_output_model.tflite
     
 
 

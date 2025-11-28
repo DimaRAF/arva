@@ -1,0 +1,19 @@
+{
+  "status_to_index": {
+    "Low": 0,
+    "Normal": 1,
+    "High": 2
+  },
+  "index_to_status": {
+    "0": "Low",
+    "1": "Normal",
+    "2": "High"
+  },
+  "input_features": [
+    "HR",
+    "Temp",
+    "SaO2",
+    "BP_sys",
+    "BP_dia"
+  ]
+}

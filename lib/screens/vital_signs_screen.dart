@@ -361,13 +361,13 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
       }
     });
 
-    // ✅ NEW: تحديث last_value في أدوية Systolic BP بالقيمة الحقيقية الحالية
+    //  تحديث last_value في أدوية Systolic BP بالقيمة الحقيقية الحالية
     if (!isPredicted && sys > 0) {
       _updateSystolicLastValue(sys);
     }
   }
 
-  // ✅ NEW: دالة مساعدة لتحديث last_value في أدوية Systolic BP
+  //  دالة مساعدة لتحديث last_value في أدوية Systolic BP
   Future<void> _updateSystolicLastValue(double systolic) async {
     try {
       final medsRef = FirebaseFirestore.instance
@@ -738,13 +738,13 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   }
 
   Widget _buildHeader() {
-    const double kBtnSize = 44; // قطر الزر
+    const double kBtnSize = 44;
 
     return Padding(
       padding: const EdgeInsets.only(top: 4, bottom: 8),
       child: Row(
         children: [
-          // زر الرجوع يسار داخل دائرة
+       // زر الرجوعة
           SizedBox(
             width: kBtnSize,
             height: kBtnSize,
@@ -1007,9 +1007,9 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
               style:
                   const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 7),
-          valueWidget, // استخدام الويدجت مباشرة هنا
+          valueWidget, 
           const Spacer(),
-          // عرض شريحة الحالة الديناميكية (واحدة فقط)
+         
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
