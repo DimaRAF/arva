@@ -87,7 +87,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
         }
       }
     } on FirebaseAuthException catch (e) {
-      String errorMessage = "An error occurred.";
+      String errorMessage = "An error occurred | The email address is badly formatted.";
       if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
         errorMessage = 'Incorrect email or password.';
       } else if (e.code == 'wrong-password') {

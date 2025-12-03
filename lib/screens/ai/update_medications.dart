@@ -185,7 +185,8 @@ class MedicationAutomation {
 
     // 1️⃣ استخراج التحاليل من التقرير
     final List<LabTest> tests = await PdfExtractor.parseAsset(pdfAssetPath);
-    print("✅ تم استخراج ${tests.length} تحليل من التقرير (مودل الأدوية)");
+    print(
+        "✅ Extracted ${tests.length} lab tests from the report (medication model).");
 
     // خريطة من اسم التحليل → قيمته من التقرير
     final Map<String, double> testMap = {
@@ -199,7 +200,8 @@ class MedicationAutomation {
         .collection('medications')
         .get();
 
-    print("📄 تم العثور على ${medsSnapshot.docs.length} دواء لهذا المريض");
+    print(
+        "📄 Found ${medsSnapshot.docs.length} medications for this patient.");
 
     // 🔔 NEW: فلاغ لتحديد إذا فيه أي دواء تم تحديثه
     bool anyUpdated = false;
@@ -213,7 +215,7 @@ class MedicationAutomation {
 
       if (disease == null || drugName == null || testName == null) {
         print(
-            "⚠ دواء بدون بيانات كافية (disease / drug_name / test_name) → يتم تجاهله. id=${med.id}");
+            "⚠ Medication has missing data (disease / drug_name / test_name) → skipping. id=${med.id}");
         continue;
       }
 
@@ -238,13 +240,13 @@ class MedicationAutomation {
 
       if (effectiveValue == null) {
         print(
-            "ℹ لا توجد قيمة (لا من التقرير ولا من last_value) للتحليل $testName → تجاهل الدواء $drugName");
+            "ℹ No value found (neither from report nor last_value) for test $testName → skipping medication $drugName");
         continue;
       }
 
       final double testValue = effectiveValue;
       print(
-          "🔍 دواء: $drugName | Test: $testName = $testValue (source=$valueSource)");
+          "🔍 Medication: $drugName | Test: $testName = $testValue (source=$valueSource)");
 
       // 3️⃣ التنبؤ باستخدام المودل (القيمة المستخدمة هي من الداتا بيز منطقياً)
       final prediction = await _predictDose(
@@ -278,7 +280,7 @@ class MedicationAutomation {
       anyUpdated = true;
 
       print(
-          "💾 تم حفظ التنبؤ في pending_* داخل patient_profiles/$patientId/medications/${med.id}");
+          "💾 Saved prediction into pending_* at patient_profiles/$patientId/medications/${med.id}");
     }
 
     // 🔔 NEW: لو فيه تنبؤات جديدة → إرسال إشعار
@@ -286,7 +288,7 @@ class MedicationAutomation {
       await _showMedicationNotification(patientId: patientId);
     }
 
-    print("✅ انتهى تشغيل مودل الأدوية (تم التحديث في pending_* فقط)");
+    print("✅ Medication model run completed (pending_* updated only)");
   }
 
   static Future<Map<String, String>> _predictDose({
@@ -389,7 +391,7 @@ class MedicationAutomation {
 
     final snap = await ref.get();
     if (!snap.exists) {
-      print("❌ دواء غير موجود للموافقة عليه");
+      print("❌ Medication not found to approve");
       return;
     }
 
@@ -402,7 +404,7 @@ class MedicationAutomation {
     if (pendingDosage == null &&
         pendingDuration == null &&
         pendingFrequency == null) {
-      print("ℹ لا توجد قيم pending_* لاعتمادها");
+      print("ℹ No pending_* values to approve");
       return;
     }
 
@@ -425,6 +427,6 @@ class MedicationAutomation {
     });
 
     print(
-        "✅ تم اعتماد التنبؤ ونقله إلى الحقول الأساسية (dosage/duration/frequency)");
+        "✅ Prediction approved and moved to main fields (dosage/duration/frequency)");
   }
 }

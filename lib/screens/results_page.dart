@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'dart:convert';                      
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'recommendation_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,10 +10,8 @@ import '../services/ui_mapping.dart';
 import 'package:arva/screens/ai/update_medications.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-
 final FlutterLocalNotificationsPlugin _notificationsPlugin =
     FlutterLocalNotificationsPlugin();
-
 
 Future<void> _showMedicationNotification({
   required String patientId,
@@ -64,13 +62,8 @@ class AppColors {
 }
 
 class ResultsPage extends StatelessWidget {
-  
   final Uint8List? pdfBytes;
-
-  
   final String? patientId;
-
- 
   final String? assetPdfPath;
 
   const ResultsPage({
@@ -81,7 +74,7 @@ class ResultsPage extends StatelessWidget {
   });
 
   Future<String?> _resolveAssetPdfPath() async {
-     if (assetPdfPath != null && assetPdfPath!.trim().isNotEmpty) {
+    if (assetPdfPath != null && assetPdfPath!.trim().isNotEmpty) {
       return assetPdfPath!;
     }
 
@@ -95,7 +88,7 @@ class ResultsPage extends StatelessWidget {
       final data = doc.data();
       if (data == null) return null;
 
-       final raw = (data['reportPdfName'] ??
+      final raw = (data['reportPdfName'] ??
           data['reportFileName'] ??
           data['reportAsset']) as String?;
       if (raw == null || raw.trim().isEmpty) return null;
@@ -103,7 +96,7 @@ class ResultsPage extends StatelessWidget {
       return raw.startsWith('assets/') ? raw : 'assets/$raw';
     }
 
-     final p = await readFrom('patient_profiles') ?? await readFrom('users');
+    final p = await readFrom('patient_profiles') ?? await readFrom('users');
     return p;
   }
 
@@ -182,7 +175,6 @@ class ResultsPage extends StatelessWidget {
                           );
                         },
                       ),
-
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -212,7 +204,7 @@ class ResultCard extends StatelessWidget {
   final String rangeMin;
   final String rangeMax;
 
-   final double valueNum;
+  final double valueNum;
   final double loNum;
   final double hiNum;
 
@@ -227,8 +219,8 @@ class ResultCard extends StatelessWidget {
     required this.rangeMin,
     required this.rangeMax,
     required this.valueNum,
-    required this.loNum,  
-    required this.hiNum,  
+    required this.loNum,
+    required this.hiNum,
     this.onTap,
   });
 
@@ -285,7 +277,6 @@ class ResultCard extends StatelessWidget {
                 ),
               ),
             ),
-            
             Positioned(
               left: 56,
               right: 84,
@@ -320,7 +311,6 @@ class ResultCard extends StatelessWidget {
                 ],
               ),
             ),
-
             Positioned(
               left: 8,
               right: 8,
@@ -529,12 +519,13 @@ class DynamicResultsFromAsset extends StatelessWidget {
                 loNum: r.loNum,
                 hiNum: r.hiNum,
                 onTap: () {
-                  // مبدئياً نفتح صفحة الريكومنديشن العامة.
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>  RecommendationsScreen(testName: r.testName,
-                        value: r.valueNum,),
+                      builder: (_) => RecommendationsScreen(
+                        testName: r.testName,
+                        value: r.valueNum,
+                      ),
                     ),
                   );
                 },
@@ -547,17 +538,20 @@ class DynamicResultsFromAsset extends StatelessWidget {
     );
   }
 
-  
   static Future<List<_UiRow>> _loadRows(
     String assetPdfPath,
     String? patientId,
   ) async {
+    debugPrint('📄 [Report] Starting parsing from asset PDF: $assetPdfPath');
+
     final tests = await PdfExtractor.parseAsset(assetPdfPath);
+
+    debugPrint('🧪 [Report] Extracted ${tests.length} lab tests from asset.');
 
     // 🧠 تحديد هوية المستخدم
     final targetId = patientId ?? FirebaseAuth.instance.currentUser?.uid;
     String? doctorId;
-    String? patientName; 
+    String? patientName;
 
     if (targetId != null) {
       try {
@@ -569,27 +563,32 @@ class DynamicResultsFromAsset extends StatelessWidget {
         if (patientDoc.exists) {
           final data = patientDoc.data();
           doctorId = data?['assignedDoctorId'];
-          patientName = data?['username'] ?? data?['name']; 
+          patientName = data?['username'] ?? data?['name'];
         }
 
+        debugPrint(
+            '🤖 [Medication] Running medication model for patient $targetId using report: $assetPdfPath');
+
         await MedicationAutomation.runAutoMedicationPipeline(
-          targetId, // معرف المريض
-          doctorId ?? "UNKNOWN_DOCTOR", // معرف الدكتور
-          assetPdfPath, // التقرير من الـ assets
+          targetId, // patient id
+          doctorId ?? "UNKNOWN_DOCTOR", // doctor id
+          assetPdfPath, // report from assets
         );
 
-        debugPrint('✅ تم تشغيل موديل الأدوية بناءً على القيم المستخرجة من التقرير');
+        debugPrint(
+            '✅ [Medication] Medication model executed using extracted report values.');
 
-        //  إشعار للدكتور بوجود تنبؤ جديد
+        // إشعار للدكتور بوجود تنبؤ جديد
         await _showMedicationNotification(
           patientId: targetId,
           patientName: patientName,
         );
       } catch (e) {
-        debugPrint('⚠ فشل تشغيل موديل الأدوية: $e');
+        debugPrint('⚠ [Medication] Failed to run medication model: $e');
       }
     } else {
-      debugPrint('⚠ لم يتم العثور على مستخدم حالي لتشغيل المودل');
+      debugPrint(
+          '⚠ [Medication] No current user found to run medication model.');
     }
 
     // 🎨 بناء واجهة عرض نتائج التحاليل نفسها
@@ -670,16 +669,16 @@ class DynamicResultsFromBytes extends StatelessWidget {
                 loNum: r.loNum,
                 hiNum: r.hiNum,
                 onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => RecommendationsScreen(
-                testName: r.testName,
-                value: r.valueNum,
-              ),
-            ),
-          );
-        },
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => RecommendationsScreen(
+                        testName: r.testName,
+                        value: r.valueNum,
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 12),
             ],
@@ -690,7 +689,12 @@ class DynamicResultsFromBytes extends StatelessWidget {
   }
 
   static Future<List<_UiRow>> _loadRows(Uint8List bytes) async {
+    debugPrint(
+        '📄 [Report] Starting parsing from in-memory PDF bytes (length: ${bytes.lengthInBytes}).');
+
     final tests = await PdfExtractor.parseBytes(bytes);
+
+    debugPrint('🧪 [Report] Extracted ${tests.length} lab tests from bytes.');
 
     final out = <_UiRow>[];
     for (final t in tests) {
@@ -725,7 +729,6 @@ class _UiRow {
   final String testName, status, value, minLabel, maxLabel;
   final Color bg;
 
-  // NEW: أرقام للبار
   final double valueNum, loNum, hiNum;
 
   _UiRow({

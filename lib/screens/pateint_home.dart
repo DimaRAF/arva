@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_screen.dart';
 import 'uploud_medical_report.dart';
-import 'recommendation_page.dart';
 import 'medication_list.dart';
 import 'medication_approval_listener.dart'; 
 import 'lab_files_screen.dart';
@@ -200,6 +199,7 @@ class __HomePageContentState extends State<_HomePageContent> {
   // --- vvv دالة جديدة لحفظ التعديلات في قاعدة البيانات vvv ---
   Future<void> _updatePatientProfile(String field, dynamic value) async {
     User? user = FirebaseAuth.instance.currentUser;
+    final patientId = widget.patientId;
     if (user == null) return;
 
     // تحويل القيمة إلى رقم إذا كان الحقل يتطلب ذلك
@@ -210,7 +210,7 @@ class __HomePageContentState extends State<_HomePageContent> {
     try {
       await FirebaseFirestore.instance
           .collection('patient_profiles')
-          .doc(user.uid)
+          .doc(patientId)
           .update({field: value});
 
       // إعادة جلب البيانات لتحديث الواجهة

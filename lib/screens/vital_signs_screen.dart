@@ -1028,6 +1028,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
       ),
     );
   }
+  
 }
 
 class HeartbeatPainter extends CustomPainter {

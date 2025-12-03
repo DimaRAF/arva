@@ -12,11 +12,12 @@ class MedicalStaffSignUpScreen extends StatefulWidget {
   const MedicalStaffSignUpScreen({super.key});
 
   @override
-  State<MedicalStaffSignUpScreen> createState() => _MedicalStaffSignUpScreenState();
+  State<MedicalStaffSignUpScreen> createState() =>
+      _MedicalStaffSignUpScreenState();
 }
 
 class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
-  // 2. تم نقل كل المتغيرات والدوال إلى هنا (مكانها الصحيح)
+  // 2. Controllers
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -26,6 +27,13 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
   bool _isLoading = false;
+
+  // Errors لكل خانة عشان نظهر النص الأحمر تحتها
+  String? _usernameError;
+  String? _jobTitleError;
+  String? _emailError;
+  String? _passwordError;
+  String? _confirmPasswordError;
 
   @override
   void dispose() {
@@ -37,38 +45,93 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
     super.dispose();
   }
 
-  Future<void> signUp() async {
-    if (_usernameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _jobTitleController.text.isEmpty)  {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
-      );
-      return;
-    }
+  bool _validateInputs() {
+    bool isValid = true;
 
-    if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match!")),
-      );
-      return;
-    }
+    final username = _usernameController.text.trim();
+    final jobTitle = _jobTitleController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    setState(() {
+      // اسم المستخدم
+      if (username.isEmpty) {
+        _usernameError = 'Name is required';
+        isValid = false;
+      } else {
+        _usernameError = null;
+      }
+
+      // المسمى الوظيفي
+      if (jobTitle.isEmpty) {
+        _jobTitleError = 'Job title is required';
+        isValid = false;
+      } else {
+        _jobTitleError = null;
+      }
+
+      // الإيميل
+      if (email.isEmpty) {
+        _emailError = 'Email is required';
+        isValid = false;
+      } else {
+        // تحقق بسيط من شكل الإيميل
+        final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+        if (!emailRegex.hasMatch(email)) {
+          _emailError = 'Enter a valid email address';
+          isValid = false;
+        } else {
+          _emailError = null;
+        }
+      }
+
+      // الباسورد
+      if (password.isEmpty) {
+        _passwordError = 'Password is required';
+        isValid = false;
+      } else if (password.length < 6) {
+        _passwordError = 'Password must be at least 6 characters';
+        isValid = false;
+      } else {
+        _passwordError = null;
+      }
+
+      // تأكيد الباسورد
+      if (confirmPassword.isEmpty) {
+        _confirmPasswordError = 'Confirm your password';
+        isValid = false;
+      } else if (password != confirmPassword) {
+        _confirmPasswordError = 'Passwords do not match';
+        isValid = false;
+      } else {
+        _confirmPasswordError = null;
+      }
+    });
+
+    return isValid;
+  }
+
+  Future<void> signUp() async {
+    // لو في خطأ في أي خانة نوقف قبل ما نكمل
+    if (!_validateInputs()) return;
 
     setState(() {
       _isLoading = true;
     });
 
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
       if (userCredential.user != null) {
-        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
           'username': _usernameController.text.trim(),
           'email': _emailController.text.trim(),
           'role': 'Medical Staff',
@@ -79,11 +142,10 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
         );
-      
-        // 2. الانتقال إلى الواجهة الرئيسية بعد نجاح إنشاء الحساب
-        // pushAndRemoveUntil تقوم بإغلاق كل الشاشات السابقة (الدخول، اختيار الدور، إلخ)
+
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MedicalStaffHomeScreen()),
+          MaterialPageRoute(
+              builder: (context) => const MedicalStaffHomeScreen()),
           (route) => false,
         );
       }
@@ -99,8 +161,6 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
       );
     }
 
-    // لا تقم بتغيير حالة التحميل هنا إذا نجح الانتقال
-    // لأن الواجهة سيتم إغلاقها
     if (mounted && _isLoading) {
       setState(() {
         _isLoading = false;
@@ -143,22 +203,43 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                       children: [
                         const Text(
                           "Nice to have you here",
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0)),
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 0, 0, 0)),
                         ),
                         const SizedBox(height: 12),
-                        _buildTextField(controller: _usernameController, icon: Icons.person_outline, hintText: 'User Name'),
+                        _buildTextField(
+                          controller: _usernameController,
+                          icon: Icons.person_outline,
+                          hintText: 'User Name',
+                          errorText: _usernameError,
+                        ),
                         const SizedBox(height: 12),
-                        _buildTextField(controller: _jobTitleController, icon: Icons.work_outline, hintText: 'Job Title'),
+                        _buildTextField(
+                          controller: _jobTitleController,
+                          icon: Icons.work_outline,
+                          hintText: 'Job Title',
+                          errorText: _jobTitleError,
+                        ),
                         const SizedBox(height: 12),
-                        _buildTextField(controller: _emailController, icon: Icons.email_outlined, hintText: 'Email'),
+                        _buildTextField(
+                          controller: _emailController,
+                          icon: Icons.email_outlined,
+                          hintText: 'Email',
+                          errorText: _emailError,
+                        ),
                         const SizedBox(height: 12),
                         _buildPasswordTextField(
                           controller: _passwordController,
                           hintText: 'Password',
                           isVisible: _passwordVisible,
                           onToggleVisibility: () {
-                            setState(() { _passwordVisible = !_passwordVisible; });
+                            setState(() {
+                              _passwordVisible = !_passwordVisible;
+                            });
                           },
+                          errorText: _passwordError,
                         ),
                         const SizedBox(height: 12),
                         _buildPasswordTextField(
@@ -167,9 +248,11 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                           isVisible: _confirmPasswordVisible,
                           onToggleVisibility: () {
                             setState(() {
-                              _confirmPasswordVisible = !_confirmPasswordVisible;
+                              _confirmPasswordVisible =
+                                  !_confirmPasswordVisible;
                             });
                           },
+                          errorText: _confirmPasswordError,
                         ),
                         const SizedBox(height: 18),
                         SizedBox(
@@ -179,26 +262,39 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
                             onPressed: _isLoading ? null : signUp,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5A7A9A),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30)),
                             ),
                             child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text('Sign up', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text('Sign up',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white)),
                           ),
                         ),
                         const SizedBox(height: 18),
                         RichText(
                           text: TextSpan(
-                            style: const TextStyle(color: Colors.grey, fontSize: 16),
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 16),
                             children: [
-                              const TextSpan(text: "Already have an account? "),
+                              const TextSpan(
+                                  text: "Already have an account? "),
                               TextSpan(
                                 text: "Login",
-                                style: TextStyle(color: Colors.blue.shade800, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    color: Colors.blue.shade800,
+                                    fontWeight: FontWeight.bold),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
                                     Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (context) => const MedicalStaffLoginScreen()),
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const MedicalStaffLoginScreen()),
                                     );
                                   },
                               ),
@@ -219,7 +315,9 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
             child: FloatingActionButton(
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const AuthScreen(userRole: 'Medical Staff')),
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const AuthScreen(userRole: 'Medical Staff')),
                 );
               },
               backgroundColor: const Color(0xFF5A7A9A),
@@ -232,20 +330,41 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
     );
   }
 
-  Widget _buildTextField({required TextEditingController controller, required IconData icon, required String hintText}) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.grey),
-        prefixIcon: Icon(icon, color: Colors.grey),
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide.none,
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required IconData icon,
+    required String hintText,
+    String? errorText,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: const TextStyle(color: Colors.grey),
+            prefixIcon: Icon(icon, color: Colors.grey),
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide.none,
+            ),
+          ),
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+            child: Text(
+              errorText,
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -254,28 +373,45 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
     required String hintText,
     required bool isVisible,
     required VoidCallback onToggleVisibility,
+    String? errorText,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: !isVisible,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.grey),
-        prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide.none,
-        ),
-        suffixIcon: IconButton(
-          icon: Icon(
-            isVisible ? Icons.visibility : Icons.visibility_off,
-            color: Colors.grey,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: controller,
+          obscureText: !isVisible,
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: const TextStyle(color: Colors.grey),
+            prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide.none,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                isVisible ? Icons.visibility : Icons.visibility_off,
+                color: Colors.grey,
+              ),
+              onPressed: onToggleVisibility,
+            ),
           ),
-          onPressed: onToggleVisibility,
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+            child: Text(
+              errorText,
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -293,7 +429,8 @@ class SignUpBackgroundPainter extends CustomPainter {
     canvas.rotate(pi / 10);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: width * 0.8, height: 150),
+        Rect.fromCenter(
+            center: Offset.zero, width: width * 0.8, height: 150),
         const Radius.circular(30),
       ),
       tealPaint,

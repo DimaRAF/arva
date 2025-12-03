@@ -69,6 +69,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ? 'assets/patient_icon.png'
         : 'assets/doctor_avatar.png';
 
+        
+    
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF75B5B6),

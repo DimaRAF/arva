@@ -7,7 +7,6 @@ import 'pateint_home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class PatientSignUpScreen extends StatefulWidget {
   const PatientSignUpScreen({super.key});
 
@@ -16,18 +15,21 @@ class PatientSignUpScreen extends StatefulWidget {
 }
 
 class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
-  
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
   bool _isLoading = false;
 
-  
+  // نصوص الأخطاء لكل خانة
+  String? _usernameError;
+  String? _emailError;
+  String? _passwordError;
+  String? _confirmPasswordError;
+
   @override
   void dispose() {
     _usernameController.dispose();
@@ -36,25 +38,67 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
     _confirmPasswordController.dispose();
     super.dispose();
   }
-  Future<void> signUp() async {
-    if (_usernameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
-      );
-      return;
-    }
 
-    if (_passwordController.text.trim() !=
-        _confirmPasswordController.text.trim()) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match!")),
-      );
-      return;
-    }
+  bool _validateInputs() {
+    bool isValid = true;
+
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    setState(() {
+      // اسم المستخدم
+      if (username.isEmpty) {
+        _usernameError = 'Name is required';
+        isValid = false;
+      } else {
+        _usernameError = null;
+      }
+
+      // الإيميل
+      if (email.isEmpty) {
+        _emailError = 'Email is required';
+        isValid = false;
+      } else {
+        final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+        if (!emailRegex.hasMatch(email)) {
+          _emailError = 'Enter a valid email address';
+          isValid = false;
+        } else {
+          _emailError = null;
+        }
+      }
+
+      // الباسورد
+      if (password.isEmpty) {
+        _passwordError = 'Password is required';
+        isValid = false;
+      } else if (password.length < 6) {
+        _passwordError = 'Password must be at least 6 characters';
+        isValid = false;
+      } else {
+        _passwordError = null;
+      }
+
+      // تأكيد الباسورد
+      if (confirmPassword.isEmpty) {
+        _confirmPasswordError = 'Confirm your password';
+        isValid = false;
+      } else if (password != confirmPassword) {
+        _confirmPasswordError = 'Passwords do not match';
+        isValid = false;
+      } else {
+        _confirmPasswordError = null;
+      }
+    });
+
+    return isValid;
+  }
+
+  Future<void> signUp() async {
+    // التحقق من الحقول وعرض النص الأحمر تحت كل خانة
+    if (!_validateInputs()) return;
 
     setState(() {
       _isLoading = true;
@@ -80,9 +124,12 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
           'createdAt': Timestamp.now(),
         });
 
-        // --- 2. (الجزء المهم) إنشاء الملف الطبي في "patient_profiles" ---
-        await FirebaseFirestore.instance.collection('patient_profiles').doc(userId).set({
-          'username': username, // نكرر الاسم لسهولة الوصول
+        // --- 2. إنشاء الملف الطبي في "patient_profiles" ---
+        await FirebaseFirestore.instance
+            .collection('patient_profiles')
+            .doc(userId)
+            .set({
+          'username': username,
           'blood_group': null,
           'weight': null,
           'height': null,
@@ -90,64 +137,54 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
           'roomNumber': null,
           'assignedDoctorId': null,
           'dataFilename': null,
-          'reportFileName':null,
+          'reportFileName': null,
         });
 
-// إنشاء مجموعة الأدوية للمريض مع أول دواء (حتى لو فاضي كبداية)
-await FirebaseFirestore.instance
-    .collection('patient_profiles')
-    .doc(userId)
-    .collection('medications')
-    .add({
-  // الأساسيات
-  'disease': null,          // مثال: "Diabetes" / "Hypertension" / "Vitamin D Deficiency"
-  'drug_name': null,        // مثال: "Metformin 500mg"
-  'test_name': null,        // مثال: "HbA1c" / "Vitamin D" / "LDL Cholesterol"
-
-  // الجرعة المعتمدة حالياً (اللي يشوفها المريض)
-  'dosage': null,           // مثال: "500 mg"
-  'duration': null,         // مثال: "8 weeks"
-  'frequency': null,        // مثال: "Daily" / "Weekly"
-
-  // آخر قيمة تحليل استخدمناها لهذا الدواء
-  'value': null,            // مثال: 7.5 (HbA1c) أو 18.0 (Vitamin D)
-
-  // حقول التنبؤ (pending) من مودل الأدوية
-  'pending_dosage': null,
-  'pending_duration': null,
-  'pending_frequency': null,
-  'pending_test_name': null,
-  'pending_test_value': null,
-  'pending_status': 'none', // none | pending | approved | rejected
-  'pending_updated_at': null,
-
-  // ميتا داتا
-  'createdAt': Timestamp.now(),
-  'last_updated': null,
-});
-
-
+        // إنشاء مجموعة الأدوية للمريض مع أول دواء (حتى لو فاضي كبداية)
+        await FirebaseFirestore.instance
+            .collection('patient_profiles')
+            .doc(userId)
+            .collection('medications')
+            .add({
+          'disease': null,
+          'drug_name': null,
+          'test_name': null,
+          'dosage': null,
+          'duration': null,
+          'frequency': null,
+          'value': null,
+          'pending_dosage': null,
+          'pending_duration': null,
+          'pending_frequency': null,
+          'pending_test_name': null,
+          'pending_test_value': null,
+          'pending_status': 'none',
+          'pending_updated_at': null,
+          'createdAt': Timestamp.now(),
+          'last_updated': null,
+        });
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
         );
-        
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) =>  PatientHomeScreen( 
-         patientId: userCredential.user!.uid,
 
-          ) ),
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => PatientHomeScreen(
+              patientId: userCredential.user!.uid,
+            ),
+          ),
           (route) => false,
         );
       }
     } on FirebaseAuthException catch (e) {
-       if (!mounted) return;
-       ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "An error occurred")),
       );
-    } 
-    
+    }
+
     if (mounted && _isLoading) {
       setState(() {
         _isLoading = false;
@@ -177,7 +214,6 @@ await FirebaseFirestore.instance
                         Positioned(
                           top: -10,
                           child: Image.asset(
-                            
                             'assets/doctors.png',
                             height: 300,
                           ),
@@ -192,18 +228,25 @@ await FirebaseFirestore.instance
                         const SizedBox(height: 20),
                         const Text(
                           "Nice to have you here",
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0)),
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 0, 0, 0)),
                         ),
                         const SizedBox(height: 20),
                         _buildTextField(
-                            controller: _usernameController,
-                            icon: Icons.person_outline,
-                            hintText: 'User Name'),
+                          controller: _usernameController,
+                          icon: Icons.person_outline,
+                          hintText: 'User Name',
+                          errorText: _usernameError,
+                        ),
                         const SizedBox(height: 15),
                         _buildTextField(
-                            controller: _emailController,
-                            icon: Icons.email_outlined,
-                            hintText: 'Email'),
+                          controller: _emailController,
+                          icon: Icons.email_outlined,
+                          hintText: 'Email',
+                          errorText: _emailError,
+                        ),
                         const SizedBox(height: 15),
                         _buildPasswordTextField(
                           controller: _passwordController,
@@ -214,6 +257,7 @@ await FirebaseFirestore.instance
                               _passwordVisible = !_passwordVisible;
                             });
                           },
+                          errorText: _passwordError,
                         ),
                         const SizedBox(height: 15),
                         _buildPasswordTextField(
@@ -222,9 +266,11 @@ await FirebaseFirestore.instance
                           isVisible: _confirmPasswordVisible,
                           onToggleVisibility: () {
                             setState(() {
-                              _confirmPasswordVisible = !_confirmPasswordVisible;
+                              _confirmPasswordVisible =
+                                  !_confirmPasswordVisible;
                             });
                           },
+                          errorText: _confirmPasswordError,
                         ),
                         const SizedBox(height: 30),
                         SizedBox(
@@ -235,31 +281,44 @@ await FirebaseFirestore.instance
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF5A7A9A),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30)),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
                             ),
                             child: _isLoading
                                 ? const CircularProgressIndicator(
-                                    color: Colors.white)
-                                : const Text('Sign up',
+                                    color: Colors.white,
+                                  )
+                                : const Text(
+                                    'Sign up',
                                     style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white)),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
                         const SizedBox(height: 25),
                         RichText(
                           text: TextSpan(
-                            style: const TextStyle(color: Colors.grey, fontSize: 16),
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 16),
                             children: [
-                              const TextSpan(text: "Already have an account? "),
+                              const TextSpan(
+                                  text: "Already have an account? "),
                               TextSpan(
                                 text: "Login",
-                                style: TextStyle(color: Colors.blue.shade800, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color: Colors.blue.shade800,
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
                                     Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (context) => const PatientLoginScreen()),
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const PatientLoginScreen(),
+                                      ),
                                     );
                                   },
                               ),
@@ -280,7 +339,10 @@ await FirebaseFirestore.instance
             child: FloatingActionButton(
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const AuthScreen(userRole: 'Patient')),
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const AuthScreen(userRole: 'Patient'),
+                  ),
                 );
               },
               backgroundColor: const Color(0xFF5A7A9A),
@@ -293,20 +355,41 @@ await FirebaseFirestore.instance
     );
   }
 
-  Widget _buildTextField({required TextEditingController controller,required IconData icon, required String hintText}) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.grey),
-        prefixIcon: Icon(icon, color: Colors.grey),
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide.none,
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required IconData icon,
+    required String hintText,
+    String? errorText,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: const TextStyle(color: Colors.grey),
+            prefixIcon: Icon(icon, color: Colors.grey),
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide.none,
+            ),
+          ),
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+            child: Text(
+              errorText,
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -315,28 +398,45 @@ await FirebaseFirestore.instance
     required String hintText,
     required bool isVisible,
     required VoidCallback onToggleVisibility,
+    String? errorText,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: !isVisible,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(color: Colors.grey),
-        prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide.none,
-        ),
-        suffixIcon: IconButton(
-          icon: Icon(
-            isVisible ? Icons.visibility : Icons.visibility_off,
-            color: Colors.grey,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: controller,
+          obscureText: !isVisible,
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: const TextStyle(color: Colors.grey),
+            prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide.none,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                isVisible ? Icons.visibility : Icons.visibility_off,
+                color: Colors.grey,
+              ),
+              onPressed: onToggleVisibility,
+            ),
           ),
-          onPressed: onToggleVisibility,
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+            child: Text(
+              errorText,
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
