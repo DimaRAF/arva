@@ -2,7 +2,7 @@ import 'package:excel/excel.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class TermInfo {
-  final String canonical;        // الاسم القياسي من عمود original_medical term
+  final String canonical;        //  original_medical term
   final double? refMin;          // Lowest_Normal
   final double? refMax;          // Highest_Normal
   final String unit;             // Unit
@@ -17,13 +17,13 @@ class TermInfo {
 class TermDictionary {
   static bool _loaded = false;
 
-  /// "Iron"  -> info (رينج + وحدة)
+  /// "Iron"  -> info )
   static final Map<String, TermInfo> _byCanonical = {};
 
   /// "IRON (FE)" / "SERUM IRON" / "Fe" -> "Iron"
   static final Map<String, String> _aliasToCanonical = {};
 
-  /// استدعيها مرّة قبل الاستخدام (مثلاً في initState لأول صفحة)
+ 
   static Future<void> ensureLoaded() async {
     if (_loaded) return;
 
@@ -31,12 +31,11 @@ class TermDictionary {
     final excel = Excel.decodeBytes(bytes.buffer.asUint8List());
     final sheet = excel.tables[excel.tables.keys.first]!;
 
-    // رؤوس الأعمدة (lowercase عشان ما نهتم بحالة الحروف)
+   
     final headers = sheet.rows.first
         .map((c) => (c?.value?.toString().trim() ?? '').toLowerCase())
         .toList();
 
-    // 👇 نحاول أولاً باستخدام الهيكل الجديد:
     // original_medical term + medical term1..4
     final int idxOriginal = headers.indexOf('original_medical term');
     final int idxMT1      = headers.indexOf('medical term1');
@@ -60,7 +59,7 @@ class TermDictionary {
     for (int r = 1; r < sheet.rows.length; r++) {
       final row = sheet.rows[r];
 
-      // الاسم القياسي (اللي في original_medical term لو موجود)
+
       final String canonicalName = _s(row, idxCanonicalCol);
       if (canonicalName.isEmpty) continue;
 
@@ -70,7 +69,7 @@ class TermDictionary {
 
       final String canon = _canon(canonicalName);
 
-      // خزّن معلومات الرينج + الوحدة حسب الاسم القياسي
+
       final info = TermInfo(
         canonical: canon,
         refMin: lo,
@@ -79,7 +78,7 @@ class TermDictionary {
       );
       _byCanonical[canon] = info;
 
-      // نجمع كل المرادفات في هذه السطر:
+    
       final Set<String> rawNames = {canonicalName};
 
       if (idxMT1 >= 0) {
@@ -99,13 +98,13 @@ class TermDictionary {
         if (s.isNotEmpty) rawNames.add(s);
       }
 
-      // لكل اسم خام (canonical + المرادفات) نولّد aliases مطبَّعة
+  
       for (final raw in rawNames) {
         for (final alias in _generateAliases(raw)) {
           _aliasToCanonical[alias] = canon;
         }
 
-        // ولو فيه اختصار بين قوسين مثلاً (Fe) أو (WBC) نضيفه أيضاً
+       
         final short = _extractShort(raw);
         if (short != null) {
           _aliasToCanonical[_norm(short)] = canon;
@@ -116,7 +115,7 @@ class TermDictionary {
     _loaded = true;
   }
 
-  // ===== Helpers على حالها تقريباً =====
+ 
 
   static String _s(List<Data?> row, int idx) {
     if (idx < 0) return '';
@@ -132,10 +131,10 @@ class TermDictionary {
     return double.tryParse(s);
   }
 
-  // الاسم القياسي نخليه زي ما هو مع trim بسيط
+ 
   static String _canon(String s) => s.trim();
 
-  // نسخة مطبَّعة للبحث: upper + إزالة الرموز الزائدة
+
   static String _norm(String s) => s
       .toUpperCase()
       .replaceAll(RegExp(r'[\t\r\n]'), ' ')
@@ -145,8 +144,8 @@ class TermDictionary {
 
   static Iterable<String> _generateAliases(String name) {
     final aliases = <String>{};
-    aliases.add(_norm(name)); // النسخة المطَبَّعة كاملة
-    // نسخة بدون الأقواس مثلاً: "Iron (Fe)" → "Iron"
+    aliases.add(_norm(name));
+  
     aliases.add(_norm(name.replaceAll(RegExp(r'\(.*?\)'), '')));
     return aliases.where((e) => e.isNotEmpty);
   }

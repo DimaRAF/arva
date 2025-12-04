@@ -113,7 +113,7 @@ class InferenceService {
     return const PredResult(PredTri.normal, DecisionSource.rule);
   }
 
-  // لا مودل ولا رينج → قيمة فقط
+
   return const PredResult(PredTri.normal, DecisionSource.unknown);
 }
 }

@@ -4,8 +4,8 @@ import 'package:flutter/services.dart' show rootBundle;
 
 class ModelAssets {
   static Map<int, String>? idxToName;
-  static Map<String, int>? nameToIdx;   // name (كما في التدريب) -> index
-  static List<double>? mean, scale;     // طولهم 4: [enc, value, low, high]
+  static Map<String, int>? nameToIdx;  
+  static List<double>? mean, scale;    
   static Map<String, double>? thresholds;
 
   static Future<void> ensureLoaded() async {

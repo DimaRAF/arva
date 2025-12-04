@@ -12,16 +12,16 @@ class MedicalReportHomeScreen extends StatelessWidget {
     final picked = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
-      withData: true, // نأخذ bytes مباشرة بدون حفظ
+      withData: true,
     );
-    if (picked == null) return; // المستخدم ألغى
+    if (picked == null) return;
     final Uint8List? bytes = picked.files.single.bytes;
     if (bytes == null) return;
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ResultsPage(pdfBytes: bytes), // نمرّر الملف للنتائج
+        builder: (_) => ResultsPage(pdfBytes: bytes),
       ),
     );
   }
@@ -41,7 +41,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                // زر الإغلاق في الأعلى
+                
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(

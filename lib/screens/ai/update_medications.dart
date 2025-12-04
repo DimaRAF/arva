@@ -4,14 +4,13 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:arva/services/pdf_extractor.dart';
 import 'package:arva/models/lab_test.dart';
-// 🔔 NEW
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class MedicationAutomation {
   static late Interpreter _interpreter;
   static bool _loaded = false;
 
-  // ==== metadata من ملفات الـ JSON ====
   static Map<String, int>? _diseaseToId;
   static Map<String, int>? _drugToId;
   static Map<String, int>? _testToId;
@@ -23,16 +22,15 @@ class MedicationAutomation {
   static double? _minValue;
   static double? _maxValue;
 
-  // أي output slot (0/1/2) هو dosage/duration/freq
+
   static int? _dosageOutSlot;
   static int? _durationOutSlot;
   static int? _freqOutSlot;
 
-  // 🔔 NEW: بلجن الإشعارات
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  /// 🔔 NEW: دالة الإشعار عند وجود تنبؤ جديد
+ 
   static Future<void> _showMedicationNotification({
     required String patientId,
   }) async {
@@ -81,15 +79,14 @@ class MedicationAutomation {
     );
   }
 
-  /// 🔹 تحميل المودل + ملفات JSON مرة واحدة
   static Future<void> _loadModel() async {
     if (_loaded) return;
 
-    // 1) تحميل المودل
+ 
     _interpreter =
         await Interpreter.fromAsset('assets/medication_model/model.tflite');
 
-    // 2) تحميل label_encoders.json
+   
     final labelStr = await rootBundle
         .loadString('assets/medication_model/label_encoders.json');
     final labelJson = jsonDecode(labelStr) as Map<String, dynamic>;
@@ -111,7 +108,6 @@ class MedicationAutomation {
     _testToId =
         buildReverse(Map<String, dynamic>.from(labelJson['test_name']));
 
-    // 3) تحميل target_encoders.json
     final targetStr = await rootBundle
         .loadString('assets/medication_model/target_encoders.json');
     final targetJson = jsonDecode(targetStr) as Map<String, dynamic>;
@@ -133,7 +129,7 @@ class MedicationAutomation {
     _frequencyLabels =
         buildTarget(Map<String, dynamic>.from(targetJson['Frequency']));
 
-    // 4) تحميل scaler.json
+ 
     final scalerStr = await rootBundle
         .loadString('assets/medication_model/scaler (1).json');
     final scalerJson = jsonDecode(scalerStr) as Map<String, dynamic>;
@@ -142,12 +138,12 @@ class MedicationAutomation {
     _minValue = minList.first.toDouble();
     _maxValue = maxList.first.toDouble();
 
-    // 5) تحديد أي output هو Dosage/Duration/Freq حسب عدد الكلاسات
+   
     final nDosage = _dosageLabels!.length;
     final nDuration = _durationLabels!.length;
     final nFreq = _frequencyLabels!.length;
 
-    // بدلاً من getOutputTensorCount()
+   
     final outTensors = _interpreter.getOutputTensors();
 
     for (int i = 0; i < outTensors.length; i++) {
@@ -175,35 +171,28 @@ class MedicationAutomation {
     _loaded = true;
   }
 
-  /// 🔹 العملية الكاملة: تشغيل المودل وتخزين التنبؤ في pending_*
+  
   static Future<void> runAutoMedicationPipeline(
     String patientId,
     String doctorId,
     String pdfAssetPath,
   ) async {
     await _loadModel();
-
-    // 1️⃣ استخراج التحاليل من التقرير
     final List<LabTest> tests = await PdfExtractor.parseAsset(pdfAssetPath);
-    print(
-        "✅ Extracted ${tests.length} lab tests from the report (medication model).");
+    print("✅ Extracted ${tests.length} lab tests from the report (medication model).");
 
-    // خريطة من اسم التحليل → قيمته من التقرير
+
     final Map<String, double> testMap = {
       for (var t in tests) t.name: t.value,
     };
-
-    // 2️⃣ جلب أدوية المريض
     final medsSnapshot = await FirebaseFirestore.instance
         .collection('patient_profiles')
         .doc(patientId)
         .collection('medications')
         .get();
 
-    print(
-        "📄 Found ${medsSnapshot.docs.length} medications for this patient.");
+    print("📄 Found ${medsSnapshot.docs.length} medications for this patient.");
 
-    // 🔔 NEW: فلاغ لتحديد إذا فيه أي دواء تم تحديثه
     bool anyUpdated = false;
 
     for (final med in medsSnapshot.docs) {
@@ -218,15 +207,10 @@ class MedicationAutomation {
             "⚠ Medication has missing data (disease / drug_name / test_name) → skipping. id=${med.id}");
         continue;
       }
-
-      // 🔹 القيمة من التقرير (إن وجدت)
       final double? pdfValue = testMap[testName];
-
-      // 🔹 آخر قيمة محفوظة في الداتا بيز (مثلاً من شاشة الفايتل ساين)
       final num? dbLastNum = data['last_value'] as num?;
       final double? dbLastValue = dbLastNum?.toDouble();
 
-      // 🔹 القيمة النهائية التي سيستخدمها المودل
       double? effectiveValue;
       String valueSource = 'none';
 
@@ -248,7 +232,7 @@ class MedicationAutomation {
       print(
           "🔍 Medication: $drugName | Test: $testName = $testValue (source=$valueSource)");
 
-      // 3️⃣ التنبؤ باستخدام المودل (القيمة المستخدمة هي من الداتا بيز منطقياً)
+      
       final prediction = await _predictDose(
         disease: disease,
         drugName: drugName,
@@ -261,7 +245,6 @@ class MedicationAutomation {
           "duration=${prediction['duration']}, "
           "frequency=${prediction['frequency']}");
 
-      // 4️⃣ حفظ التنبؤ في pending_* + last_value + status = "Pending"
       await med.reference.update({
         'pending_dosage': prediction['dosage'],
         'pending_duration': prediction['duration'],
@@ -270,9 +253,8 @@ class MedicationAutomation {
         'pending_test_value': testValue,
         'pending_updated_at': FieldValue.serverTimestamp(),
 
-        // ✅ آخر قيمة للتحليل لهذا الدواء (سواء جت من التقرير أو من قبل)
         'last_value': testValue,
-        'status': 'Pending', // الدكتور لسه ما وافق
+        'status': 'Pending',
 
         'last_updated': FieldValue.serverTimestamp(),
       });
@@ -283,7 +265,7 @@ class MedicationAutomation {
           "💾 Saved prediction into pending_* at patient_profiles/$patientId/medications/${med.id}");
     }
 
-    // 🔔 NEW: لو فيه تنبؤات جديدة → إرسال إشعار
+    
     if (anyUpdated) {
       await _showMedicationNotification(patientId: patientId);
     }
@@ -299,29 +281,26 @@ class MedicationAutomation {
   }) async {
     await _loadModel();
 
-    // 1) تحويل النصوص إلى IDs حسب label_encoders.json
+   
     final diseaseId = _diseaseToId![disease];
     final drugId = _drugToId![drugName];
     final testId = _testToId![testName];
 
     if (diseaseId == null || drugId == null || testId == null) {
       throw Exception(
-          "القيم (disease/drug_name/test_name) غير متطابقة مع label_encoders.json "
-          "→ تأكدي من نفس الإملاء الموجود في ملف الإكسل.");
+          "القيم (disease/drug_name/test_name)NOT ABLICABLE label_encoders.json ");
     }
 
-    // 2) تطبيع قيمة التحليل بنفس scaler.json
+    
     final minV = _minValue!;
     final maxV = _maxValue!;
     final norm =
         ((testValue - minV) / (maxV - minV)).clamp(0.0, 1.0).toDouble();
 
-    // 3) تجهيز المدخل (1, 4)
+   
     final input = [
       [diseaseId.toDouble(), drugId.toDouble(), testId.toDouble(), norm]
     ];
-
-    // 4) تجهيز مخرجات بثلاث رؤوس (Dosage / Duration / Frequency)
     final dosageCount = _dosageLabels!.length;
     final durationCount = _durationLabels!.length;
     final freqCount = _frequencyLabels!.length;
@@ -336,7 +315,7 @@ class MedicationAutomation {
     if (_dosageOutSlot == null ||
         _durationOutSlot == null ||
         _freqOutSlot == null) {
-      throw Exception("⚠ مخرجات المودل غير مهيأة (output slots null)");
+      throw Exception("⚠The model outputs are not initialized (output slots are null)");
     }
 
     final outputs = <int, Object>{
@@ -347,7 +326,6 @@ class MedicationAutomation {
 
     _interpreter.runForMultipleInputs([input], outputs);
 
-    // 5) argmax لكل مخرج
     int argMax(List<double> list) {
       var maxIdx = 0;
       var maxVal = list[0];
@@ -378,7 +356,7 @@ class MedicationAutomation {
     };
   }
 
-  /// ✅ الدكتور يعتمد التنبؤ → ينقل القيم من pending_* إلى الحقول الأساسية
+
   static Future<void> approveMedicationPrediction({
     required String patientId,
     required String medicationId,
