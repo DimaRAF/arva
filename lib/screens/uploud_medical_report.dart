@@ -9,15 +9,19 @@ class MedicalReportHomeScreen extends StatelessWidget {
   const MedicalReportHomeScreen({super.key, this.patientId});
 
   Future<void> _pickAndShowResult(BuildContext context) async {
+    // Await an asynchronous operation.
     final picked = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
       withData: true,
     );
+    // Branch on a condition that affects logic flow.
     if (picked == null) return;
     final Uint8List? bytes = picked.files.single.bytes;
+    // Branch on a condition that affects logic flow.
     if (bytes == null) return;
 
+    // Navigate to another screen based on user action.
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -56,6 +60,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
                         shadowColor: Colors.black26,
                       ),
                       onPressed: () {
+                        // Navigate to another screen based on user action.
                         Navigator.of(context).pop();
                       },
                       child: const Icon(Icons.close, size: 18, color: Color(0xFF355A66)),
@@ -118,7 +123,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 90),
 
-                // العنوان
+                
                 Text(
                   'Reading Medical Analysis',
                   textAlign: TextAlign.center,
@@ -161,6 +166,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
                         ),
                         label: 'Last Report',
                         onTap: () {
+                          // Navigate to another screen based on user action.
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -221,6 +227,7 @@ class _ActionButton extends StatelessWidget {
                 style: const TextStyle(color: Color(0xFF003F5F), fontSize: 16),
               ),
             ),
+            // Branch on a condition that affects logic flow.
             if (trailing != null)
               (onTrailingTap != null)
                   ? GestureDetector(onTap: onTrailingTap, child: trailing!)

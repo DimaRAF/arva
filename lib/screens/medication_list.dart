@@ -23,9 +23,12 @@ class _MedicationScreenState extends State<MedicationScreen> {
   }
 
   Future<void> _loadUserRole() async {
+    // Branch on a condition that affects logic flow.
     if (currentUid == null) return;
     final doc =
+        // Await an asynchronous operation.
         await FirebaseFirestore.instance.collection('users').doc(currentUid).get();
+    // Branch on a condition that affects logic flow.
     if (doc.exists) {
       setState(() {
         userRole = doc.data()?['role']; 
@@ -50,6 +53,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
     final diseaseController = TextEditingController();
     final durationController = TextEditingController();
 
+    // Await an asynchronous operation.
     await showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -89,6 +93,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
+              // Branch on a condition that affects logic flow.
               if (nameController.text.isEmpty ||
                   doseController.text.isEmpty ||
                   freqController.text.isEmpty ||
@@ -104,6 +109,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
               }
 
               final uid = widget.patientId ?? currentUid;
+              // Branch on a condition that affects logic flow.
               if (uid == null) return;
 
              
@@ -128,12 +134,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 'createdAt': Timestamp.now(),
               };
 
+              // Await an asynchronous operation.
               await FirebaseFirestore.instance
                   .collection('patient_profiles')
                   .doc(uid)
                   .collection('medications')
                   .add(newDrug);
 
+              // Branch on a condition that affects logic flow.
               if (mounted) Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -261,15 +269,16 @@ class _MedicationScreenState extends State<MedicationScreen> {
                           ),
                           SizedBox(height: 18 * s),
 
-                          // 🔹 قائمة الأدوية
                           StreamBuilder<QuerySnapshot>(
                             stream: getDrugsStream(),
                             builder: (context, snapshot) {
+                              // Branch on a condition that affects logic flow.
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
                                 return const Center(
                                     child: CircularProgressIndicator());
                               }
+                              // Branch on a condition that affects logic flow.
                               if (!snapshot.hasData ||
                                   snapshot.data!.docs.isEmpty) {
                                 return const Center(
@@ -361,6 +370,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                       warning: warning,
                                       s: s,
                                       onTap: () {
+                                        // Navigate to another screen based on user action.
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
@@ -471,6 +481,7 @@ class _PillCard extends StatelessWidget {
                 ],
               ),
             ),
+            // Branch on a condition that affects logic flow.
             if (warning)
               Container(
                 width: 26 * s,

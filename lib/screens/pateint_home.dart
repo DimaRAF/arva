@@ -57,6 +57,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               heroTag: 'docBackFab',
               shape: const CircleBorder(),
               backgroundColor: const Color(0xFF4C6EA0),
+              // Navigate to another screen based on user action.
               onPressed: () => Navigator.of(context).pop(),
               child: const Icon(Icons.arrow_back, color: Colors.white),
             )
@@ -134,6 +135,7 @@ class __HomePageContentState extends State<_HomePageContent> {
   }
 
   Future<void> _fetchPatientData() async {
+    // Branch on a condition that affects logic flow.
     if (!mounted) return;
     setState(() {
       _isLoading = true;
@@ -145,7 +147,9 @@ class __HomePageContentState extends State<_HomePageContent> {
       
       final currentUser = FirebaseAuth.instance.currentUser;
       String? currentUserRole;
+      // Branch on a condition that affects logic flow.
       if (currentUser != null) {
+        // Await an asynchronous operation.
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
@@ -154,11 +158,13 @@ class __HomePageContentState extends State<_HomePageContent> {
       }
 
       
+      // Await an asynchronous operation.
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(patientId)
           .get();
 
+      // Await an asynchronous operation.
       DocumentSnapshot profileDoc = await FirebaseFirestore.instance
           .collection('patient_profiles')
           .doc(patientId)
@@ -166,19 +172,23 @@ class __HomePageContentState extends State<_HomePageContent> {
 
       
       Map<String, dynamic> combinedData = {};
+      // Branch on a condition that affects logic flow.
       if (userDoc.exists && userDoc.data() != null) {
         combinedData.addAll(userDoc.data() as Map<String, dynamic>);
       }
+      // Branch on a condition that affects logic flow.
       if (profileDoc.exists && profileDoc.data() != null) {
         combinedData.addAll(profileDoc.data() as Map<String, dynamic>);
       }
 
      
+      // Branch on a condition that affects logic flow.
       if (mounted) {
         setState(() {
           _patientData = combinedData;
           _currentUserRole = currentUserRole;
         });
+        // Branch on a condition that affects logic flow.
         if (widget.onRoleLoaded != null && currentUserRole != null) {
           widget.onRoleLoaded!(currentUserRole);
         }
@@ -188,6 +198,7 @@ class __HomePageContentState extends State<_HomePageContent> {
     }
 
     
+    // Branch on a condition that affects logic flow.
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -199,12 +210,15 @@ class __HomePageContentState extends State<_HomePageContent> {
   Future<void> _updatePatientProfile(String field, dynamic value) async {
     User? user = FirebaseAuth.instance.currentUser;
     final patientId = widget.patientId;
+    // Branch on a condition that affects logic flow.
     if (user == null) return;
 
     
+    // Branch on a condition that affects logic flow.
     if (field == 'age' || field == 'height' || field == 'weight') {
       int parsed = int.tryParse(value.toString()) ?? 0;
 
+      // Branch on a condition that affects logic flow.
       if (field == 'height' && parsed > 250) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -215,6 +229,7 @@ class __HomePageContentState extends State<_HomePageContent> {
         return;
       }
 
+      // Branch on a condition that affects logic flow.
       if (field == 'weight' && parsed > 300) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -225,6 +240,7 @@ class __HomePageContentState extends State<_HomePageContent> {
         return;
       }
 
+      // Branch on a condition that affects logic flow.
       if (field == 'age' && parsed > 150) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -239,6 +255,7 @@ class __HomePageContentState extends State<_HomePageContent> {
     }
 
     
+    // Branch on a condition that affects logic flow.
     if (field == 'blood_group') {
       String input = value.toString().toUpperCase().replaceAll(' ', '');
       const validBloodGroups = [
@@ -252,6 +269,7 @@ class __HomePageContentState extends State<_HomePageContent> {
         'O-',
       ];
 
+      // Branch on a condition that affects logic flow.
       if (!validBloodGroups.contains(input)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -267,14 +285,17 @@ class __HomePageContentState extends State<_HomePageContent> {
     }
 
     try {
+      // Await an asynchronous operation.
       await FirebaseFirestore.instance
           .collection('patient_profiles')
           .doc(patientId)
           .update({field: value});
 
       
+      // Await an asynchronous operation.
       await _fetchPatientData();
 
+      // Branch on a condition that affects logic flow.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -283,6 +304,7 @@ class __HomePageContentState extends State<_HomePageContent> {
         );
       }
     } catch (e) {
+      // Branch on a condition that affects logic flow.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -310,12 +332,14 @@ class __HomePageContentState extends State<_HomePageContent> {
         ),
         actions: [
           TextButton(
+            // Navigate to another screen based on user action.
             onPressed: () => Navigator.of(context).pop(),
             child: const Text("Cancel"),
           ),
           ElevatedButton(
             onPressed: () {
               _updatePatientProfile(fieldKey, controller.text);
+              // Navigate to another screen based on user action.
               Navigator.of(context).pop();
             },
             child: const Text("Save"),
@@ -399,6 +423,7 @@ class __HomePageContentState extends State<_HomePageContent> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                // Branch on a condition that affects logic flow.
                                 if (_currentUserRole == 'Medical Staff') ...[
                                   const Text(
                                     "Smart File",
@@ -521,6 +546,7 @@ class __HomePageContentState extends State<_HomePageContent> {
                             imagePath: 'assets/drugs.png',
                             label: 'Drugs',
                             onTap: () {
+                              // Navigate to another screen based on user action.
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -534,6 +560,7 @@ class __HomePageContentState extends State<_HomePageContent> {
                             imagePath: 'assets/report.png',
                             label: 'Report',
                             onTap: () {
+                              // Navigate to another screen based on user action.
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(

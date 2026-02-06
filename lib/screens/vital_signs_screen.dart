@@ -59,15 +59,18 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     const InitializationSettings initSettings =
         InitializationSettings(android: initSettingsAndroid);
 
+    // Await an asynchronous operation.
     await _notificationsPlugin.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        // Branch on a condition that affects logic flow.
         if (response.payload != null && context.mounted) {
           try {
             final data = jsonDecode(response.payload!);
             final patientId = data['patientId'];
             final patientName = data['patientName'];
 
+            // Navigate to another screen based on user action.
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
@@ -94,14 +97,17 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
    
     FlutterBackgroundService().on('update').listen((data) {
      
+      // Branch on a condition that affects logic flow.
       if (mounted && data != null && data['patientId'] == widget.patientId) {
         setState(() {
           final receivedVitals = Map<String, dynamic>.from(data['vitals']);
+          // Branch on a condition that affects logic flow.
           if (receivedVitals['time'] is String) {
             receivedVitals['time'] = DateTime.parse(receivedVitals['time'] as String);
           }
           _currentVitals = receivedVitals;
           _historyForChart.add(_currentVitals);
+          // Branch on a condition that affects logic flow.
           if (_historyForChart.length > 288) _historyForChart.removeAt(0);
         });
 
@@ -114,8 +120,10 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   }
 
   Future<void> _loadScaler() async {
+    // Await an asynchronous operation.
     _scaler = await loadScalerFromAssets('assets/vitals_scaler_params.json');
     
+    // Branch on a condition that affects logic flow.
     if (_scaler!.featuresOrder.join(',') != _featuresOrder.join(',')) {
       print('⚠️ features_order in JSON != _featuresOrder in app');
     }
@@ -126,7 +134,9 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     try {
       print('🔄 Loading model from assets...');
 
+      // Await an asynchronous operation.
       final interpreter = await Interpreter.fromAsset('assets/vitals_predictor_gru.tflite');
+      // Branch on a condition that affects logic flow.
       if (mounted) {
         setState(() => _interpreter = interpreter);
       }
@@ -137,14 +147,17 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   }
 
   void _runPrediction() {
+    // Branch on a condition that affects logic flow.
     if (_interpreter == null) {
       print("Prediction skipped: Interpreter is null.");
       return;
     }
+    // Branch on a condition that affects logic flow.
     if (_scaler == null) {
       print("Prediction skipped: Scaler is null.");
       return;
     }
+    // Branch on a condition that affects logic flow.
     if (_historyForChart.length < 10) {
       print("Prediction skipped: Not enough history data (${_historyForChart.length}/10).");
       return;
@@ -154,6 +167,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     final recentHistory = _historyForChart.sublist(_historyForChart.length - sequenceLength);
 
     final List<List<double>> seqNorm = [];
+    // Loop over a collection to apply logic.
     for (int i = 0; i < sequenceLength; i++) {
       final r = recentHistory[i];
 
@@ -204,10 +218,12 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   }) {
     print('--- Checking prediction line for: $vitalKey');
 
+    // Branch on a condition that affects logic flow.
     if (_historyForChart.isEmpty) {
       print('--- [$vitalKey] Skipped: History is empty.');
       return LineChartBarData(show: false);
     }
+    // Branch on a condition that affects logic flow.
     if (_predictedVitals == null) {
       print('--- [$vitalKey] Skipped: _predictedVitals is null.');
       return LineChartBarData(show: false);
@@ -219,6 +235,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
 
     print('--- [$vitalKey] Last History Value: $lastHistoryValue | Predicted Value: $predictedValue');
 
+    // Branch on a condition that affects logic flow.
     if (lastHistoryValue is! num || predictedValue is! num) {
       print('--- [$vitalKey] Skipped: One of the values is not a valid number.');
       return LineChartBarData(show: false);
@@ -238,28 +255,35 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   }
 
   Future<void> _loadDataAndConfigureService() async {
+    // Await an asynchronous operation.
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString('vitals_${widget.patientId}');
+    // Branch on a condition that affects logic flow.
     if (data != null) {
       _currentVitals = jsonDecode(data);
       print('♻️ Loaded cached vitals for ${widget.patientId}');
     }
 
+    // Await an asynchronous operation.
     await _loadScaler();
 
     
+    // Await an asynchronous operation.
     await _loadModel();
 
     
+    // Branch on a condition that affects logic flow.
     if (_interpreter == null) {
       print('⚠️ Interpreter not ready, skipping simulation start.');
       return;
     }
 
     
+    // Await an asynchronous operation.
     await _loadDataForPatient();
 
    
+    // Branch on a condition that affects logic flow.
     if (_patientSpecificDataset.isNotEmpty) {
       FlutterBackgroundService().invoke('startPatientSimulation', {
         'patientId': widget.patientId,
@@ -274,13 +298,16 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
       });
     }
 
+    // Branch on a condition that affects logic flow.
     if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _saveChartHistory() async {
+    // Await an asynchronous operation.
     final prefs = await SharedPreferences.getInstance();
     final encodedHistory = jsonEncode(_historyForChart.map((e) {
       final map = Map<String, dynamic>.from(e);
+      // Branch on a condition that affects logic flow.
       if (map['time'] is DateTime) {
         map['time'] = (map['time'] as DateTime).toIso8601String();
       }
@@ -291,13 +318,16 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   }
 
   Future<void> _loadChartHistory() async {
+    // Await an asynchronous operation.
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('chart_history_${widget.patientId}');
+    // Branch on a condition that affects logic flow.
     if (saved != null) {
       final List<dynamic> decoded = jsonDecode(saved);
       _historyForChart.clear();
       _historyForChart.addAll(decoded.map((e) {
         final map = Map<String, dynamic>.from(e);
+        // Branch on a condition that affects logic flow.
         if (map['time'] is String) {
           map['time'] = DateTime.parse(map['time']);
         }
@@ -313,28 +343,28 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     final sys = (vitals['NISysABP'] as num?)?.toDouble() ?? 0;
     final dia = (vitals['NIDiasABP'] as num?)?.toDouble() ?? 0;
 
-    // ❤️ HR
+    // Branch on a condition that affects logic flow.
     if (hr > 110 || hr < 50) {
       _criticalCount['HR'] = (_criticalCount['HR'] ?? 0) + 1;
     } else {
       _criticalCount['HR'] = 0;
     }
 
-    // 🌡 Temperature
+    // Branch on a condition that affects logic flow.
     if (temp > 38 || temp < 35.5) {
       _criticalCount['Temp'] = (_criticalCount['Temp'] ?? 0) + 1;
     } else {
       _criticalCount['Temp'] = 0;
     }
 
-    // 💧 Oxygen
+    // Branch on a condition that affects logic flow.
     if (spo2 < 93) {
       _criticalCount['SaO2'] = (_criticalCount['SaO2'] ?? 0) + 1;
     } else {
       _criticalCount['SaO2'] = 0;
     }
 
-    // 🩸 Blood Pressure
+    // Branch on a condition that affects logic flow.
     if (sys > 140 || dia > 90 || sys < 90 || dia < 60) {
       _criticalCount['BP'] = (_criticalCount['BP'] ?? 0) + 1;
     } else {
@@ -343,12 +373,14 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
 
     
     _criticalCount.forEach((key, count) {
+      // Branch on a condition that affects logic flow.
       if (count >= 5) {
         final lastAlert = _lastAlertTime[key];
         final lastAlertCount = _lastAlertReadingCount[key] ?? 0;
         final now = DateTime.now();
 
         
+        // Branch on a condition that affects logic flow.
         if (lastAlert == null ||
             now.difference(lastAlert).inMinutes >= 5 ||
             (_criticalCount[key]! - lastAlertCount) >= 10) {
@@ -362,6 +394,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     });
 
     
+    // Branch on a condition that affects logic flow.
     if (!isPredicted && sys > 0) {
       _updateSystolicLastValue(sys);
     }
@@ -375,14 +408,18 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
           .doc(widget.patientId)
           .collection('medications');
 
+      // Await an asynchronous operation.
       final query = await medsRef.where('test_name', isEqualTo: 'Systolic BP').get();
 
+      // Branch on a condition that affects logic flow.
       if (query.docs.isEmpty) {
         print('ℹ لا توجد أدوية مرتبطة بـ Systolic BP لهذا المريض');
         return;
       }
 
+      // Loop over a collection to apply logic.
       for (final doc in query.docs) {
+        // Await an asynchronous operation.
         await doc.reference.update({
           'last_value': systolic,
           'last_updated': FieldValue.serverTimestamp(),
@@ -396,6 +433,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   }
 
   String _getVitalDisplayName(String key) {
+    // Select logic based on a key value.
     switch (key) {
       case 'HR':
         return "Heart Rate";
@@ -426,6 +464,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     const NotificationDetails notificationDetails =
         NotificationDetails(android: androidDetails);
 
+    // Await an asynchronous operation.
     await _notificationsPlugin.show(
       0,
       '⚠️ Critical Alert - $_patientName',
@@ -441,18 +480,25 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
 
 
   Map<String, dynamic> getVitalStatus(String vitalKey, double? value) {
+    // Branch on a condition that affects logic flow.
     if (value == null) return {'text': 'N/A', 'color': Colors.grey};
 
+    // Select logic based on a key value.
     switch (vitalKey) {
       case 'HR': // Heart Rate
+        // Branch on a condition that affects logic flow.
         if (value > 100) return {'text': 'High', 'color': Colors.red};
+        // Branch on a condition that affects logic flow.
         if (value < 60) return {'text': 'Low', 'color': const Color(0xFFFF9800)};
         return {'text': 'Normal', 'color': Colors.green};
       case 'Temp':
+        // Branch on a condition that affects logic flow.
         if (value > 37.5) return {'text': 'High', 'color': Colors.red};
+        // Branch on a condition that affects logic flow.
         if (value < 36.1) return {'text': 'Low', 'color': const Color(0xFFFF9800)};
         return {'text': 'Normal', 'color': Colors.green};
       case 'SaO2': 
+        // Branch on a condition that affects logic flow.
         if (value < 95) return {'text': 'Low', 'color': const Color(0xFFFF9800)};
         return {'text': 'Normal', 'color': Colors.green};
       default:
@@ -462,18 +508,22 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
 
   
   Map<String, dynamic> getBloodPressureStatus(double? systolic, double? diastolic) {
+    // Branch on a condition that affects logic flow.
     if (systolic == null || diastolic == null) {
       return {'text': 'N/A', 'color': Colors.grey};
     }
     
+    // Branch on a condition that affects logic flow.
     if (systolic > 130 || diastolic > 85) return {'text': 'High', 'color': Colors.red};
    
+    // Branch on a condition that affects logic flow.
     if (systolic < 90 || diastolic < 60) return {'text': 'Low', 'color': const Color(0xFFFF9800)};
     return {'text': 'Normal', 'color': Colors.green};
   }
 
   Future<void> _loadDataForPatient() async {
     try {
+      // Branch on a condition that affects logic flow.
       if (_patientDataCache.containsKey(widget.patientId)) {
         print("♻️ Loaded ${widget.patientId} data from cache");
         _patientSpecificDataset
@@ -482,12 +532,14 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
         return;
       }
 
+      // Await an asynchronous operation.
       final profileDoc = await FirebaseFirestore.instance
           .collection('patient_profiles')
           .doc(widget.patientId)
           .get();
 
      
+      // Branch on a condition that affects logic flow.
       if (!profileDoc.exists || profileDoc.data() == null) {
         print("Error: Patient document not found for ID: ${widget.patientId}");
         _patientName = 'Patient Not Found';
@@ -502,6 +554,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
       _roomNumber = data['roomNumber']?.toString() ?? '--';
 
      
+      // Branch on a condition that affects logic flow.
       if (data['dataFilename'] == null) {
         print("Error: This patient has no assigned data file (dataFilename).");
         _patientSpecificDataset.clear();
@@ -510,6 +563,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
       final String filename = data['dataFilename'];
 
       
+      // Await an asynchronous operation.
       final txtData = await rootBundle.loadString('assets/patient_vitals/$filename');
       List<List<dynamic>> rowsAsListOfValues =
           const CsvToListConverter(eol: '\n').convert(txtData);
@@ -521,15 +575,19 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
       _patientSpecificDataset.clear();
       DateTime lastDate = DateTime.now().subtract(const Duration(days: 1));
 
+      // Loop over a collection to apply logic.
       for (int i = 0; i < rowsAsListOfValues.length; i++) {
         final row = rowsAsListOfValues[i];
         Map<String, dynamic> rowData = {};
+        // Loop over a collection to apply logic.
         for (int j = 0; j < headers.length; j++) {
+          // Branch on a condition that affects logic flow.
           if (headers[j] == 'Time') {
             try {
               final timeParts = row[j].toString().split(':');
               final hours = int.parse(timeParts[0]);
               final minutes = int.parse(timeParts[1]);
+              // Branch on a condition that affects logic flow.
               if (i > 0 &&
                   _patientSpecificDataset.isNotEmpty &&
                   hours < (_patientSpecificDataset.last['time'] as DateTime).hour) {
@@ -690,8 +748,10 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
         interval: 50,
         getTitlesWidget: (value, meta) {
           final index = value.toInt();
+          // Branch on a condition that affects logic flow.
           if (index >= 0 && index < _historyForChart.length) {
             final time = _historyForChart[index]['time'] as DateTime?;
+            // Branch on a condition that affects logic flow.
             if (time != null) {
               final timeStr =
                   '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
@@ -711,8 +771,10 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
 
   LineChartBarData _buildLine({required String vitalKey, required Color color}) {
     List<FlSpot> historySpots = [];
+    // Loop over a collection to apply logic.
     for (int i = 0; i < _historyForChart.length; i++) {
       final value = _historyForChart[i][vitalKey];
+      // Branch on a condition that affects logic flow.
       if (value is num) {
         historySpots.add(FlSpot(i.toDouble(), value.toDouble()));
       }
@@ -753,6 +815,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
               shape: const CircleBorder(),
               child: InkWell(
                 customBorder: const CircleBorder(),
+                // Navigate to another screen based on user action.
                 onTap: () => Navigator.of(context).pop(),
                 child: const Icon(Icons.arrow_back, color: Colors.white),
               ),
@@ -911,7 +974,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     return GestureDetector(
       onTap: () {
         print("🩺 Navigating to patient profile with ID: ${widget.patientId}");
-        // الانتقال إلى صفحة الملف الذكي للمريض
+        // Navigate to another screen based on user action.
         Navigator.push(
           context,
           MaterialPageRoute(

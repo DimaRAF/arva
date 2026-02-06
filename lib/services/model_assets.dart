@@ -1,4 +1,3 @@
-// services/model_assets.dart
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -9,20 +8,21 @@ class ModelAssets {
   static Map<String, double>? thresholds;
 
   static Future<void> ensureLoaded() async {
+    // Branch on a condition that affects logic flow.
     if (idxToName != null) return;
 
-    // label_map.json: { "0": "ALT", "1": "AST", ... }
+    // Await an asynchronous operation.
     final lm = jsonDecode(await rootBundle.loadString('assets/model/label_map.json'))
         as Map<String, dynamic>;
     idxToName = { for (final e in lm.entries) int.parse(e.key): e.value as String };
     nameToIdx = { for (final e in idxToName!.entries) e.value: e.key };
 
-    // scaler.json: {"mean":[...4...], "scale":[...4...]}
+    // Await an asynchronous operation.
     final sc = jsonDecode(await rootBundle.loadString('assets/model/scaler.json'));
     mean  = (sc['mean']  as List).map((e) => (e as num).toDouble()).toList();
     scale = (sc['scale'] as List).map((e) => (e as num).toDouble()).toList();
 
-    // thresholds.json: {"WBC": 0.63, "MCV": 0.41, ...}
+    // Await an asynchronous operation.
     final th = jsonDecode(await rootBundle.loadString('assets/model/thresholds.json'))
         as Map<String, dynamic>;
     thresholds = th.map((k, v) => MapEntry(k, (v as num).toDouble()));

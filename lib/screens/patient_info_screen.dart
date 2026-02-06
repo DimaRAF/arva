@@ -49,6 +49,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
 
     setState(() {
      
+      // Branch on a condition that affects logic flow.
       if (username.isEmpty) {
         _usernameError = 'Name is required';
         isValid = false;
@@ -57,11 +58,13 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
       }
 
     
+      // Branch on a condition that affects logic flow.
       if (email.isEmpty) {
         _emailError = 'Email is required';
         isValid = false;
       } else {
         final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+        // Branch on a condition that affects logic flow.
         if (!emailRegex.hasMatch(email)) {
           _emailError = 'Enter a valid email address';
           isValid = false;
@@ -71,6 +74,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
       }
 
      
+      // Branch on a condition that affects logic flow.
       if (password.isEmpty) {
         _passwordError = 'Password is required';
         isValid = false;
@@ -82,6 +86,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
       }
 
      
+      // Branch on a condition that affects logic flow.
       if (confirmPassword.isEmpty) {
         _confirmPasswordError = 'Confirm your password';
         isValid = false;
@@ -98,6 +103,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
 
   Future<void> signUp() async {
     
+    // Branch on a condition that affects logic flow.
     if (!_validateInputs()) return;
 
     setState(() {
@@ -106,17 +112,20 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
 
     try {
       UserCredential userCredential =
+          // Await an asynchronous operation.
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
+      // Branch on a condition that affects logic flow.
       if (userCredential.user != null) {
         final userId = userCredential.user!.uid;
         final username = _usernameController.text.trim();
         final email = _emailController.text.trim();
 
         
+        // Await an asynchronous operation.
         await FirebaseFirestore.instance.collection('users').doc(userId).set({
           'username': username,
           'email': email,
@@ -125,6 +134,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         });
 
         
+        // Await an asynchronous operation.
         await FirebaseFirestore.instance
             .collection('patient_profiles')
             .doc(userId)
@@ -141,6 +151,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         });
 
         
+        // Await an asynchronous operation.
         await FirebaseFirestore.instance
             .collection('patient_profiles')
             .doc(userId)
@@ -164,6 +175,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
           'last_updated': null,
         });
 
+        // Branch on a condition that affects logic flow.
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
@@ -179,12 +191,14 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         );
       }
     } on FirebaseAuthException catch (e) {
+      // Branch on a condition that affects logic flow.
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "An error occurred")),
       );
     }
 
+    // Branch on a condition that affects logic flow.
     if (mounted && _isLoading) {
       setState(() {
         _isLoading = false;
@@ -378,6 +392,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
             ),
           ),
         ),
+        // Branch on a condition that affects logic flow.
         if (errorText != null)
           Padding(
             padding: const EdgeInsets.only(left: 12.0, top: 4.0),
@@ -425,6 +440,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
             ),
           ),
         ),
+        // Branch on a condition that affects logic flow.
         if (errorText != null)
           Padding(
             padding: const EdgeInsets.only(left: 12.0, top: 4.0),

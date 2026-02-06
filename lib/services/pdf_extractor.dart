@@ -1,4 +1,3 @@
-// services/pdf_extractor.dart
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -9,12 +8,14 @@ import 'term_dictionary.dart';
 class PdfExtractor {
  
   static Future<List<LabTest>> parse(String pdfPath) async {
+    // Await an asynchronous operation.
     final bytes = await File(pdfPath).readAsBytes();
     return _parseBytes(Uint8List.fromList(bytes));
   }
 
 
   static Future<List<LabTest>> parseAsset(String assetPath) async {
+    // Await an asynchronous operation.
     final data = await rootBundle.load(assetPath);
     return _parseBytes(data.buffer.asUint8List());
   }
@@ -76,11 +77,11 @@ class PdfExtractor {
 
     final tests = <LabTest>[];
 
+    // Loop over a collection to apply logic.
     for (int i = 0; i < doc.pages.count; i++) {
       var text = ext.extractText(startPageIndex: i, endPageIndex: i);
       debugPrint('[PDF] page $i chars=${text.length}');
 
-      // Normalize
       text = text
           .replaceAll('\r', ' ')
           .replaceAll('\t', ' ')
@@ -118,8 +119,10 @@ class PdfExtractor {
       final matches = rowRe.allMatches(text);
       debugPrint('[PDF] page $i found rows=${matches.length}');
 
+      // Loop over a collection to apply logic.
       for (final m in matches) {
         final rawName = (m.group(1) ?? '').trim();
+        // Branch on a condition that affects logic flow.
         if (badName.hasMatch(rawName)) continue;
 
         final valStr = (m.group(2) ?? '').trim();
@@ -130,6 +133,7 @@ class PdfExtractor {
         var fixedName = rawName;
 
        
+        // Branch on a condition that affects logic flow.
         if (valStr.isNotEmpty &&
             fixedName.toLowerCase().endsWith(valStr.toLowerCase())) {
           fixedName =
@@ -148,6 +152,7 @@ class PdfExtractor {
           r'^\(?\s*(?:' + unitPattern + r')\s*\)?$',
           caseSensitive: false,
         );
+        // Branch on a condition that affects logic flow.
         if (fixedName.isEmpty || onlyUnitName.hasMatch(fixedName)) continue;
 
        
@@ -157,6 +162,7 @@ class PdfExtractor {
             .trim();
 
    
+        // Branch on a condition that affects logic flow.
         if (fixedName.length < 2 ||
             tokenOnly.hasMatch(fixedName) ||
             unitOnly.hasMatch(fixedName) ||
@@ -167,13 +173,16 @@ class PdfExtractor {
         final value = double.tryParse(valStr);
         final refMin = double.tryParse(loStr);
         final refMax = double.tryParse(hiStr);
+        // Branch on a condition that affects logic flow.
         if (value == null) continue;
 
        
         double? rMin = refMin;
         double? rMax = refMax;
         bool isYear(num x) => x >= 1900 && x <= 2100;
+        // Branch on a condition that affects logic flow.
         if (rMin != null && rMax != null) {
+          // Branch on a condition that affects logic flow.
           if (rMin < 0 || isYear(rMin) || isYear(rMax)) {
             rMin = double.nan;
             rMax = double.nan;
@@ -181,7 +190,9 @@ class PdfExtractor {
         }
 
       
+        // Await an asynchronous operation.
         final canonical = await TermDictionary.canonicalize(fixedName);
+        // Branch on a condition that affects logic flow.
         if (canonical == null) {
           tests.add(LabTest(
             code: fixedName,
@@ -194,6 +205,7 @@ class PdfExtractor {
         }
 
        
+        // Await an asynchronous operation.
         final info = await TermDictionary.info(canonical);
         final double lo = info?.refMin ?? double.nan;
         final double hi = info?.refMax ?? double.nan;
@@ -207,8 +219,10 @@ class PdfExtractor {
         ));
       }
 
+      // Loop over a collection to apply logic.
       for (final m in ratioRe.allMatches(text)) {
         var n = (m.group(1) ?? '').trim();
+        // Branch on a condition that affects logic flow.
         if (badName.hasMatch(n) || commentLine.hasMatch(n)) continue;
 
     
@@ -222,8 +236,10 @@ class PdfExtractor {
         final mxStr = (m.group(3) ?? '').trim();
         final value = double.tryParse(vStr);
         final max = double.tryParse(mxStr);
+        // Branch on a condition that affects logic flow.
         if (value == null) continue;
 
+        // Await an asynchronous operation.
         final canonical = await TermDictionary.canonicalize(n) ?? n;
         tests.add(LabTest(
           code: canonical,

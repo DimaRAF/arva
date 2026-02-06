@@ -5,11 +5,13 @@ import '../models/lab_test.dart';
 class ReportParser {
   
   static Future<String?> pickAndRead() async {
+    // Await an asynchronous operation.
     final res = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['csv','json'],
       withData: true,
     );
+    // Branch on a condition that affects logic flow.
     if (res == null || res.files.isEmpty) return null;
     final bytes = res.files.first.bytes;
     return bytes == null ? null : utf8.decode(bytes);
@@ -17,6 +19,7 @@ class ReportParser {
 
   static List<LabTest> parseCsv(String csvText) {
     final lines = const LineSplitter().convert(csvText);
+    // Branch on a condition that affects logic flow.
     if (lines.isEmpty) return [];
     final header = lines.first.split(',');
     final idx = {
@@ -27,8 +30,10 @@ class ReportParser {
       'refMax': header.indexOf('refMax'),
     };
     final out = <LabTest>[];
+    // Loop over a collection to apply logic.
     for (var i = 1; i < lines.length; i++) {
       final cols = lines[i].split(',');
+      // Branch on a condition that affects logic flow.
       if (cols.length < header.length) continue;
       out.add(LabTest(
         code: cols[idx['code']!].trim(),
@@ -44,6 +49,7 @@ class ReportParser {
   static List<LabTest> parseJson(String jsonText) {
     final data = jsonDecode(jsonText);
     final out = <LabTest>[];
+    // Loop over a collection to apply logic.
     for (final it in (data as List)) {
       out.add(LabTest(
         code: it['code'],

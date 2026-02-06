@@ -35,6 +35,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
    
   Future<void> login() async {
    
+    // Branch on a condition that affects logic flow.
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter email and password")),
@@ -48,13 +49,16 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
 
     try {
       
+      // Await an asynchronous operation.
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
       
+      // Branch on a condition that affects logic flow.
       if (userCredential.user != null) {
+        // Await an asynchronous operation.
         DocumentSnapshot userData = await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredential.user!.uid)
@@ -63,8 +67,10 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
         final userRole = (userData.data() as Map<String, dynamic>)['role'];
 
         
+        // Branch on a condition that affects logic flow.
         if (userRole == 'Patient') {
           
+          // Branch on a condition that affects logic flow.
           if (mounted) {
            
             Navigator.of(context).pushReplacement(
@@ -75,7 +81,9 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
           }
         } else {
          
+          // Await an asynchronous operation.
           await FirebaseAuth.instance.signOut();
+          // Branch on a condition that affects logic flow.
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -88,6 +96,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
       }
     } on FirebaseAuthException catch (e) {
       String errorMessage = "An error occurred | The email address is badly formatted.";
+      // Branch on a condition that affects logic flow.
       if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
         errorMessage = 'Incorrect email or password.';
       } else if (e.code == 'wrong-password') {
@@ -102,6 +111,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
       );
     }
 
+    // Branch on a condition that affects logic flow.
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -111,6 +121,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
 
   
   Future<void> passwordReset() async {
+    // Branch on a condition that affects logic flow.
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -122,6 +133,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
     }
 
     try {
+      // Await an asynchronous operation.
       await FirebaseAuth.instance.sendPasswordResetEmail(
         email: _emailController.text.trim(),
       );

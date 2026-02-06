@@ -32,35 +32,40 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
   final TextEditingController _searchController = TextEditingController();
 
   String? _resolvePatientId() {
+    // Branch on a condition that affects logic flow.
     if (widget.patientId != null && widget.patientId!.trim().isNotEmpty) {
       return widget.patientId;
     }
     return FirebaseAuth.instance.currentUser?.uid;
   }
 
-  /// نجيب reportFileName (وإن وجد reportDate) ونسوي ReportItem واحد
   Future<ReportItem?> _loadReportItem() async {
     final id = _resolvePatientId();
+    // Branch on a condition that affects logic flow.
     if (id == null) {
       debugPrint('❌ No patient id (not logged in)');
       return null;
     }
 
+    // Await an asynchronous operation.
     final doc = await FirebaseFirestore.instance
         .collection('patient_profiles')
         .doc(id)
         .get();
 
+    // Branch on a condition that affects logic flow.
     if (!doc.exists) {
       debugPrint('❌ patient_profiles/$id does not exist');
       return null;
     }
 
     final data = doc.data();
+    // Branch on a condition that affects logic flow.
     if (data == null) return null;
 
     
     final String? fileName = data['reportFileName'] as String?;
+    // Branch on a condition that affects logic flow.
     if (fileName == null || fileName.trim().isEmpty) {
       debugPrint('⚠ reportFileName is null/empty');
       return null;
@@ -69,6 +74,7 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
     
     String dateLabel = 'Date: -';
     final dateField = data['reportDate'];
+    // Branch on a condition that affects logic flow.
     if (dateField is Timestamp) {
       final d = dateField.toDate();
       dateLabel =
@@ -101,7 +107,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Row(
@@ -122,7 +127,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
               ),
             ),
 
-            // Main content container
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -136,7 +140,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                   children: [
                     const SizedBox(height: 24),
 
-                    // Search bar
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Container(
@@ -195,14 +198,17 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
 
                     
                     Expanded(
+                      // Load data asynchronously before rendering results.
                       child: FutureBuilder<ReportItem?>(
                         future: _loadReportItem(),
                         builder: (context, snap) {
+                          // Show a loader while async work completes.
                           if (snap.connectionState == ConnectionState.waiting) {
                             return const Center(
                               child: CircularProgressIndicator(),
                             );
                           }
+                          // Show an error state when async work fails.
                           if (snap.hasError) {
                             return Center(
                               child: Text('Error: ${snap.error}'),
@@ -210,6 +216,7 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                           }
 
                           final item = snap.data;
+                          // Branch on a condition that affects logic flow.
                           if (item == null) {
                             return const Center(
                               child: Text(
@@ -241,7 +248,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                       ),
                     ),
 
-                    // Bottom navigation
                     Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Row(
@@ -267,6 +273,7 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
+    // Branch on a condition that affects logic flow.
     if (m < 1 || m > 12) return '--';
     return names[m - 1];
   }
@@ -353,7 +360,6 @@ class _ReportCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Icon
             Container(
               width: 48,
               height: 48,
@@ -373,7 +379,6 @@ class _ReportCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            // Texts
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,7 +402,6 @@ class _ReportCard extends StatelessWidget {
                 ],
               ),
             ),
-            // View button
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(

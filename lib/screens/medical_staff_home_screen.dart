@@ -29,9 +29,12 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
 
   Future<void> _fetchStaffData() async {
     User? user = FirebaseAuth.instance.currentUser;
+    // Branch on a condition that affects logic flow.
     if (user != null) {
       try {
+        // Await an asynchronous operation.
         DocumentSnapshot doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        // Branch on a condition that affects logic flow.
         if (doc.exists && mounted) {
           setState(() {
             _staffData = doc.data() as Map<String, dynamic>?;
@@ -41,6 +44,7 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
         print("Error fetching staff data: $e");
       }
     }
+    // Branch on a condition that affects logic flow.
     if (mounted) setState(() => _isLoading = false);
   }
 
@@ -123,12 +127,15 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
           .where('assignedDoctorId', isEqualTo: currentDoctorId)
           .snapshots(),
       builder: (context, snapshot) {
+        // Branch on a condition that affects logic flow.
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
+        // Branch on a condition that affects logic flow.
         if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
         }
+        // Branch on a condition that affects logic flow.
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(child: Text("You have no assigned patients."));
         }

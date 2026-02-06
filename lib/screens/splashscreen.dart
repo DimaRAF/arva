@@ -14,11 +14,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    //  timer that runs for 5 seconds.
     Timer(
       const Duration(seconds: 5),
       () {
-        
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => OnboardingScreen()),
         );
@@ -28,7 +26,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       body: CustomPaint(
         painter: SplashBackgroundPainter(),
@@ -120,5 +117,3 @@ class SplashBackgroundPainter extends CustomPainter {
     return false;
   }
 }
-
-

@@ -25,6 +25,7 @@ class MinMaxScalerLite {
 
   List<double> normalizeVector(List<double> raw) {
     final out = <double>[];
+    // Loop over a collection to apply logic.
     for (int i = 0; i < raw.length; i++) {
       final norm = (raw[i] - min_[i]) / (max_[i] - min_[i]);
       out.add(norm.clamp(featureRange[0], featureRange[1]));
@@ -34,6 +35,7 @@ class MinMaxScalerLite {
 
   List<double> denormalizeVector(List<double> norm) {
     final out = <double>[];
+    // Loop over a collection to apply logic.
     for (int i = 0; i < norm.length; i++) {
       final val = norm[i] * (max_[i] - min_[i]) + min_[i];
       out.add(val);
@@ -43,6 +45,7 @@ class MinMaxScalerLite {
 }
 
 Future<MinMaxScalerLite> loadScalerFromAssets(String path) async {
+  // Await an asynchronous operation.
   final jsonStr = await rootBundle.loadString(path);
   final Map<String, dynamic> data = jsonDecode(jsonStr);
   return MinMaxScalerLite.fromJson(data);

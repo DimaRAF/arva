@@ -1,6 +1,6 @@
 class LabTest {
-  final String code;      // مثل WBC, MCV...
-  final String name;      // الاسم للعرض
+  final String code;     
+  final String name;      
   final double value;
   final double refMin;
   final double refMax;

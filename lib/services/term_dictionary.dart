@@ -25,8 +25,10 @@ class TermDictionary {
 
  
   static Future<void> ensureLoaded() async {
+    // Branch on a condition that affects logic flow.
     if (_loaded) return;
 
+    // Await an asynchronous operation.
     final bytes = await rootBundle.load('assets/ALL_medical term.xlsx');
     final excel = Excel.decodeBytes(bytes.buffer.asUint8List());
     final sheet = excel.tables[excel.tables.keys.first]!;
@@ -36,7 +38,6 @@ class TermDictionary {
         .map((c) => (c?.value?.toString().trim() ?? '').toLowerCase())
         .toList();
 
-    // original_medical term + medical term1..4
     final int idxOriginal = headers.indexOf('original_medical term');
     final int idxMT1      = headers.indexOf('medical term1');
     final int idxMT2      = headers.indexOf('medical term2');
@@ -47,6 +48,7 @@ class TermDictionary {
     final int idxCanonicalCol =
         (idxOriginal >= 0) ? idxOriginal : headers.indexOf('medical term');
 
+    // Branch on a condition that affects logic flow.
     if (idxCanonicalCol < 0) {
       throw Exception(
           '❌ Neither "original_medical term" nor "medical term" column found in Excel');
@@ -56,11 +58,13 @@ class TermDictionary {
     final int idxHi   = headers.indexOf('highest_normal');
     final int idxUnit = headers.indexOf('unit');
 
+    // Loop over a collection to apply logic.
     for (int r = 1; r < sheet.rows.length; r++) {
       final row = sheet.rows[r];
 
 
       final String canonicalName = _s(row, idxCanonicalCol);
+      // Branch on a condition that affects logic flow.
       if (canonicalName.isEmpty) continue;
 
       final double? lo  = _d(row, idxLo);
@@ -81,31 +85,42 @@ class TermDictionary {
     
       final Set<String> rawNames = {canonicalName};
 
+      // Branch on a condition that affects logic flow.
       if (idxMT1 >= 0) {
         final s = _s(row, idxMT1);
+        // Branch on a condition that affects logic flow.
         if (s.isNotEmpty) rawNames.add(s);
       }
+      // Branch on a condition that affects logic flow.
       if (idxMT2 >= 0) {
         final s = _s(row, idxMT2);
+        // Branch on a condition that affects logic flow.
         if (s.isNotEmpty) rawNames.add(s);
       }
+      // Branch on a condition that affects logic flow.
       if (idxMT3 >= 0) {
         final s = _s(row, idxMT3);
+        // Branch on a condition that affects logic flow.
         if (s.isNotEmpty) rawNames.add(s);
       }
+      // Branch on a condition that affects logic flow.
       if (idxMT4 >= 0) {
         final s = _s(row, idxMT4);
+        // Branch on a condition that affects logic flow.
         if (s.isNotEmpty) rawNames.add(s);
       }
 
   
+      // Loop over a collection to apply logic.
       for (final raw in rawNames) {
+        // Loop over a collection to apply logic.
         for (final alias in _generateAliases(raw)) {
           _aliasToCanonical[alias] = canon;
         }
 
        
         final short = _extractShort(raw);
+        // Branch on a condition that affects logic flow.
         if (short != null) {
           _aliasToCanonical[_norm(short)] = canon;
         }
@@ -118,14 +133,17 @@ class TermDictionary {
  
 
   static String _s(List<Data?> row, int idx) {
+    // Branch on a condition that affects logic flow.
     if (idx < 0) return '';
     final v = row[idx]?.value;
     return (v == null) ? '' : v.toString().trim();
   }
 
   static double? _d(List<Data?> row, int idx) {
+    // Branch on a condition that affects logic flow.
     if (idx < 0) return null;
     final v = row[idx]?.value;
+    // Branch on a condition that affects logic flow.
     if (v == null) return null;
     final s = v.toString().replaceAll(',', '.').trim();
     return double.tryParse(s);
@@ -152,20 +170,24 @@ class TermDictionary {
 
   static String? _extractShort(String name) {
     final m = RegExp(r'\(([A-Za-z0-9+\- ]{2,15})\)').firstMatch(name);
+    // Branch on a condition that affects logic flow.
     if (m == null) return null;
     final s = m.group(1)!.trim();
+    // Branch on a condition that affects logic flow.
     if (s.length < 2) return null;
     return s;
   }
 
 
   static Future<String?> canonicalize(String pdfName) async {
+    // Await an asynchronous operation.
     await ensureLoaded();
     return _aliasToCanonical[_norm(pdfName)];
   }
 
   
   static Future<TermInfo?> info(String canonical) async {
+    // Await an asynchronous operation.
     await ensureLoaded();
     return _byCanonical[canonical];
   }

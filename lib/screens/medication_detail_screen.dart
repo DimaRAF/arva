@@ -34,6 +34,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
 
   Future<void> _loadData() async {
     try {
+      // Await an asynchronous operation.
       final doc = await FirebaseFirestore.instance
           .collection('patient_profiles')
           .doc(widget.patientId)
@@ -41,6 +42,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
           .doc(widget.medId)
           .get();
 
+      // Branch on a condition that affects logic flow.
       if (doc.exists) {
         medData = doc.data();
 
@@ -53,6 +55,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
         final pendingDuration = medData?['pending_duration'];
 
         
+        // Branch on a condition that affects logic flow.
         if (widget.isDoctorView) {
           doseController.text =
               (pendingDosage ?? approvedDosage ?? '').toString();
@@ -76,6 +79,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
   
   double? _parseDoseNumber(String text) {
     final match = RegExp(r'([\d\.]+)').firstMatch(text);
+    // Branch on a condition that affects logic flow.
     if (match == null) return null;
     return double.tryParse(match.group(1)!);
   }
@@ -94,6 +98,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
 
      
       final numericDose = _parseDoseNumber(newDosage);
+      // Branch on a condition that affects logic flow.
       if (numericDose != null && numericDose > 60000) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -106,6 +111,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
         return;
       }
 
+      // Await an asynchronous operation.
       await docRef.update({
         
         'dosage': newDosage,
@@ -145,6 +151,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
     final double s = w / baseW;
     final double safeTop = mq.padding.top;
 
+    // Branch on a condition that affects logic flow.
     if (isLoading) {
       return const Scaffold(
         backgroundColor: Color(0xFFCED5F7),
@@ -165,10 +172,12 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
 
     
     String mainText;
+    // Branch on a condition that affects logic flow.
     if (widget.isDoctorView) {
       mainText =
           'Based on the patient’s new test results, please review and approve or change the dose to $displayDose $displayFreq $displayDuration.';
     } else {
+      // Branch on a condition that affects logic flow.
       if (status == 'Pending') {
        
         mainText =
@@ -213,7 +222,6 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
               ),
             ),
 
-            // زر الرجوع
             Positioned(
               right: 18 * s,
               top: safeTop + 30 * s,
@@ -316,6 +324,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                                 ),
                                 SizedBox(height: 28 * s),
 
+                                // Branch on a condition that affects logic flow.
                                 if (!isEditing)
                                   Text(
                                     mainText,
@@ -342,12 +351,14 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                         ),
 
                         
+                        // Branch on a condition that affects logic flow.
                         if (widget.isDoctorView)
                           Padding(
                             padding: EdgeInsets.only(top: 20 * s),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
+                                // Branch on a condition that affects logic flow.
                                 if (!isEditing) ...[
                                   Expanded(
                                     child: ElevatedButton(

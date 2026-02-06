@@ -64,7 +64,6 @@ class ChooseRoleScreen extends StatelessWidget {
             ),
           ),
 
-          // 3. زر الرجوع 
           Positioned(
             bottom: 30,
             left: 30,
@@ -84,7 +83,6 @@ class ChooseRoleScreen extends StatelessWidget {
     );
   }
 
-  // دالة  لبناء كرت اختيار الدور
   Widget _buildRoleCard({
     required IconData icon,
     required String label,

@@ -62,7 +62,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Row(
@@ -83,7 +82,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
               ),
             ),
 
-            // Main content container
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -97,7 +95,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                   children: [
                     const SizedBox(height: 24),
 
-                    // Search bar
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Container(
@@ -127,7 +124,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
 
                     const SizedBox(height: 24),
 
-                    // Filter buttons
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Row(
@@ -141,7 +137,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
 
                     const SizedBox(height: 32),
 
-                    // Reports list
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -168,15 +163,12 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                       ),
                     ),
 
-                    // Bottom navigation
                     Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: const [
-                          // Back
                           _BackBtn(),
-                          // Add (placeholder)
                           _AddBtn(),
                         ],
                       ),
@@ -259,7 +251,6 @@ class _ReportCard extends StatelessWidget {
         decoration: BoxDecoration(color: report.backgroundColor, borderRadius: BorderRadius.circular(20)),
         child: Row(
           children: [
-            // Icon
             Container(
               width: 48,
               height: 48,
@@ -276,7 +267,6 @@ class _ReportCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            // Texts
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,7 +279,6 @@ class _ReportCard extends StatelessWidget {
                 ],
               ),
             ),
-            // View button
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(16)),

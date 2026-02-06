@@ -49,17 +49,16 @@ class AuthScreen extends StatelessWidget {
                       style: const TextStyle(fontSize: 16, color: Color.fromARGB(255, 122, 122, 122)),
                     ),
                     const SizedBox(height: 100),
-                    // زر تسجيل الدخول
                     SizedBox(
                       width: double.infinity, height: 50,
                       child: ElevatedButton(
                         onPressed: () { 
+                          // Branch on a condition that affects logic flow.
                           if (userRole == 'Medical Staff') {
                           Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => const MedicalStaffLoginScreen()),
                         );
                           } else {
-                          //  توجيه المريض إلى شاشة تسجيل دخول ا
                           Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => const  PatientLoginScreen())
 
@@ -81,6 +80,7 @@ class AuthScreen extends StatelessWidget {
                         onPressed: () {
                           
                           
+                          // Branch on a condition that affects logic flow.
                           if (userRole == 'Medical Staff') {
                             Navigator.of(context).push(
                               MaterialPageRoute(builder: (context) => const MedicalStaffSignUpScreen()),

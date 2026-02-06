@@ -17,7 +17,6 @@ class MedicalStaffSignUpScreen extends StatefulWidget {
 }
 
 class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
-  // 2. Controllers
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -56,6 +55,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
 
     setState(() {
      
+      // Branch on a condition that affects logic flow.
       if (username.isEmpty) {
         _usernameError = 'Name is required';
         isValid = false;
@@ -64,6 +64,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
       }
 
      
+      // Branch on a condition that affects logic flow.
       if (jobTitle.isEmpty) {
         _jobTitleError = 'Job title is required';
         isValid = false;
@@ -71,12 +72,14 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
         _jobTitleError = null;
       }
 
+      // Branch on a condition that affects logic flow.
       if (email.isEmpty) {
         _emailError = 'Email is required';
         isValid = false;
       } else {
         
         final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+        // Branch on a condition that affects logic flow.
         if (!emailRegex.hasMatch(email)) {
           _emailError = 'Enter a valid email address';
           isValid = false;
@@ -86,6 +89,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
       }
 
       
+      // Branch on a condition that affects logic flow.
       if (password.isEmpty) {
         _passwordError = 'Password is required';
         isValid = false;
@@ -97,6 +101,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
       }
 
       
+      // Branch on a condition that affects logic flow.
       if (confirmPassword.isEmpty) {
         _confirmPasswordError = 'Confirm your password';
         isValid = false;
@@ -113,6 +118,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
 
   Future<void> signUp() async {
    
+    // Branch on a condition that affects logic flow.
     if (!_validateInputs()) return;
 
     setState(() {
@@ -121,12 +127,15 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
 
     try {
       UserCredential userCredential =
+          // Await an asynchronous operation.
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
+      // Branch on a condition that affects logic flow.
       if (userCredential.user != null) {
+        // Await an asynchronous operation.
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredential.user!.uid)
@@ -137,6 +146,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
           'jobTitle': _jobTitleController.text.trim(),
           'createdAt': Timestamp.now(),
         });
+        // Branch on a condition that affects logic flow.
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account created successfully!")),
@@ -149,17 +159,20 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
         );
       }
     } on FirebaseAuthException catch (e) {
+      // Branch on a condition that affects logic flow.
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "An error occurred")),
       );
     } catch (e) {
+      // Branch on a condition that affects logic flow.
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("An unknown error occurred: $e")),
       );
     }
 
+    // Branch on a condition that affects logic flow.
     if (mounted && _isLoading) {
       setState(() {
         _isLoading = false;
@@ -352,6 +365,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
             ),
           ),
         ),
+        // Branch on a condition that affects logic flow.
         if (errorText != null)
           Padding(
             padding: const EdgeInsets.only(left: 12.0, top: 4.0),
@@ -399,6 +413,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
             ),
           ),
         ),
+        // Branch on a condition that affects logic flow.
         if (errorText != null)
           Padding(
             padding: const EdgeInsets.only(left: 12.0, top: 4.0),
@@ -415,7 +430,6 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
   }
 }
 
-// 5. تم إصلاح هيكلية هذا الكلاس
 class SignUpBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

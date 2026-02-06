@@ -1,4 +1,3 @@
-// medication_approval_listener.dart
 import 'dart:async';
 import 'dart:convert';
 
@@ -22,6 +21,7 @@ class MedicationApprovalListener {
   bool _initialized = false;
 
   Future<void> initNotifications() async {
+    // Branch on a condition that affects logic flow.
     if (_initialized) return;
 
   
@@ -31,15 +31,18 @@ class MedicationApprovalListener {
     const InitializationSettings initSettings =
         InitializationSettings(android: androidInit);
 
+    // Await an asynchronous operation.
     await _notificationsPlugin.initialize(initSettings);
     _initialized = true;
   }
 
   
   Future<void> startListening() async {
+    // Await an asynchronous operation.
     await initNotifications();
 
     final user = FirebaseAuth.instance.currentUser;
+    // Branch on a condition that affects logic flow.
     if (user == null) {
       print('⚠ لا يوجد مستخدم مسجّل (Patient) → لن نفعّل الـ listener');
       return;
@@ -48,6 +51,7 @@ class MedicationApprovalListener {
     final patientId = user.uid;
 
    
+    // Await an asynchronous operation.
     await _sub?.cancel();
     _lastStatuses.clear();
 
@@ -59,14 +63,17 @@ class MedicationApprovalListener {
         .listen(
       (snapshot) {
         
+        // Loop over a collection to apply logic.
         for (final change in snapshot.docChanges) {
           final doc = change.doc;
           final data = doc.data();
+          // Branch on a condition that affects logic flow.
           if (data == null) continue;
 
           final String docId = doc.id;
           final String? status = data['status'] as String?;
 
+          // Branch on a condition that affects logic flow.
           if (change.type == DocumentChangeType.added) {
             
             _lastStatuses[docId] = status;
@@ -77,6 +84,7 @@ class MedicationApprovalListener {
             _lastStatuses[docId] = status;
 
             
+            // Branch on a condition that affects logic flow.
             if (status == 'Approved' && prevStatus != 'Approved') {
               final drugName = (data['drug_name'] ?? 'your medication').toString();
               _showPatientMedicationApprovedNotification(
@@ -97,6 +105,7 @@ class MedicationApprovalListener {
   }
 
   Future<void> stopListening() async {
+    // Await an asynchronous operation.
     await _sub?.cancel();
     _sub = null;
     _lastStatuses.clear();
@@ -111,13 +120,16 @@ class MedicationApprovalListener {
     String patientName = 'you';
 
     try {
+      // Await an asynchronous operation.
       final doc = await FirebaseFirestore.instance
           .collection('patient_profiles')
           .doc(patientId)
           .get();
 
+      // Branch on a condition that affects logic flow.
       if (doc.exists) {
         final data = doc.data();
+        // Branch on a condition that affects logic flow.
         if (data != null) {
           patientName =
               (data['username'] ?? data['name'] ?? patientName).toString();
@@ -144,6 +156,7 @@ class MedicationApprovalListener {
     
     final int notifId = medicationId.hashCode & 0x7FFFFFFF;
 
+    // Await an asynchronous operation.
     await _notificationsPlugin.show(
       notifId,
       '✅ Medication Approved',

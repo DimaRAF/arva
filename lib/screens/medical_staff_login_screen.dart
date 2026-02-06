@@ -36,6 +36,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
    
   Future<void> login() async {
     
+    // Branch on a condition that affects logic flow.
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter email and password")),
@@ -49,15 +50,20 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
 
     try {
       
+      // Await an asynchronous operation.
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      // Await an asynchronous operation.
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(credential.user!.uid).get();
 
       
+      // Branch on a condition that affects logic flow.
       if (!userDoc.exists || userDoc.data()?['role'] != 'Medical Staff') {
+        // Await an asynchronous operation.
         await FirebaseAuth.instance.signOut();
+        // Branch on a condition that affects logic flow.
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -68,6 +74,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
         }
       } else {
         
+        // Branch on a condition that affects logic flow.
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const MedicalStaffHomeScreen()),
@@ -76,6 +83,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
       }
     } on FirebaseAuthException catch (e) {
       String errorMessage = "An error occurred. Please try again.";
+      // Branch on a condition that affects logic flow.
       if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
         errorMessage = 'Incorrect email or password.';
       } else if (e.code == 'invalid-email') {
@@ -90,6 +98,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
       );
     }
 
+    // Branch on a condition that affects logic flow.
     if (mounted) {
       setState(() { _isLoading = false; });
     }
@@ -97,6 +106,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
  
   Future<void> passwordReset() async {
     
+    // Branch on a condition that affects logic flow.
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -109,6 +119,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
 
     try {
       
+      // Await an asynchronous operation.
       await FirebaseAuth.instance.sendPasswordResetEmail(
         email: _emailController.text.trim(),
       );

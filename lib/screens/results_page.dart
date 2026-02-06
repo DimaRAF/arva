@@ -13,6 +13,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 final FlutterLocalNotificationsPlugin _notificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
+// Send a local notification with a payload that lets the app route to the medication update flow.
 Future<void> _showMedicationNotification({
   required String patientId,
   String? patientName,
@@ -33,6 +34,7 @@ Future<void> _showMedicationNotification({
   const NotificationDetails notificationDetails =
       NotificationDetails(android: androidDetails);
 
+  // Await an asynchronous operation.
   await _notificationsPlugin.show(
     1,
     '💊 Medication Update - $name',
@@ -73,29 +75,38 @@ class ResultsPage extends StatelessWidget {
     this.assetPdfPath,
   });
 
+  // Resolve which PDF asset path to use by checking explicit input, patient profile, then user profile.
   Future<String?> _resolveAssetPdfPath() async {
+    // Prefer the explicitly provided asset path when available.
     if (assetPdfPath != null && assetPdfPath!.trim().isNotEmpty) {
       return assetPdfPath!;
     }
 
+    // Fallback to current user id when no patient id is passed.
     final id = patientId ?? FirebaseAuth.instance.currentUser?.uid;
+    // Branch on a condition that affects logic flow.
     if (id == null) return null;
 
     Future<String?> readFrom(String coll) async {
       final doc =
+          // Await an asynchronous operation.
           await FirebaseFirestore.instance.collection(coll).doc(id).get();
+      // Branch on a condition that affects logic flow.
       if (!doc.exists) return null;
       final data = doc.data();
+      // Branch on a condition that affects logic flow.
       if (data == null) return null;
 
       final raw = (data['reportPdfName'] ??
           data['reportFileName'] ??
           data['reportAsset']) as String?;
+      // Branch on a condition that affects logic flow.
       if (raw == null || raw.trim().isEmpty) return null;
 
       return raw.startsWith('assets/') ? raw : 'assets/$raw';
     }
 
+    // Await an asynchronous operation.
     final p = await readFrom('patient_profiles') ?? await readFrom('users');
     return p;
   }
@@ -124,6 +135,7 @@ class ResultsPage extends StatelessWidget {
                     Row(
                       children: [
                         GestureDetector(
+                          // Navigate to another screen based on user action.
                           onTap: () => Navigator.of(context).pop(),
                           child: Container(
                             width: 42,
@@ -147,12 +159,15 @@ class ResultsPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 24),
+                    // Render from in-memory PDF bytes when provided; otherwise load from asset.
                     if (pdfBytes != null)
                       DynamicResultsFromBytes(pdfBytes: pdfBytes!)
                     else
+                      // Load data asynchronously before rendering results.
                       FutureBuilder<String?>(
                         future: _resolveAssetPdfPath(),
                         builder: (context, snap) {
+                          // Show a loader while async work completes.
                           if (snap.connectionState ==
                               ConnectionState.waiting) {
                             return const Padding(
@@ -161,14 +176,17 @@ class ResultsPage extends StatelessWidget {
                                   Center(child: CircularProgressIndicator()),
                             );
                           }
+                          // Show an error state when async work fails.
                           if (snap.hasError) {
                             return _errorBox(
                                 'can not read the file name ${snap.error}');
                           }
                           final assetPath = snap.data;
+                          // Handle missing assets gracefully.
                           if (assetPath == null) {
                             return _errorBox('No test file for this patient');
                           }
+                          // Render results from the resolved asset PDF.
                           return DynamicResultsFromAsset(
                             assetPdfPath: assetPath,
                             patientId: patientId,
@@ -186,6 +204,7 @@ class ResultsPage extends StatelessWidget {
     );
   }
 
+  // Render a small error card for failed report loading.
   Widget _errorBox(String msg) => Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -353,7 +372,9 @@ class _SegmentBar extends StatelessWidget {
     return LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth;
 
+      // Detect whether a valid reference range exists.
       final hasRange = lo.isFinite && hi.isFinite && hi > lo;
+      // Branch on a condition that affects logic flow.
       if (!hasRange) {
         final y = w * 0.15,
             g = w * 0.70,
@@ -365,10 +386,14 @@ class _SegmentBar extends StatelessWidget {
       final margin = (hi - lo) * 0.25;
       double start = lo - margin;
       double end = hi + margin;
+      // Branch on a condition that affects logic flow.
       if (value.isFinite) {
+        // Branch on a condition that affects logic flow.
         if (value < start) start = value;
+        // Branch on a condition that affects logic flow.
         if (value > end) end = value;
       }
+      // Branch on a condition that affects logic flow.
       if (end <= start) end = start + 1;
 
       final total = end - start;
@@ -377,6 +402,7 @@ class _SegmentBar extends StatelessWidget {
       final redW = w - yellowW - greenW;
 
       double indX = ((value - start) / total) * w;
+      // Branch on a condition that affects logic flow.
       if (!indX.isFinite) indX = w * 0.5;
       indX = indX.clamp(0.0, w);
 
@@ -478,15 +504,18 @@ class DynamicResultsFromAsset extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Load data asynchronously before rendering results.
     return FutureBuilder<List<_UiRow>>(
       future: _loadRows(assetPdfPath, patientId),
       builder: (context, snap) {
+        // Show a loader while async work completes.
         if (snap.connectionState == ConnectionState.waiting) {
           return const Padding(
             padding: EdgeInsets.all(24),
             child: Center(child: CircularProgressIndicator()),
           );
         }
+        // Show an error state when async work fails.
         if (snap.hasError) {
           return Container(
             padding: const EdgeInsets.all(16),
@@ -499,6 +528,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
           );
         }
         final rows = snap.data ?? const <_UiRow>[];
+        // Branch on a condition that affects logic flow.
         if (rows.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16),
@@ -507,6 +537,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
         }
         return Column(
           children: [
+            // Loop over a collection to apply logic.
             for (final r in rows) ...[
               ResultCard(
                 testName: r.testName,
@@ -519,6 +550,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
                 loNum: r.loNum,
                 hiNum: r.hiNum,
                 onTap: () {
+                  // Navigate to another screen based on user action.
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -544,22 +576,26 @@ class DynamicResultsFromAsset extends StatelessWidget {
   ) async {
     debugPrint('📄 [Report] Starting parsing from asset PDF: $assetPdfPath');
 
+    // Extract lab tests from the PDF report.
     final tests = await PdfExtractor.parseAsset(assetPdfPath);
 
     debugPrint('🧪 [Report] Extracted ${tests.length} lab tests from asset.');
 
-    // 🧠 تحديد هوية المستخدم
+    
     final targetId = patientId ?? FirebaseAuth.instance.currentUser?.uid;
     String? doctorId;
     String? patientName;
 
+    // Branch on a condition that affects logic flow.
     if (targetId != null) {
       try {
+        // Await an asynchronous operation.
         final patientDoc = await FirebaseFirestore.instance
             .collection('patient_profiles')
             .doc(targetId)
             .get();
 
+        // Branch on a condition that affects logic flow.
         if (patientDoc.exists) {
           final data = patientDoc.data();
           doctorId = data?['assignedDoctorId'];
@@ -569,6 +605,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
         debugPrint(
             '🤖 [Medication] Running medication model for patient $targetId using report: $assetPdfPath');
 
+        // Run the medication model using extracted report values.
         await MedicationAutomation.runAutoMedicationPipeline(
           targetId, // patient id
           doctorId ?? "UNKNOWN_DOCTOR", // doctor id
@@ -579,6 +616,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
             '✅ [Medication] Medication model executed using extracted report values.');
 
         
+        // Notify the user that medication recommendations are ready.
         await _showMedicationNotification(
           patientId: targetId,
           patientName: patientName,
@@ -593,15 +631,20 @@ class DynamicResultsFromAsset extends StatelessWidget {
 
    
     final out = <_UiRow>[];
+    // Loop over a collection to apply logic.
     for (final t in tests) {
+      // Classify the test result using the inference service.
       final res = await InferenceService.decide(t);
+      // Detect whether a valid reference range exists.
       final hasRange =
           t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
 
       out.add(_UiRow(
         testName: '(${t.code})',
+        // Map inference output to a status label for UI.
         status: UiMapping.status(res.tri, res.source, hasRange: hasRange),
         value: _fmtVal(t.value),
+        // Map inference output to a background color for UI.
         bg: UiMapping.bg(res.tri, res.source),
         minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
         maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',
@@ -628,15 +671,18 @@ class DynamicResultsFromBytes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Load data asynchronously before rendering results.
     return FutureBuilder<List<_UiRow>>(
       future: _loadRows(pdfBytes),
       builder: (context, snap) {
+        // Show a loader while async work completes.
         if (snap.connectionState == ConnectionState.waiting) {
           return const Padding(
             padding: EdgeInsets.all(24),
             child: Center(child: CircularProgressIndicator()),
           );
         }
+        // Show an error state when async work fails.
         if (snap.hasError) {
           return Container(
             padding: const EdgeInsets.all(16),
@@ -649,6 +695,7 @@ class DynamicResultsFromBytes extends StatelessWidget {
           );
         }
         final rows = snap.data ?? const <_UiRow>[];
+        // Branch on a condition that affects logic flow.
         if (rows.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16),
@@ -657,6 +704,7 @@ class DynamicResultsFromBytes extends StatelessWidget {
         }
         return Column(
           children: [
+            // Loop over a collection to apply logic.
             for (final r in rows) ...[
               ResultCard(
                 testName: r.testName,
@@ -669,6 +717,7 @@ class DynamicResultsFromBytes extends StatelessWidget {
                 loNum: r.loNum,
                 hiNum: r.hiNum,
                 onTap: () {
+                  // Navigate to another screen based on user action.
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -692,20 +741,26 @@ class DynamicResultsFromBytes extends StatelessWidget {
     debugPrint(
         '📄 [Report] Starting parsing from in-memory PDF bytes (length: ${bytes.lengthInBytes}).');
 
+    // Extract lab tests from the PDF report.
     final tests = await PdfExtractor.parseBytes(bytes);
 
     debugPrint('🧪 [Report] Extracted ${tests.length} lab tests from bytes.');
 
     final out = <_UiRow>[];
+    // Loop over a collection to apply logic.
     for (final t in tests) {
+      // Classify the test result using the inference service.
       final res = await InferenceService.decide(t);
+      // Detect whether a valid reference range exists.
       final hasRange =
           t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
 
       out.add(_UiRow(
         testName: '(${t.code})',
+        // Map inference output to a status label for UI.
         status: UiMapping.status(res.tri, res.source, hasRange: hasRange),
         value: _fmtVal(t.value),
+        // Map inference output to a background color for UI.
         bg: UiMapping.bg(res.tri, res.source),
         minLabel: hasRange ? _fmtRange(t.refMin, t.code) : '',
         maxLabel: hasRange ? _fmtRange(t.refMax, t.code) : '',

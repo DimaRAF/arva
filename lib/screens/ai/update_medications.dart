@@ -37,13 +37,16 @@ class MedicationAutomation {
     String patientName = 'the patient';
 
     try {
+      // Await an asynchronous operation.
       final doc = await FirebaseFirestore.instance
           .collection('patient_profiles')
           .doc(patientId)
           .get();
 
+      // Branch on a condition that affects logic flow.
       if (doc.exists) {
         final data = doc.data();
+        // Branch on a condition that affects logic flow.
         if (data != null) {
           patientName =
               (data['username'] ?? data['name'] ?? patientName).toString();
@@ -66,6 +69,7 @@ class MedicationAutomation {
     const NotificationDetails notificationDetails =
         NotificationDetails(android: androidDetails);
 
+    // Await an asynchronous operation.
     await _notificationsPlugin.show(
       1,
       '💊 Medication Update - $patientName',
@@ -80,13 +84,16 @@ class MedicationAutomation {
   }
 
   static Future<void> _loadModel() async {
+    // Branch on a condition that affects logic flow.
     if (_loaded) return;
 
  
     _interpreter =
+        // Await an asynchronous operation.
         await Interpreter.fromAsset('assets/medication_model/model.tflite');
 
    
+    // Await an asynchronous operation.
     final labelStr = await rootBundle
         .loadString('assets/medication_model/label_encoders.json');
     final labelJson = jsonDecode(labelStr) as Map<String, dynamic>;
@@ -94,6 +101,7 @@ class MedicationAutomation {
     Map<String, int> buildReverse(Map<String, dynamic> m) {
       final out = <String, int>{};
       m.forEach((k, v) {
+        // Branch on a condition that affects logic flow.
         if (v != null) {
           out[v as String] = int.parse(k);
         }
@@ -108,6 +116,7 @@ class MedicationAutomation {
     _testToId =
         buildReverse(Map<String, dynamic>.from(labelJson['test_name']));
 
+    // Await an asynchronous operation.
     final targetStr = await rootBundle
         .loadString('assets/medication_model/target_encoders.json');
     final targetJson = jsonDecode(targetStr) as Map<String, dynamic>;
@@ -115,6 +124,7 @@ class MedicationAutomation {
     Map<int, String> buildTarget(Map<String, dynamic> m) {
       final out = <int, String>{};
       m.forEach((k, v) {
+        // Branch on a condition that affects logic flow.
         if (v != null) {
           out[int.parse(k)] = v.toString();
         }
@@ -130,6 +140,7 @@ class MedicationAutomation {
         buildTarget(Map<String, dynamic>.from(targetJson['Frequency']));
 
  
+    // Await an asynchronous operation.
     final scalerStr = await rootBundle
         .loadString('assets/medication_model/scaler (1).json');
     final scalerJson = jsonDecode(scalerStr) as Map<String, dynamic>;
@@ -146,9 +157,11 @@ class MedicationAutomation {
    
     final outTensors = _interpreter.getOutputTensors();
 
+    // Loop over a collection to apply logic.
     for (int i = 0; i < outTensors.length; i++) {
       final shape = outTensors[i].shape; // List<int>
       final numClasses = shape.last;
+      // Branch on a condition that affects logic flow.
       if (numClasses == nDosage) {
         _dosageOutSlot = i;
       } else if (numClasses == nDuration) {
@@ -162,6 +175,7 @@ class MedicationAutomation {
     print(
         "nDosage=$nDosage, nDuration=$nDuration, nFreq=$nFreq → dosageSlot=$_dosageOutSlot, durationSlot=$_durationOutSlot, freqSlot=$_freqOutSlot");
 
+    // Branch on a condition that affects logic flow.
     if (_dosageOutSlot == null ||
         _durationOutSlot == null ||
         _freqOutSlot == null) {
@@ -177,14 +191,18 @@ class MedicationAutomation {
     String doctorId,
     String pdfAssetPath,
   ) async {
+    // Await an asynchronous operation.
     await _loadModel();
+    // Await an asynchronous operation.
     final List<LabTest> tests = await PdfExtractor.parseAsset(pdfAssetPath);
     print("✅ Extracted ${tests.length} lab tests from the report (medication model).");
 
 
     final Map<String, double> testMap = {
+      // Loop over a collection to apply logic.
       for (var t in tests) t.name: t.value,
     };
+    // Await an asynchronous operation.
     final medsSnapshot = await FirebaseFirestore.instance
         .collection('patient_profiles')
         .doc(patientId)
@@ -195,6 +213,7 @@ class MedicationAutomation {
 
     bool anyUpdated = false;
 
+    // Loop over a collection to apply logic.
     for (final med in medsSnapshot.docs) {
       final data = med.data();
 
@@ -202,6 +221,7 @@ class MedicationAutomation {
       final String? drugName = data['drug_name'] as String?;
       final String? testName = data['test_name'] as String?;
 
+      // Branch on a condition that affects logic flow.
       if (disease == null || drugName == null || testName == null) {
         print(
             "⚠ Medication has missing data (disease / drug_name / test_name) → skipping. id=${med.id}");
@@ -214,6 +234,7 @@ class MedicationAutomation {
       double? effectiveValue;
       String valueSource = 'none';
 
+      // Branch on a condition that affects logic flow.
       if (pdfValue != null) {
         effectiveValue = pdfValue;
         valueSource = 'PDF';
@@ -222,6 +243,7 @@ class MedicationAutomation {
         valueSource = 'DB(last_value)';
       }
 
+      // Branch on a condition that affects logic flow.
       if (effectiveValue == null) {
         print(
             "ℹ No value found (neither from report nor last_value) for test $testName → skipping medication $drugName");
@@ -233,6 +255,7 @@ class MedicationAutomation {
           "🔍 Medication: $drugName | Test: $testName = $testValue (source=$valueSource)");
 
       
+      // Await an asynchronous operation.
       final prediction = await _predictDose(
         disease: disease,
         drugName: drugName,
@@ -245,6 +268,7 @@ class MedicationAutomation {
           "duration=${prediction['duration']}, "
           "frequency=${prediction['frequency']}");
 
+      // Await an asynchronous operation.
       await med.reference.update({
         'pending_dosage': prediction['dosage'],
         'pending_duration': prediction['duration'],
@@ -266,7 +290,9 @@ class MedicationAutomation {
     }
 
     
+    // Branch on a condition that affects logic flow.
     if (anyUpdated) {
+      // Notify the user that medication recommendations are ready.
       await _showMedicationNotification(patientId: patientId);
     }
 
@@ -279,6 +305,7 @@ class MedicationAutomation {
     required String testName,
     required double testValue,
   }) async {
+    // Await an asynchronous operation.
     await _loadModel();
 
    
@@ -286,6 +313,7 @@ class MedicationAutomation {
     final drugId = _drugToId![drugName];
     final testId = _testToId![testName];
 
+    // Branch on a condition that affects logic flow.
     if (diseaseId == null || drugId == null || testId == null) {
       throw Exception(
           "القيم (disease/drug_name/test_name)NOT ABLICABLE label_encoders.json ");
@@ -312,6 +340,7 @@ class MedicationAutomation {
     final freqOutput =
         List.generate(1, (_) => List.filled(freqCount, 0.0));
 
+    // Branch on a condition that affects logic flow.
     if (_dosageOutSlot == null ||
         _durationOutSlot == null ||
         _freqOutSlot == null) {
@@ -329,7 +358,9 @@ class MedicationAutomation {
     int argMax(List<double> list) {
       var maxIdx = 0;
       var maxVal = list[0];
+      // Loop over a collection to apply logic.
       for (var i = 1; i < list.length; i++) {
+        // Branch on a condition that affects logic flow.
         if (list[i] > maxVal) {
           maxVal = list[i];
           maxIdx = i;
@@ -367,7 +398,9 @@ class MedicationAutomation {
         .collection('medications')
         .doc(medicationId);
 
+    // Await an asynchronous operation.
     final snap = await ref.get();
+    // Branch on a condition that affects logic flow.
     if (!snap.exists) {
       print("❌ Medication not found to approve");
       return;
@@ -379,6 +412,7 @@ class MedicationAutomation {
     final pendingFrequency = data['pending_frequency'];
     final pendingTestValue = data['pending_test_value'];
 
+    // Branch on a condition that affects logic flow.
     if (pendingDosage == null &&
         pendingDuration == null &&
         pendingFrequency == null) {
@@ -386,6 +420,7 @@ class MedicationAutomation {
       return;
     }
 
+    // Await an asynchronous operation.
     await ref.update({
       'dosage': pendingDosage,
       'duration': pendingDuration,

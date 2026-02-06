@@ -19,14 +19,15 @@ import 'package:arva/ml/scaler_lite.dart';
 
 
 
-
 Map<String, dynamic> patientSimulationData = {};
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Await an asynchronous operation.
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // Await an asynchronous operation.
   await initializeService();
   final FlutterLocalNotificationsPlugin notifications =
     FlutterLocalNotificationsPlugin();
@@ -36,9 +37,11 @@ const AndroidInitializationSettings initSettingsAndroid =
 const InitializationSettings initSettings =
     InitializationSettings(android: initSettingsAndroid);
 
+// Await an asynchronous operation.
 await notifications.initialize(
   initSettings,
   onDidReceiveNotificationResponse: (NotificationResponse response) async {
+    // Branch on a condition that affects logic flow.
     if (response.payload != null) {
       final data = jsonDecode(response.payload!);
       final patientId = data['patientId'];
@@ -80,10 +83,12 @@ class MainPage extends StatelessWidget {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           
+          // Branch on a condition that affects logic flow.
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
          
+          // Branch on a condition that affects logic flow.
           else if (snapshot.hasData) {
            
             return const RoleChecker();
@@ -108,14 +113,17 @@ class RoleChecker extends StatelessWidget {
     
     final user = FirebaseAuth.instance.currentUser!;
 
+    // Load data asynchronously before rendering results.
     return FutureBuilder<DocumentSnapshot>(
       future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
       builder: (context, snapshot) {
         
+        // Branch on a condition that affects logic flow.
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         
+        // Branch on a condition that affects logic flow.
         if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
          
           return SplashScreen(); 
@@ -126,6 +134,7 @@ class RoleChecker extends StatelessWidget {
         final userRole = userData['role'];
 
         
+        // Branch on a condition that affects logic flow.
         if (userRole == 'Medical Staff') {
           
           return const MedicalStaffHomeScreen();
@@ -141,7 +150,9 @@ class RoleChecker extends StatelessWidget {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
+  // Await an asynchronous operation.
   final interpreter = await Interpreter.fromAsset('assets/vitals_predictor_gru.tflite');
+  // Await an asynchronous operation.
   final scaler = await loadScalerFromAssets('assets/vitals_scaler_params.json');
 
   
@@ -153,6 +164,7 @@ void onStart(ServiceInstance service) async {
       AndroidInitializationSettings('@mipmap/ic_launcher');
   const InitializationSettings initSettings =
       InitializationSettings(android: initSettingsAndroid);
+  // Await an asynchronous operation.
   await notifications.initialize(initSettings);
 
 
@@ -161,12 +173,14 @@ void onStart(ServiceInstance service) async {
 
  
   service.on('startPatientSimulation').listen((data) {
+  // Branch on a condition that affects logic flow.
   if (data == null) return;
   final patientId = data['patientId'] as String;
   final patientName = data['patientName'] ?? 'Unknown Patient'; 
 
 
   
+    // Branch on a condition that affects logic flow.
     if (activeSimulations.containsKey(patientId)) {
       print("Simulation for $patientName is already running.");
       return;
@@ -179,6 +193,7 @@ void onStart(ServiceInstance service) async {
 
   
     Timer patientTimer = Timer.periodic(const Duration(seconds: 5), (timer)   async {
+      // Branch on a condition that affects logic flow.
       if (dataset.isEmpty) {
         timer.cancel();
         return;
@@ -189,6 +204,7 @@ void onStart(ServiceInstance service) async {
 
      
       final encodableVitals = newVitals.map((key, value) {
+        // Branch on a condition that affects logic flow.
         if (value is DateTime) return MapEntry(key, value.toIso8601String());
         return MapEntry(key, value);
       });
@@ -197,13 +213,17 @@ void onStart(ServiceInstance service) async {
       service.invoke('update', {'patientId': patientId, 'vitals': encodableVitals});
       
       
+      // Await an asynchronous operation.
       await saveVitals(patientId, encodableVitals);
 
 
+// Await an asynchronous operation.
 final recentHistory = await loadRecentVitals(patientId, limit: 10);
+// Branch on a condition that affects logic flow.
 if (recentHistory.length == 10) {
   final prediction = runPrediction(interpreter, scaler, recentHistory);
 
+  // Await an asynchronous operation.
   await savePredictedVitals(patientId, prediction);
 
  
@@ -212,6 +232,7 @@ if (recentHistory.length == 10) {
 
         
   final hr = (newVitals['HR'] as num?)?.toDouble() ?? 0;
+  // Branch on a condition that affects logic flow.
   if (hr > 110 || hr < 50) {
     showBackgroundAlert(
       'Critical Heart Rate',
@@ -223,6 +244,7 @@ if (recentHistory.length == 10) {
 
 
   final temp = (newVitals['Temp'] as num?)?.toDouble() ?? 0;
+  // Branch on a condition that affects logic flow.
   if (temp > 38 || temp < 35.5) {
     showBackgroundAlert(
       'Critical Temperature',
@@ -234,6 +256,7 @@ if (recentHistory.length == 10) {
 
  
   final spo2 = (newVitals['SaO2'] as num?)?.toDouble() ?? 0;
+  // Branch on a condition that affects logic flow.
   if (spo2 < 93) {
     showBackgroundAlert(
       'Low Oxygen Level',
@@ -246,6 +269,7 @@ if (recentHistory.length == 10) {
   
   final sys = (newVitals['NISysABP'] as num?)?.toDouble() ?? 0;
   final dia = (newVitals['NIDiasABP'] as num?)?.toDouble() ?? 0;
+  // Branch on a condition that affects logic flow.
   if (sys > 140 || dia > 90 || sys < 90 || dia < 60) {
     showBackgroundAlert(
       'Abnormal Blood Pressure',
@@ -265,6 +289,7 @@ if (recentHistory.length == 10) {
 
   
   service.on('stopPatientSimulation').listen((data) {
+    // Branch on a condition that affects logic flow.
     if (data == null) return;
     final patientId = data['patientId'] as String;
     
@@ -274,6 +299,7 @@ if (recentHistory.length == 10) {
     print("🛑 Stopped simulation for $patientId.");
   });
 
+  // Branch on a condition that affects logic flow.
   if (service is AndroidServiceInstance) {
     service.setForegroundNotificationInfo(
       title: "ARVA Monitoring Service",
@@ -290,6 +316,7 @@ Future<void> initializeService() async {
 
  
 
+  // Await an asynchronous operation.
   await service.configure(
     androidConfiguration: AndroidConfiguration(
       onStart: onStart,
@@ -305,13 +332,16 @@ Future<void> initializeService() async {
 
 
 Future<void> saveVitals(String patientId, Map<String, dynamic> vitals) async {
+  // Await an asynchronous operation.
   final prefs = await SharedPreferences.getInstance();
   prefs.setString('vitals_$patientId', jsonEncode(vitals));
 }
 
 Future<List<Map<String, dynamic>>> loadRecentVitals(String id, {int limit = 10}) async {
+  // Await an asynchronous operation.
   final prefs = await SharedPreferences.getInstance();
   final data = prefs.getString('vitals_history_$id');
+  // Branch on a condition that affects logic flow.
   if (data == null) return [];
   final decoded = List<Map<String, dynamic>>.from(jsonDecode(data));
   return decoded.length > limit
@@ -322,6 +352,7 @@ Future<List<Map<String, dynamic>>> loadRecentVitals(String id, {int limit = 10})
 
 
 Future<void> savePredictedVitals(String id, Map<String, dynamic> vitals) async {
+  // Await an asynchronous operation.
   final prefs = await SharedPreferences.getInstance();
   prefs.setString('predicted_vitals_$id', jsonEncode(vitals));
 }
@@ -360,12 +391,15 @@ void checkAndNotify(Map<String, dynamic> vitals, String patientId, String patien
   final temp = (vitals['Temp'] as num?)?.toDouble() ?? 0;
   final spo2 = (vitals['SaO2'] as num?)?.toDouble() ?? 0;
 
+  // Branch on a condition that affects logic flow.
   if (hr > 110 || hr < 50) {
     showBackgroundAlert('$type - Heart Rate Alert', 'Abnormal HR for $patientName (${hr.toStringAsFixed(1)})', patientId, patientName);
   }
+  // Branch on a condition that affects logic flow.
   if (temp > 38 || temp < 35.5) {
     showBackgroundAlert('$type - Temperature Alert', 'Abnormal Temp for $patientName (${temp.toStringAsFixed(1)}°C)', patientId, patientName);
   }
+  // Branch on a condition that affects logic flow.
   if (spo2 < 93) {
     showBackgroundAlert('$type - Oxygen Alert', 'Low SaO₂ for $patientName (${spo2.toStringAsFixed(1)}%)', patientId, patientName);
   }

@@ -23,12 +23,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   
   Future<void> _fetchUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
+    // Branch on a condition that affects logic flow.
     if (user != null) {
       try {
+        // Await an asynchronous operation.
         DocumentSnapshot doc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
+        // Branch on a condition that affects logic flow.
         if (doc.exists && mounted) {
           setState(() {
             _userData = doc.data() as Map<String, dynamic>?;
@@ -36,10 +39,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           });
         }
       } catch (e) {
+        // Branch on a condition that affects logic flow.
         if (mounted) setState(() => _isLoading = false);
         debugPrint("Error fetching user data: $e");
       }
     } else {
+      // Branch on a condition that affects logic flow.
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -66,7 +71,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () async {
               final newName = controller.text.trim();
 
+              // Branch on a condition that affects logic flow.
               if (newName.isEmpty) {
+                // Branch on a condition that affects logic flow.
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -80,7 +87,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               
               final lettersOnly =
                   RegExp(r'^[A-Za-z\u0600-\u06FF\s]+$'); 
+              // Branch on a condition that affects logic flow.
               if (!lettersOnly.hasMatch(newName)) {
+                // Branch on a condition that affects logic flow.
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -94,12 +103,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               try {
                 final user = FirebaseAuth.instance.currentUser;
+                // Branch on a condition that affects logic flow.
                 if (user != null) {
+                  // Await an asynchronous operation.
                   await FirebaseFirestore.instance
                       .collection('users')
                       .doc(user.uid)
                       .update({'username': newName});
 
+                  // Branch on a condition that affects logic flow.
                   if (mounted) {
                     setState(() {
                       _userData = {...?_userData, 'username': newName};
@@ -107,6 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 }
 
+                // Branch on a condition that affects logic flow.
                 if (mounted) {
                   Navigator.of(ctx).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -117,6 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   );
                 }
               } catch (e) {
+                // Branch on a condition that affects logic flow.
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -136,7 +150,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
  
   Future<void> _signOut() async {
     try {
+      // Await an asynchronous operation.
       await FirebaseAuth.instance.signOut();
+      // Branch on a condition that affects logic flow.
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainPage()),

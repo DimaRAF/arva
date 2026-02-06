@@ -31,6 +31,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   
   Future<_RecoResult> _loadAndPredict() async {
    
+    // Await an asynchronous operation.
     final descStr = await rootBundle
         .loadString('assets/recommendations_models/descriptions.json');
     final Map<String, dynamic> descJson = jsonDecode(descStr);
@@ -38,6 +39,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   
     String canonicalName = widget.testName.trim();
 
+    // Branch on a condition that affects logic flow.
     if (canonicalName.startsWith('(') && canonicalName.endsWith(')')) {
       canonicalName =
           canonicalName.substring(1, canonicalName.length - 1).trim();
@@ -47,6 +49,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         (descJson[canonicalName] as String?) ?? 'No description available.';
 
  
+    // Await an asynchronous operation.
     final scalerStr = await rootBundle
         .loadString('assets/recommendations_models/scaler (1).json');
     final scalerJson = jsonDecode(scalerStr) as Map<String, dynamic>;
@@ -56,6 +59,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         (widget.value - vMin) / (vMax - vMin + 1e-8);
 
    
+    // Await an asynchronous operation.
     final labelsStr = await rootBundle
         .loadString('assets/recommendations_models/label_encoders.json');
     final labelsJson = jsonDecode(labelsStr) as Map<String, dynamic>;
@@ -69,6 +73,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
     final int? termIndex = termToIndex[canonicalName];
 
+    // Branch on a condition that affects logic flow.
     if (termIndex == null) {
      
       return _RecoResult(
@@ -87,6 +92,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     inputVector[nInputs - 1] = scaledValue;
 
    
+    // Await an asynchronous operation.
     final targetsStr = await rootBundle
         .loadString('assets/recommendations_models/target_encoders.json');
     final targetsJson = jsonDecode(targetsStr) as Map<String, dynamic>;
@@ -95,6 +101,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     final int numClasses = recMap.length;
 
    
+    // Await an asynchronous operation.
     final interpreter = await tfl.Interpreter.fromAsset(
       'assets/recommendations_models/lab_reco_model.tflite',
     );
@@ -107,10 +114,11 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
     final List<double> probs = output[0].cast<double>();
 
-    // argmax
     int bestIdx = 0;
     double bestVal = probs[0];
+    // Loop over a collection to apply logic.
     for (int i = 1; i < probs.length; i++) {
+      // Branch on a condition that affects logic flow.
       if (probs[i] > bestVal) {
         bestVal = probs[i];
         bestIdx = i;
@@ -144,6 +152,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
               child: Align(
                 alignment: Alignment.topLeft,
                 child: GestureDetector(
+                  // Navigate to another screen based on user action.
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
                     width: 42,
@@ -171,14 +180,17 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 90, 20, 24),
+                  // Load data asynchronously before rendering results.
                   child: FutureBuilder<_RecoResult>(
                     future: _futureReco,
                     builder: (context, snapshot) {
+                      // Branch on a condition that affects logic flow.
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(
                           child: CircularProgressIndicator(),
                         );
                       }
+                      // Branch on a condition that affects logic flow.
                       if (snapshot.hasError) {
                         return Center(
                           child: Text(
@@ -224,7 +236,6 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                           ),
                           const SizedBox(height: 28),
 
-                          // أيقونة شوكة/سكين (يسار)
                           const _SideCircleAsset(
                             assetPath: 'assets/fork&knife.png',
                             alignLeft: true,
@@ -288,7 +299,6 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   }
 }
 
-/// 
 class _RecoResult {
   final String description;
   final String recommendation;
@@ -373,6 +383,7 @@ class _SideCircleAsset extends StatelessWidget {
       mainAxisAlignment:
           alignLeft ? MainAxisAlignment.start : MainAxisAlignment.end,
       children: [
+        // Branch on a condition that affects logic flow.
         if (!alignLeft) const Spacer(),
         Container(
           margin: EdgeInsets.only(
@@ -401,6 +412,7 @@ class _SideCircleAsset extends StatelessWidget {
             ),
           ),
         ),
+        // Branch on a condition that affects logic flow.
         if (alignLeft) const Spacer(),
       ],
     );
