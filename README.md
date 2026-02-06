@@ -1,6 +1,17 @@
 # arva
 
-A new Flutter project.
+Developed an innovative app that allows doctors to monitor patients’ vital signs remotely in real-time. The app utilizes artificial intelligence to provide accurate predictions of health status and automatically updates the patient’s “Smart Medical Profile” with new data.
+ARVA – AI Remote Vital Assistant, a smart healthcare system designed to:
+	1-	Monitor vital signs in real time (ICU)
+	2-	Predict health conditions and vital signs using AI
+	3-	Analyze medical reports automatically
+	4-	Provide personalized preventive health recommendations
+	5-	Predict medication dosages and schedules
+	6-	Send instant alerts for critical cases
+	7-	Connect patients and medical staff in one smart platform
+
+All powered by advanced AI models such as GRU & MLP (multi-classification).
+
 
 ## Getting Started
 
