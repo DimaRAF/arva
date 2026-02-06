@@ -132,7 +132,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 28),
 
-                // الأزرار
+               
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
@@ -151,8 +151,8 @@ class MedicalReportHomeScreen extends StatelessWidget {
                           ),
                           child: const Icon(Icons.upload_outlined, size: 20, color: Colors.white),
                         ),
-                        onTap: () => _pickAndShowResult(context),           // اضغطي على الكرت
-                        onTrailingTap: () => _pickAndShowResult(context),   // أو على السهم
+                        onTap: () => _pickAndShowResult(context),           
+                        onTrailingTap: () => _pickAndShowResult(context),   
                       ),
                       const SizedBox(height: 16),
                       _ActionButton(
@@ -182,7 +182,7 @@ class MedicalReportHomeScreen extends StatelessWidget {
   }
 }
 
-// (الدوال المساعدة)
+
 class _ActionButton extends StatelessWidget {
   final Widget leading;
   final String label;

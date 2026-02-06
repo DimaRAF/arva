@@ -13,7 +13,7 @@ class MedicationScreen extends StatefulWidget {
 
 class _MedicationScreenState extends State<MedicationScreen> {
   String? currentUid;
-  String? userRole; // لتحديد الدور
+  String? userRole;
 
   @override
   void initState() {
@@ -28,7 +28,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
         await FirebaseFirestore.instance.collection('users').doc(currentUid).get();
     if (doc.exists) {
       setState(() {
-        userRole = doc.data()?['role']; // "Medical Staff" أو "Patient"
+        userRole = doc.data()?['role']; 
       });
     }
   }
@@ -106,7 +106,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
               final uid = widget.patientId ?? currentUid;
               if (uid == null) return;
 
-              // 🟢 أسماء الحقول الجديدة + حقول الـ pending جاهزة للمودل
+             
               final newDrug = {
                 'drug_name': nameController.text.trim(),
                 'disease': diseaseController.text.trim(),
@@ -124,7 +124,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 'pending_test_value': null,
                 'pending_status': null,
 
-                'status': 'Pending', // تقدرِ تغيرينها لـ "Active" لو حابة
+                'status': 'Pending', 
                 'createdAt': Timestamp.now(),
               };
 
@@ -283,7 +283,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                       doc.data() as Map<String, dynamic>;
                                   final docId = doc.id;
 
-                                  // 🟢 أسماء الحقول الجديدة + fallback لو فيه بيانات قديمة
+                                  
                                   final String drugName =
                                       (data['drug_name'] ??
                                               data['drugName'] ??
@@ -295,7 +295,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                               'Unknown Disease')
                                           .toString();
 
-                                  // جرعة/مدة/تكرار مع مراعاة pending
                                   String baseDosage =
                                       (data['dosage'] ?? data['dose'] ?? '-')
                                           .toString();
@@ -317,8 +316,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                       (data['pending_duration'] ?? '')
                                           .toString();
 
-                                  // المريض يشوف فقط المعتمَد
-                                  // الدكتور يشوف الـ pending لو موجودة
+                                 
                                   final String shownDosage = isDoctor
                                       ? (pendingDosage.isNotEmpty
                                           ? pendingDosage
@@ -345,7 +343,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                   final String status =
                                       (data['status'] ?? '').toString();
 
-                                  // 🟡 نحط علامة تحذير لو فيه pending، للطبيب فقط
+                                 
                                   final bool warning = isDoctor &&
                                       (pendingStatus == 'pending' ||
                                           status == 'Pending');

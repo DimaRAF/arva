@@ -10,9 +10,9 @@ class UiMapping {
       PredTri.normal: 'normal',
       PredTri.high: 'slightly elevated',
     }[tri]!;
-    if (src == DecisionSource.model) return base;                 // من المودل
-    if (src == DecisionSource.rule)  return '$base (by range)';   // قاعدة
-    return hasRange ? base : 'value only (no range)';             // بدون حدود
+    if (src == DecisionSource.model) return base;                
+    if (src == DecisionSource.rule)  return '$base (by range)';   
+    return hasRange ? base : 'value only (no range)';            
   }
 
   static Color bg(PredTri tri, DecisionSource src) {
@@ -25,7 +25,7 @@ class UiMapping {
   }
 
   static double indicator(double v, double lo, double hi) {
-    if (!lo.isFinite || !hi.isFinite || hi <= lo) return 0.5; // وسط إذا ما في رينج
+    if (!lo.isFinite || !hi.isFinite || hi <= lo) return 0.5; 
     final margin = (hi - lo) * 0.1;
     final a = lo - margin, b = hi + margin;
     final clamped = v.clamp(a, b);

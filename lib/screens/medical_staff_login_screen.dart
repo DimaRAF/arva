@@ -67,7 +67,7 @@ class _MedicalStaffLoginScreenState extends State<MedicalStaffLoginScreen> {
           );
         }
       } else {
-        // 2. إذا كان الدور صحيحاً، انتقل مباشرة إلى الصفحة الرئيسية للطبيب
+        
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const MedicalStaffHomeScreen()),

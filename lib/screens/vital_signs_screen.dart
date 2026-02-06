@@ -49,7 +49,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
 
   final int _bottomNavIndex = 1;
 
-  // 🔔 إعداد إشعارات النظام
+ 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -88,12 +88,12 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     super.initState();
     _initializeNotifications();
     _loadChartHistory();
-    // 1. تحميل البيانات وإرسالها للخدمة
+    
     _loadDataAndConfigureService();
 
-    // 2. الاستماع للتحديثات القادمة من الخدمة
+   
     FlutterBackgroundService().on('update').listen((data) {
-      // تأكد أن التحديث خاص بهذا المريض وأن الشاشة ما زالت موجودة
+     
       if (mounted && data != null && data['patientId'] == widget.patientId) {
         setState(() {
           final receivedVitals = Map<String, dynamic>.from(data['vitals']);
@@ -115,7 +115,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
 
   Future<void> _loadScaler() async {
     _scaler = await loadScalerFromAssets('assets/vitals_scaler_params.json');
-    // تحقق اختياري من ترتيب الخصائص
+    
     if (_scaler!.featuresOrder.join(',') != _featuresOrder.join(',')) {
       print('⚠️ features_order in JSON != _featuresOrder in app');
     }
@@ -247,19 +247,19 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
 
     await _loadScaler();
 
-    // تحميل الموديل
+    
     await _loadModel();
 
-    // ✅ أضيفي هذا الشرط هنا
+    
     if (_interpreter == null) {
       print('⚠️ Interpreter not ready, skipping simulation start.');
       return;
     }
 
-    // تحميل بيانات المريض
+    
     await _loadDataForPatient();
 
-    // بعد تحميل البيانات، إرسالها إلى الخدمة الخلفية
+   
     if (_patientSpecificDataset.isNotEmpty) {
       FlutterBackgroundService().invoke('startPatientSimulation', {
         'patientId': widget.patientId,
@@ -341,14 +341,14 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
       _criticalCount['BP'] = 0;
     }
 
-    // 🚨 بعد 5 قراءات خطيرة متتالية فقط، أرسل تنبيه
+    
     _criticalCount.forEach((key, count) {
       if (count >= 5) {
         final lastAlert = _lastAlertTime[key];
         final lastAlertCount = _lastAlertReadingCount[key] ?? 0;
         final now = DateTime.now();
 
-        // 👇 لا نرسل إشعار إلا إذا مر 5 دقائق أو 10 قراءات جديدة
+        
         if (lastAlert == null ||
             now.difference(lastAlert).inMinutes >= 5 ||
             (_criticalCount[key]! - lastAlertCount) >= 10) {
@@ -357,17 +357,17 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
           _lastAlertReadingCount[key] = _criticalCount[key]!;
         }
 
-        _criticalCount[key] = 0; // نعيد العداد بعد الإشعار
+        _criticalCount[key] = 0; 
       }
     });
 
-    //  تحديث last_value في أدوية Systolic BP بالقيمة الحقيقية الحالية
+    
     if (!isPredicted && sys > 0) {
       _updateSystolicLastValue(sys);
     }
   }
 
-  //  دالة مساعدة لتحديث last_value في أدوية Systolic BP
+  
   Future<void> _updateSystolicLastValue(double systolic) async {
     try {
       final medsRef = FirebaseFirestore.instance
@@ -438,7 +438,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     );
   }
 
-  // --- دوال منطق العمل ---
+
 
   Map<String, dynamic> getVitalStatus(String vitalKey, double? value) {
     if (value == null) return {'text': 'N/A', 'color': Colors.grey};
@@ -448,11 +448,11 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
         if (value > 100) return {'text': 'High', 'color': Colors.red};
         if (value < 60) return {'text': 'Low', 'color': const Color(0xFFFF9800)};
         return {'text': 'Normal', 'color': Colors.green};
-      case 'Temp': // Temperature
+      case 'Temp':
         if (value > 37.5) return {'text': 'High', 'color': Colors.red};
         if (value < 36.1) return {'text': 'Low', 'color': const Color(0xFFFF9800)};
         return {'text': 'Normal', 'color': Colors.green};
-      case 'SaO2': // Oxygen Level
+      case 'SaO2': 
         if (value < 95) return {'text': 'Low', 'color': const Color(0xFFFF9800)};
         return {'text': 'Normal', 'color': Colors.green};
       default:
@@ -460,14 +460,14 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     }
   }
 
-  // دالة خاصة لضغط الدم لأنه يحتوي على قيمتين
+  
   Map<String, dynamic> getBloodPressureStatus(double? systolic, double? diastolic) {
     if (systolic == null || diastolic == null) {
       return {'text': 'N/A', 'color': Colors.grey};
     }
-    // يعتبر مرتفعًا إذا كانت أي من القيمتين مرتفعة
+    
     if (systolic > 130 || diastolic > 85) return {'text': 'High', 'color': Colors.red};
-    // يعتبر منخفضًا إذا كانت أي من القيمتين منخفضة
+   
     if (systolic < 90 || diastolic < 60) return {'text': 'Low', 'color': const Color(0xFFFF9800)};
     return {'text': 'Normal', 'color': Colors.green};
   }
@@ -487,29 +487,29 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
           .doc(widget.patientId)
           .get();
 
-      // 1. التحقق من وجود مستند المريض في قاعدة البيانات
+     
       if (!profileDoc.exists || profileDoc.data() == null) {
         print("Error: Patient document not found for ID: ${widget.patientId}");
         _patientName = 'Patient Not Found';
         _roomNumber = '--';
-        return; // الخروج من الدالة إذا لم يتم العثور على المريض
+        return;
       }
 
-      // 2. قراءة بيانات المريض (الاسم ورقم الغرفة)
+      
       final data = profileDoc.data()!;
-      // تأكد من أن أسماء الحقول في Firestore هي 'name' و 'room'
+   
       _patientName = data['username'] as String? ?? 'Unnamed Patient';
       _roomNumber = data['roomNumber']?.toString() ?? '--';
 
-      // 3. التحقق من وجود ملف البيانات
+     
       if (data['dataFilename'] == null) {
         print("Error: This patient has no assigned data file (dataFilename).");
         _patientSpecificDataset.clear();
-        return; // الخروج إذا لم يكن هناك ملف بيانات
+        return;
       }
       final String filename = data['dataFilename'];
 
-      // 4. تحميل ومعالجة ملف CSV
+      
       final txtData = await rootBundle.loadString('assets/patient_vitals/$filename');
       List<List<dynamic>> rowsAsListOfValues =
           const CsvToListConverter(eol: '\n').convert(txtData);
@@ -517,7 +517,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
       final headers = rowsAsListOfValues[0].map((e) => e.toString().trim()).toList();
       rowsAsListOfValues.removeAt(0);
 
-      // مسح البيانات القديمة قبل تحميل الجديدة (مهم عند التنقل بين المرضى)
+      
       _patientSpecificDataset.clear();
       DateTime lastDate = DateTime.now().subtract(const Duration(days: 1));
 
@@ -549,7 +549,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
 
       print("Successfully loaded ${_patientSpecificDataset.length} records for $_patientName.");
 
-      // ✅ خزّني البيانات في الكاش حتى ما تنحذف لما تغيري المريض
+     
       _patientDataCache[widget.patientId] = List.from(_patientSpecificDataset);
     } catch (e) {
       print("Error loading or processing patient data file: $e");
@@ -558,7 +558,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
     }
   }
 
-  // --- دوال بناء الواجهة ---
+
 
   @override
   Widget build(BuildContext context) {
@@ -728,8 +728,8 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
           return spot == barData.spots.last;
         },
         getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-          radius: 5, // حجم النقطة
-          color: barData.color ?? const Color(0xFF000000), // ✅ استخدم color بدل colors
+          radius: 5, 
+          color: barData.color ?? const Color(0xFF000000), 
           strokeWidth: 2,
           strokeColor: Colors.white,
         ),
@@ -744,7 +744,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
       padding: const EdgeInsets.only(top: 4, bottom: 8),
       child: Row(
         children: [
-       // زر الرجوعة
+    
           SizedBox(
             width: kBtnSize,
             height: kBtnSize,
@@ -759,7 +759,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
             ),
           ),
 
-          // العنوان بالنص
+         
           Expanded(
             child: Center(
               child: Text(
@@ -780,7 +780,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   }
 
   Widget _buildHeartRateCard(int heartRate) {
-    // تحديد حالة نبض القلب
+   
     final status = getVitalStatus('HR', heartRate.toDouble());
     final statusText = status['text'] as String;
     final statusColor = status['color'] as Color;
@@ -849,7 +849,7 @@ class _VitalSignsScreenState extends State<VitalSignsScreen> {
   }
 
   Widget _buildVitalsGrid(Map<String, dynamic> data) {
-    // استخراج القيم
+  
     final systolic = (data['NISysABP'] as num?)?.toDouble();
     final diastolic = (data['NIDiasABP'] as num?)?.toDouble();
     final temp = (data['Temp'] as num?)?.toDouble();

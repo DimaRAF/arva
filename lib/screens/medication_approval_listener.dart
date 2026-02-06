@@ -16,7 +16,7 @@ class MedicationApprovalListener {
 
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _sub;
 
-  /// نخزن آخر status لكل دواء عشان ما نعيد الإشعار لو نفس القيمة
+ 
   final Map<String, String?> _lastStatuses = {};
 
   bool _initialized = false;
@@ -24,8 +24,7 @@ class MedicationApprovalListener {
   Future<void> initNotifications() async {
     if (_initialized) return;
 
-    // هنا يفترض إنك أصلاً مهيئة الـ plugin في main()
-    // لو مش مهيأة، تقدري تكملي الإعداد من هنا برضه.
+  
     const AndroidInitializationSettings androidInit =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -36,7 +35,7 @@ class MedicationApprovalListener {
     _initialized = true;
   }
 
-  /// نبدأ الاستماع على أدوية المريض الحالي (يُستدعى من شاشة المريض)
+  
   Future<void> startListening() async {
     await initNotifications();
 
@@ -48,7 +47,7 @@ class MedicationApprovalListener {
 
     final patientId = user.uid;
 
-    // إلغاء أي اشتراك قديم
+   
     await _sub?.cancel();
     _lastStatuses.clear();
 
@@ -59,7 +58,7 @@ class MedicationApprovalListener {
         .snapshots()
         .listen(
       (snapshot) {
-        // أول snapshot فيه docChanges من نوع added لكل الأدوية
+        
         for (final change in snapshot.docChanges) {
           final doc = change.doc;
           final data = doc.data();
@@ -69,16 +68,15 @@ class MedicationApprovalListener {
           final String? status = data['status'] as String?;
 
           if (change.type == DocumentChangeType.added) {
-            // أول مرة نشوف هذا الدواء → نخزن status كـ baseline بدون إشعار
+            
             _lastStatuses[docId] = status;
           } else if (change.type == DocumentChangeType.modified) {
             final prevStatus = _lastStatuses[docId];
 
-            // نحدّث الكاش
+          
             _lastStatuses[docId] = status;
 
-            // 🔥 الشرط المهم:
-            // فقط لو انتقل من أي شيء ≠ Approved إلى Approved → نرسل إشعار
+            
             if (status == 'Approved' && prevStatus != 'Approved') {
               final drugName = (data['drug_name'] ?? 'your medication').toString();
               _showPatientMedicationApprovedNotification(
@@ -104,7 +102,7 @@ class MedicationApprovalListener {
     _lastStatuses.clear();
   }
 
-  /// 🔔 إشعار Local على جهاز المريض
+ 
   Future<void> _showPatientMedicationApprovedNotification({
     required String patientId,
     required String medicationId,
@@ -143,7 +141,7 @@ class MedicationApprovalListener {
     const NotificationDetails notificationDetails =
         NotificationDetails(android: androidDetails);
 
-    // id مختلف عشان ما يطغى على إشعارات ثانية (مثلاً نستخدم hash بسيط)
+    
     final int notifId = medicationId.hashCode & 0x7FFFFFFF;
 
     await _notificationsPlugin.show(

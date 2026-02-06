@@ -28,16 +28,16 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     _futureReco = _loadAndPredict();
   }
 
-  /// تحميل JSON + تشغيل مودل TFLite
+  
   Future<_RecoResult> _loadAndPredict() async {
-    // 1) تحميل الوصف لكل تحليل
+   
     final descStr = await rootBundle
         .loadString('assets/recommendations_models/descriptions.json');
     final Map<String, dynamic> descJson = jsonDecode(descStr);
 
-    // اسم التحليل اللي نستخدمه كمفتاح في الـ JSON
+  
     String canonicalName = widget.testName.trim();
-    // لو الاسم كله داخل قوسين فقط نشيل القوسين الخارجيين ونترك أي شيء داخل الاسم مثل (ALT)
+
     if (canonicalName.startsWith('(') && canonicalName.endsWith(')')) {
       canonicalName =
           canonicalName.substring(1, canonicalName.length - 1).trim();
@@ -46,16 +46,16 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     final description =
         (descJson[canonicalName] as String?) ?? 'No description available.';
 
-    // 2) تحميل ال scaler
+ 
     final scalerStr = await rootBundle
         .loadString('assets/recommendations_models/scaler (1).json');
     final scalerJson = jsonDecode(scalerStr) as Map<String, dynamic>;
     final double vMin = (scalerJson['min'][0] as num).toDouble();
     final double vMax = (scalerJson['max'][0] as num).toDouble();
     final double scaledValue =
-        (widget.value - vMin) / (vMax - vMin + 1e-8); // نفس اللي في بايثون
+        (widget.value - vMin) / (vMax - vMin + 1e-8);
 
-    // 3) تحميل label_encoders.json وعمل term → index
+   
     final labelsStr = await rootBundle
         .loadString('assets/recommendations_models/label_encoders.json');
     final labelsJson = jsonDecode(labelsStr) as Map<String, dynamic>;
@@ -70,7 +70,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     final int? termIndex = termToIndex[canonicalName];
 
     if (termIndex == null) {
-      // ما لقينا هذا التحليل في المودل
+     
       return _RecoResult(
         description: description,
         recommendation:
@@ -78,15 +78,15 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
       );
     }
 
-    final int numTerms = medMap.length; // عدد التحاليل
-    final int nInputs = numTerms + 1; // one-hot + value
+    final int numTerms = medMap.length;
+    final int nInputs = numTerms + 1; 
 
-    // 4) تجهيز input vector
+   
     final inputVector = List<double>.filled(nInputs, 0.0);
     inputVector[termIndex] = 1.0; // one-hot
     inputVector[nInputs - 1] = scaledValue;
 
-    // 5) تحميل target_encoders.json لمعرفة عدد الكلاسات
+   
     final targetsStr = await rootBundle
         .loadString('assets/recommendations_models/target_encoders.json');
     final targetsJson = jsonDecode(targetsStr) as Map<String, dynamic>;
@@ -94,7 +94,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         targetsJson['Recommendation'] as Map<String, dynamic>;
     final int numClasses = recMap.length;
 
-    // 6) تشغيل المودل TFLite
+   
     final interpreter = await tfl.Interpreter.fromAsset(
       'assets/recommendations_models/lab_reco_model.tflite',
     );
@@ -232,7 +232,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                           ),
                           const SizedBox(height: 8),
 
-                          // الكرت 1: اسم التحليل + القيمة
+                          
                           _PillCard(
                             alignLeft: false,
                             background: Colors.white,
@@ -241,7 +241,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
                           const SizedBox(height: 20),
 
-                          // الكرت 2: الوصف
+                          
                           _PillCard(
                             text: data.description,
                             alignLeft: true,
@@ -252,14 +252,14 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
                           const SizedBox(height: 16),
 
-                          // أيقونة كبسولة (يمين)
+                          
                           const _SideCircleAsset(
                             assetPath: 'assets/pill.png',
                             alignLeft: false,
                           ),
                           const SizedBox(height: 8),
 
-                          // الكرت 3: التوصية من المودل
+                          
                           _PillCard(
                             text: data.recommendation,
                             alignLeft: false,
@@ -268,7 +268,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
                           const SizedBox(height: 24),
 
-                          // أيقونة سرنجة (يسار)
+                          
                           const _SideCircleAsset(
                             assetPath: 'assets/injection.png',
                             alignLeft: true,
@@ -288,7 +288,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   }
 }
 
-/// نتيجة التنبؤ: وصف + توصية
+/// 
 class _RecoResult {
   final String description;
   final String recommendation;
@@ -299,7 +299,7 @@ class _RecoResult {
   });
 }
 
-/// بطاقة بشكل "حبّة" محاذاة يمين/يسار
+
 class _PillCard extends StatelessWidget {
   final String text;
   final bool alignLeft;
@@ -355,7 +355,7 @@ class _PillCard extends StatelessWidget {
   }
 }
 
-/// أيقونة دائرية بصور من الأصول
+
 class _SideCircleAsset extends StatelessWidget {
   final String assetPath;
   final bool alignLeft;

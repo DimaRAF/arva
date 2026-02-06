@@ -145,7 +145,7 @@ void onStart(ServiceInstance service) async {
   final scaler = await loadScalerFromAssets('assets/vitals_scaler_params.json');
 
   
-  // ✅ تهيئة الإشعارات
+
   final FlutterLocalNotificationsPlugin notifications =
       FlutterLocalNotificationsPlugin();
 
@@ -156,17 +156,17 @@ void onStart(ServiceInstance service) async {
   await notifications.initialize(initSettings);
 
 
-  // الخريطة ستحتوي على المؤقتات النشطة فقط
+
   final Map<String, Timer> activeSimulations = {};
 
-  // الاستماع لأمر بدء محاكاة جديدة
+ 
   service.on('startPatientSimulation').listen((data) {
   if (data == null) return;
   final patientId = data['patientId'] as String;
   final patientName = data['patientName'] ?? 'Unknown Patient'; 
 
 
-    // التأكد من عدم وجود محاكاة نشطة لنفس المريض
+  
     if (activeSimulations.containsKey(patientId)) {
       print("Simulation for $patientName is already running.");
       return;
@@ -177,7 +177,7 @@ void onStart(ServiceInstance service) async {
     
     print("✅ Starting simulation for $patientName at index $simulationIndex");
 
-    // إنشاء المؤقت الدوري
+  
     Timer patientTimer = Timer.periodic(const Duration(seconds: 5), (timer)   async {
       if (dataset.isEmpty) {
         timer.cancel();
@@ -187,31 +187,30 @@ void onStart(ServiceInstance service) async {
       final nextIndex = simulationIndex % dataset.length;
       final newVitals = dataset[nextIndex];
 
-      // تحويل التاريخ إلى نص قبل إرساله
+     
       final encodableVitals = newVitals.map((key, value) {
         if (value is DateTime) return MapEntry(key, value.toIso8601String());
         return MapEntry(key, value);
       });
 
-      // إرسال التحديث إلى الواجهة
+      
       service.invoke('update', {'patientId': patientId, 'vitals': encodableVitals});
       
-      // ✅ حفظ القيم الجديدة في SharedPreferences
+      
       await saveVitals(patientId, encodableVitals);
 
-// ✅ تحميل آخر 10 قراءات لتشغيل التنبؤ
+
 final recentHistory = await loadRecentVitals(patientId, limit: 10);
 if (recentHistory.length == 10) {
   final prediction = runPrediction(interpreter, scaler, recentHistory);
 
-  // حفظ التنبؤ
   await savePredictedVitals(patientId, prediction);
 
-  // فحص التنبؤ إذا فيه خطر
+ 
   checkAndNotify(prediction, patientId, patientName, isPredicted: true);
 }
 
-        //  معدل نبضات القلب
+        
   final hr = (newVitals['HR'] as num?)?.toDouble() ?? 0;
   if (hr > 110 || hr < 50) {
     showBackgroundAlert(
@@ -222,7 +221,7 @@ if (recentHistory.length == 10) {
     );
   }
 
-  //  درجة الحرارة
+
   final temp = (newVitals['Temp'] as num?)?.toDouble() ?? 0;
   if (temp > 38 || temp < 35.5) {
     showBackgroundAlert(
@@ -233,7 +232,7 @@ if (recentHistory.length == 10) {
     );
   }
 
-  //  تشبع الأكسجين
+ 
   final spo2 = (newVitals['SaO2'] as num?)?.toDouble() ?? 0;
   if (spo2 < 93) {
     showBackgroundAlert(
@@ -244,7 +243,7 @@ if (recentHistory.length == 10) {
     );
   }
 
-  //  ضغط الدم
+  
   final sys = (newVitals['NISysABP'] as num?)?.toDouble() ?? 0;
   final dia = (newVitals['NIDiasABP'] as num?)?.toDouble() ?? 0;
   if (sys > 140 || dia > 90 || sys < 90 || dia < 60) {
@@ -260,22 +259,21 @@ if (recentHistory.length == 10) {
       simulationIndex++;
     });
 
-    // إضافة المؤقت الجديد إلى الخريطة
+    
     activeSimulations[patientId] = patientTimer;
   });
 
-  // الاستماع لأمر إيقاف المحاكاة
+  
   service.on('stopPatientSimulation').listen((data) {
     if (data == null) return;
     final patientId = data['patientId'] as String;
     
-    // إيقاف المؤقت وإزالته من الخريطة
+    
     activeSimulations[patientId]?.cancel();
     activeSimulations.remove(patientId);
     print("🛑 Stopped simulation for $patientId.");
   });
 
-  // إعداد الإشعار
   if (service is AndroidServiceInstance) {
     service.setForegroundNotificationInfo(
       title: "ARVA Monitoring Service",
@@ -290,8 +288,7 @@ if (recentHistory.length == 10) {
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();
 
-  // لا تقم باستعادة الحالة هنا، دع الشاشة تدير ذلك عند فتحها
-  // هذا يبسط المنطق ويمنع الأخطاء
+ 
 
   await service.configure(
     androidConfiguration: AndroidConfiguration(
@@ -306,7 +303,7 @@ Future<void> initializeService() async {
   );
 }
 
-/// ✅ دالة حفظ العلامات الحيوية في SharedPreferences
+
 Future<void> saveVitals(String patientId, Map<String, dynamic> vitals) async {
   final prefs = await SharedPreferences.getInstance();
   prefs.setString('vitals_$patientId', jsonEncode(vitals));

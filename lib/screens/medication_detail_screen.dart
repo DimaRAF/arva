@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class MedicationDetailScreen extends StatefulWidget {
   final String patientId;
   final String medId;
-  final bool isDoctorView; // إذا true = الدكتور داخل، false = المريض
+  final bool isDoctorView; 
 
   const MedicationDetailScreen({
     super.key,
@@ -52,7 +52,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
         final pendingFreq = medData?['pending_frequency'];
         final pendingDuration = medData?['pending_duration'];
 
-        // ✅ لو الدكتور: شوف التنبؤ (pending) أولاً لو موجود
+        
         if (widget.isDoctorView) {
           doseController.text =
               (pendingDosage ?? approvedDosage ?? '').toString();
@@ -61,7 +61,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
           durationController.text =
               (pendingDuration ?? approvedDuration ?? '').toString();
         } else {
-          // ✅ لو المريض: شوف فقط القيم المعتمدة
+         
           doseController.text = (approvedDosage ?? '').toString();
           freqController.text = (approvedFreq ?? '').toString();
           durationController.text = (approvedDuration ?? '').toString();
@@ -71,6 +71,13 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
       debugPrint('❌ Error loading data: $e');
     }
     setState(() => isLoading = false);
+  }
+
+  
+  double? _parseDoseNumber(String text) {
+    final match = RegExp(r'([\d\.]+)').firstMatch(text);
+    if (match == null) return null;
+    return double.tryParse(match.group(1)!);
   }
 
   Future<void> _approveAndSave() async {
@@ -85,19 +92,33 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
       final newFreq = freqController.text.trim();
       final newDuration = durationController.text.trim();
 
+     
+      final numericDose = _parseDoseNumber(newDosage);
+      if (numericDose != null && numericDose > 60000) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "⚠️ the dose is too high ,please check again.",
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       await docRef.update({
-        // ✅ الجرعة المعتمدة للمريض
+        
         'dosage': newDosage,
         'frequency': newFreq,
         'duration': newDuration,
 
-        // ✅ تصفير حقول التنبؤ بعد الموافقة
+        
         'pending_dosage': null,
         'pending_frequency': null,
         'pending_duration': null,
         'pending_test_name': null,
         'pending_test_value': null,
-        'status': 'Approved', // استخدمي نفس حقل status اللي في الأوتوميشن
+        'status': 'Approved', 
         'pending_updated_at': FieldValue.serverTimestamp(),
 
         'last_updated': FieldValue.serverTimestamp(),
@@ -142,14 +163,14 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
     final displayFreq = freqController.text;
     final displayDuration = durationController.text;
 
-    // 📝 النص حسب نوع المستخدم
+    
     String mainText;
     if (widget.isDoctorView) {
       mainText =
           'Based on the patient’s new test results, please review and approve or change the dose to $displayDose $displayFreq $displayDuration.';
     } else {
       if (status == 'Pending') {
-        // لسه الدكتور ما وافق
+       
         mainText =
             'Your doctor is reviewing an updated dose. Your current prescribed dose is $displayDose $displayFreq $displayDuration.';
       } else {
@@ -172,7 +193,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
               child: ColoredBox(color: Color(0xFF5FAAB1)),
             ),
 
-            // الصور
+           
             Positioned(
               right: 28 * s,
               top: safeTop + 50 * s,
@@ -221,7 +242,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
               ),
             ),
 
-            // الكرت الأبيض
+            
             Align(
               alignment: Alignment.topCenter,
               child: Container(
@@ -260,7 +281,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                                 ),
                                 SizedBox(height: 20 * s),
 
-                                // الكرت الأخضر
+                               
                                 Container(
                                   width: double.infinity,
                                   padding: EdgeInsets.symmetric(
@@ -320,7 +341,7 @@ class _MedicationDetailScreenState extends State<MedicationDetailScreen> {
                           ),
                         ),
 
-                        // ✅ الأزرار فقط للدكتور
+                        
                         if (widget.isDoctorView)
                           Padding(
                             padding: EdgeInsets.only(top: 20 * s),

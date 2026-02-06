@@ -28,17 +28,17 @@ class InferenceService {
     _it = Interpreter.fromFile(f);
   }
 
-  // مطابقة اسم التحليل كما هو في label_map.json (محاولة ذكية بسيطة)
+  
   static int _encodeTestName(String code, String name) {
     final m = ModelAssets.nameToIdx!;
     if (m.containsKey(name)) return m[name]!;
     if (m.containsKey(code)) return m[code]!;
-    // جرّبي مفاتيح توافق جزئي بالحروف الكبيرة
+
     final up = name.toUpperCase();
     for (final e in m.entries) {
       if (up.contains(e.key.toUpperCase())) return e.value;
     }
-    // آخر حل: 0
+
     return 0;
   }
 
@@ -47,7 +47,7 @@ class InferenceService {
     return List<double>.generate(x.length, (i) => (x[i] - mu[i]) / s[i]);
   }
 
-  /// يرجّع: probaAbnormal ∈ [0,1]
+
   static Future<double> predictAbnormalProb(LabTest t) async {
     await _ensure();
     final enc = _encodeTestName(t.code, t.name).toDouble();
@@ -64,19 +64,18 @@ class InferenceService {
   final labels = ModelAssets.nameToIdx ?? const <String, int>{};
   final thMap  = ModelAssets.thresholds ?? const <String, double>{};
 
-  // مفاتيح كما هي (نكتفي بـ trim فقط، بدون تغيير حالة الحروف)
+  
   final codeKey = (t.code ?? '').trim();
   final nameKey = (t.name ?? '').trim();
 
-  // هل التحليل معروف للمودل؟
+
   String? key;
   if (codeKey.isNotEmpty && labels.containsKey(codeKey)) {
     key = codeKey;
   } else if (nameKey.isNotEmpty && labels.containsKey(nameKey)) {
     key = nameKey;
   } else {
-    // محاولة مطابقة حساسة للحالة لكن تسمح باختلاف بسيط في المسافات الطرفية فقط
-    // (لو بدك Case-Insensitive Exact بدون Uppercasing ممكن تضيفي مقارنة toLowerCase هنا)
+    
     for (final k in labels.keys) {
       if (k.trim() == codeKey || k.trim() == nameKey) {
         key = k;
@@ -86,7 +85,7 @@ class InferenceService {
   }
 
   if (key != null) {
-    // ✅ القرار من المودل فقط
+   
     final p  = await predictAbnormalProb(t);
     final th = thMap[key] ?? 0.5;
     final isAbn = p >= th;
@@ -95,17 +94,17 @@ class InferenceService {
       return const PredResult(PredTri.normal, DecisionSource.model);
     }
 
-    // إن توفر رينج، نستخدمه فقط لتحديد الاتجاه (عرض)
+   
     final hasRange = t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
     if (hasRange) {
       if (t.value < t.refMin) return const PredResult(PredTri.low,  DecisionSource.model);
       if (t.value > t.refMax) return const PredResult(PredTri.high, DecisionSource.model);
     }
-    // لو ما في رينج أو داخل الرينج لكن المودل قال Abnormal → اعتبريها High افتراضياً
+    
     return const PredResult(PredTri.high, DecisionSource.model);
   }
 
-  // ❗️غير معروف للمودل → fallback بالرينج إن وُجد
+ 
   final hasRange = t.refMin.isFinite && t.refMax.isFinite && t.refMax > t.refMin;
   if (hasRange) {
     if (t.value < t.refMin) return const PredResult(PredTri.low,  DecisionSource.rule);

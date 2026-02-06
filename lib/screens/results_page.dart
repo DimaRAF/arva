@@ -578,7 +578,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
         debugPrint(
             '✅ [Medication] Medication model executed using extracted report values.');
 
-        // إشعار للدكتور بوجود تنبؤ جديد
+        
         await _showMedicationNotification(
           patientId: targetId,
           patientName: patientName,
@@ -591,7 +591,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
           '⚠ [Medication] No current user found to run medication model.');
     }
 
-    // 🎨 بناء واجهة عرض نتائج التحاليل نفسها
+   
     final out = <_UiRow>[];
     for (final t in tests) {
       final res = await InferenceService.decide(t);
@@ -617,7 +617,7 @@ class DynamicResultsFromAsset extends StatelessWidget {
       v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
 
   static String _fmtRange(double v, String code) {
-    // بدون وحدات
+    
     return v.toStringAsFixed(v % 1 == 0 ? 0 : 1);
   }
 }

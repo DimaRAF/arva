@@ -128,6 +128,8 @@ flutter:
     - assets/Vital_Signs_state/vitals_label_info.json
     - assets/Vital_Signs_state/vitals_scaler.json
     - assets/Vital_Signs_state/vitals_multi_output_model.tflite
+    - assets/Services_Result (1).pdf
+    - assets/testt.pdf
     
 
 

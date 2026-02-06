@@ -20,7 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _fetchUserData();
   }
 
-  // جلب بيانات المستخدم الحالي
+  
   Future<void> _fetchUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -44,7 +44,96 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // تسجيل الخروج
+  
+  void _showEditNameDialog() {
+    final controller =
+        TextEditingController(text: _userData?['username'] ?? '');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Edit Username"),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(labelText: "Username"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newName = controller.text.trim();
+
+              if (newName.isEmpty) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Username cannot be empty."),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              
+              final lettersOnly =
+                  RegExp(r'^[A-Za-z\u0600-\u06FF\s]+$'); 
+              if (!lettersOnly.hasMatch(newName)) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content:
+                        Text("Username must contain letters only (no numbers or symbols)."),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              try {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user != null) {
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user.uid)
+                      .update({'username': newName});
+
+                  if (mounted) {
+                    setState(() {
+                      _userData = {...?_userData, 'username': newName};
+                    });
+                  }
+                }
+
+                if (mounted) {
+                  Navigator.of(ctx).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Username updated successfully!"),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Failed to update username: $e"),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+ 
   Future<void> _signOut() async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -61,16 +150,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // نحدد الدور عشان نختار الصورة
+    
     final String role = (_userData?['role'] ?? '') as String;
     final bool isPatient = role == 'Patient';
 
     final String avatarAsset = isPatient
         ? 'assets/patient_icon.png'
         : 'assets/doctor_avatar.png';
-
-        
-    
 
     return Scaffold(
       appBar: AppBar(
@@ -87,12 +173,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // المحتوى القابل للسكرول
+                
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.all(20.0),
                     children: [
-                      // كرت معلومات المستخدم
+                      
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
@@ -140,10 +226,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                       const SizedBox(height: 30),
 
-                      // قائمة الخيارات
+                     
                       _buildProfileOption(
                         icon: Icons.edit_outlined,
                         title: "Edit Profile",
+                        onTap: _showEditNameDialog,
                       ),
                       _buildProfileOption(
                         icon: Icons.settings_outlined,
@@ -159,7 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
 
-                // زر تسجيل الخروج ثابت في أسفل الصفحة
+                
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                   child: SizedBox(
@@ -192,12 +279,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileOption({
     required IconData icon,
     required String title,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: Icon(icon, color: const Color(0xFF3E5B7A)),
       title: Text(title, style: const TextStyle(fontSize: 18)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {},
+      onTap: onTap ?? () {},
     );
   }
 }

@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_screen.dart';
 import 'uploud_medical_report.dart';
 import 'medication_list.dart';
-import 'medication_approval_listener.dart'; 
+import 'medication_approval_listener.dart';
 import 'lab_files_screen.dart';
 
 class PatientHomeScreen extends StatefulWidget {
@@ -28,7 +28,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         patientId: widget.patientId,
         onRoleLoaded: (role) {
           setState(() {
-            _currentUserRole = role; // ✅ هنا يتم تحديث الدور في الأب
+            _currentUserRole = role; 
           });
         },
       ),
@@ -47,11 +47,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         children: _pages,
       ),
 
-      // ⬇️ أخفي البار للميديكال ستاف كما هو
+     
       bottomNavigationBar:
           _currentUserRole == 'Medical Staff' ? null : _buildBottomNavBar(),
 
-      // ⬇️ زر دائري أزرق بأسفل اليسار للميديكال ستاف فقط
+      
       floatingActionButton: _currentUserRole == 'Medical Staff'
           ? FloatingActionButton(
               heroTag: 'docBackFab',
@@ -65,7 +65,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     );
   }
 
-  // دالة بناء شريط التنقل السفلي
+  
   Widget _buildBottomNavBar() {
     return Container(
       height: 70,
@@ -83,12 +83,12 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     );
   }
 
-  // دالة بناء كل أيقونة في شريط التنقل
+ 
   Widget _buildNavItem({required IconData icon, required int index}) {
     final isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () {
-        // عند الضغط، قم بتحديث الفهرس المحدد لإظهار الصفحة الصحيحة
+       
         setState(() {
           _selectedIndex = index;
         });
@@ -100,7 +100,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 padding: const EdgeInsets.all(18),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0xFF4C6EA0), // لون الدائرة المرتفعة
+                  color: Color(0xFF4C6EA0),
                 ),
                 child: Icon(icon, color: Colors.white, size: 40),
               ),
@@ -110,8 +110,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   }
 }
 
-// --- تم إنشاء هذا الويدجت الجديد ليحتوي على كل محتوى الصفحة الرئيسية ---
-// هذا يجعل الكود منظماً وسهل القراءة
+
 class _HomePageContent extends StatefulWidget {
   final String patientId;
   final Function(String)? onRoleLoaded;
@@ -129,7 +128,7 @@ class __HomePageContentState extends State<_HomePageContent> {
   @override
   void initState() {
     super.initState();
-    // ✅ تشغيل الليسنر لموافقة الأدوية للمريض الحالي
+    
     MedicationApprovalListener.instance.startListening();
     _fetchPatientData();
   }
@@ -143,7 +142,7 @@ class __HomePageContentState extends State<_HomePageContent> {
     try {
       final patientId = widget.patientId;
 
-      // ✅ جلب المستخدم الحالي لمعرفة إذا كان طبيب أو مريض
+      
       final currentUser = FirebaseAuth.instance.currentUser;
       String? currentUserRole;
       if (currentUser != null) {
@@ -154,7 +153,7 @@ class __HomePageContentState extends State<_HomePageContent> {
         currentUserRole = userDoc.data()?['role'];
       }
 
-      // 1. جلب البيانات من كلا المجموعتين (users و patient_profiles)
+      
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(patientId)
@@ -165,7 +164,7 @@ class __HomePageContentState extends State<_HomePageContent> {
           .doc(patientId)
           .get();
 
-      // 2. دمج البيانات في خريطة واحدة
+      
       Map<String, dynamic> combinedData = {};
       if (userDoc.exists && userDoc.data() != null) {
         combinedData.addAll(userDoc.data() as Map<String, dynamic>);
@@ -174,7 +173,7 @@ class __HomePageContentState extends State<_HomePageContent> {
         combinedData.addAll(profileDoc.data() as Map<String, dynamic>);
       }
 
-      // ✅ حفظ الدور الحالي للمستخدم (عشان نستخدمه في الواجهة)
+     
       if (mounted) {
         setState(() {
           _patientData = combinedData;
@@ -188,7 +187,7 @@ class __HomePageContentState extends State<_HomePageContent> {
       print("❌ Error fetching patient data: $e");
     }
 
-    // 4. إيقاف التحميل
+    
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -196,15 +195,75 @@ class __HomePageContentState extends State<_HomePageContent> {
     }
   }
 
-  // --- vvv دالة جديدة لحفظ التعديلات في قاعدة البيانات vvv ---
+  
   Future<void> _updatePatientProfile(String field, dynamic value) async {
     User? user = FirebaseAuth.instance.currentUser;
     final patientId = widget.patientId;
     if (user == null) return;
 
-    // تحويل القيمة إلى رقم إذا كان الحقل يتطلب ذلك
+    
     if (field == 'age' || field == 'height' || field == 'weight') {
-      value = int.tryParse(value.toString()) ?? 0;
+      int parsed = int.tryParse(value.toString()) ?? 0;
+
+      if (field == 'height' && parsed > 250) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("The number is too large, please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      if (field == 'weight' && parsed > 300) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("The number is too large, please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      if (field == 'age' && parsed > 150) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("The number is too large, please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      value = parsed;
+    }
+
+    
+    if (field == 'blood_group') {
+      String input = value.toString().toUpperCase().replaceAll(' ', '');
+      const validBloodGroups = [
+        'A+',
+        'A-',
+        'B+',
+        'B-',
+        'AB+',
+        'AB-',
+        'O+',
+        'O-',
+      ];
+
+      if (!validBloodGroups.contains(input)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                "Invalid blood group. Please enter a valid type (A+, A-, B+, B-, AB+, AB-, O+, O-)."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      value = input;
     }
 
     try {
@@ -213,7 +272,7 @@ class __HomePageContentState extends State<_HomePageContent> {
           .doc(patientId)
           .update({field: value});
 
-      // إعادة جلب البيانات لتحديث الواجهة
+      
       await _fetchPatientData();
 
       if (mounted) {
@@ -234,7 +293,7 @@ class __HomePageContentState extends State<_HomePageContent> {
     }
   }
 
-  // --- vvv دالة جديدة لإظهار نافذة التعديل vvv ---
+ 
   void _showEditDialog(String fieldKey, String title,
       {bool isNumeric = false}) {
     final controller = TextEditingController(
@@ -289,7 +348,7 @@ class __HomePageContentState extends State<_HomePageContent> {
                           padding: const EdgeInsets.only(
                               top: 30.0,
                               left: 20.0,
-                              right: 20.0), // 👈 نزّل البحث شوي
+                              right: 20.0), 
                           child: TextField(
                             decoration: InputDecoration(
                               hintText: 'search',
@@ -448,7 +507,7 @@ class __HomePageContentState extends State<_HomePageContent> {
                             imagePath: 'assets/analysis.png',
                             label: 'analysis',
                             onTap: () {
-                              // 2. عند الضغط، انتقل إلى الواجهة الجديدة
+                              
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) =>
@@ -476,12 +535,12 @@ class __HomePageContentState extends State<_HomePageContent> {
                             label: 'Report',
                             onTap: () {
                               Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => MedicalReportsPage(patientId: widget.patientId),
-  ),
-);
-
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => MedicalReportsPage(
+                                      patientId: widget.patientId),
+                                ),
+                              );
                             },
                           ),
                         ],
@@ -494,7 +553,6 @@ class __HomePageContentState extends State<_HomePageContent> {
           );
   }
 
-  
   Widget _buildInfoCard({
     required String title,
     required String value,
@@ -504,7 +562,6 @@ class __HomePageContentState extends State<_HomePageContent> {
     required VoidCallback onTap,
   }) {
     return InkWell(
-      
       onTap: onTap,
       borderRadius: BorderRadius.circular(25),
       child: Container(
@@ -535,9 +592,9 @@ class __HomePageContentState extends State<_HomePageContent> {
   Widget _buildServiceButton({
     required String imagePath,
     required String label,
-    required VoidCallback onTap, // 3. تم إضافة هذا السطر
+    required VoidCallback onTap, 
   }) {
-    // 4. تم تغليف الكرت بـ InkWell لجعله قابلاً للضغط
+    
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(25),

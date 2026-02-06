@@ -2,10 +2,10 @@ import 'package:excel/excel.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class TermInfo {
-  final String canonical;        //  original_medical term
-  final double? refMin;          // Lowest_Normal
-  final double? refMax;          // Highest_Normal
-  final String unit;             // Unit
+  final String canonical;        
+  final double? refMin;          
+  final double? refMax;          
+  final String unit;             
   const TermInfo({
     required this.canonical,
     this.refMin,
@@ -17,10 +17,10 @@ class TermInfo {
 class TermDictionary {
   static bool _loaded = false;
 
-  /// "Iron"  -> info )
+  
   static final Map<String, TermInfo> _byCanonical = {};
 
-  /// "IRON (FE)" / "SERUM IRON" / "Fe" -> "Iron"
+  
   static final Map<String, String> _aliasToCanonical = {};
 
  
@@ -158,14 +158,13 @@ class TermDictionary {
     return s;
   }
 
-  /// يحوّل اسم من الـPDF (أو من التقرير) إلى الاسم القياسي من عمود original_medical term
-  /// مثلاً: "Iron (Fe)" أو "SERUM IRON" → "Iron"
+
   static Future<String?> canonicalize(String pdfName) async {
     await ensureLoaded();
     return _aliasToCanonical[_norm(pdfName)];
   }
 
-  /// يرجّع معلومات التحليل حسب الاسم القياسي (نفس عمود original_medical term)
+  
   static Future<TermInfo?> info(String canonical) async {
     await ensureLoaded();
     return _byCanonical[canonical];

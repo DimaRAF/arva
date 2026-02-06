@@ -14,12 +14,11 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Create a timer that runs for 5 seconds.
+    //  timer that runs for 5 seconds.
     Timer(
       const Duration(seconds: 5),
       () {
-        // After 5 seconds, navigate to the HomePage.
-        // We use pushReplacement to prevent the user from going back to the splash screen.
+        
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => OnboardingScreen()),
         );
@@ -29,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // The UI of the splash screen remains the same.
+    
     return Scaffold(
       body: CustomPaint(
         painter: SplashBackgroundPainter(),
@@ -64,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
 
 
-// The CustomPainter for the background remains unchanged.
+
 class SplashBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

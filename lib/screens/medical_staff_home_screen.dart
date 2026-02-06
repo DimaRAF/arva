@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_screen.dart';
-import 'vital_signs_screen.dart'; // تأكد من استيراد هذه الواجهة
+import 'vital_signs_screen.dart'; 
 
 class MedicalStaffHomeScreen extends StatefulWidget {
   const MedicalStaffHomeScreen({super.key});
@@ -16,9 +16,9 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
   bool _isLoading = true;
 
   final List<Color> _patientColors = [
-    const Color(0xFF4C6EA0), // أزرق
-    const Color(0xFFC6B4DE), // بنفسجي
-    const Color(0xFF5FAAB1), // أخضر
+    const Color(0xFF4C6EA0), 
+    const Color(0xFFC6B4DE), 
+    const Color(0xFF5FAAB1), 
   ];
 
   @override
@@ -83,7 +83,7 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Icon(Icons.notifications_none, color: Colors.white, size: 30),
-                  IconButton( // تم تعديل هذا ليكون IconButton
+                  IconButton( 
                     icon: const Icon(Icons.tune, color: Colors.white, size: 30),
                     onPressed: () {
                       Navigator.of(context).push(
@@ -104,7 +104,7 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
                 style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
               ),
               Text(
-                _staffData?['jobTitle'] ?? "Nurse", // تم تعديل هذا ليقرأ من قاعدة البيانات
+                _staffData?['jobTitle'] ?? "Nurse", 
                 style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 16),
               ),
             ],
@@ -143,10 +143,10 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
             final String patientId = patients[index].id;
             final Color color = _patientColors[index % _patientColors.length];
 
-            // --- vvv تم إصلاح طريقة استدعاء الدالة هنا vvv ---
+           
             return _buildPatientCard(
               context: context,
-              patientId: patientId, // الآن نمرر الـ ID
+              patientId: patientId,
               name: patientData['username'] ?? 'N/A',
               room: "Room ${patientData['roomNumber'] ?? '--'}",
               color: color,
@@ -157,17 +157,17 @@ class _MedicalStaffHomeScreenState extends State<MedicalStaffHomeScreen> {
     );
   }
 
-  // --- vvv تم إصلاح تعريف الدالة هنا vvv ---
+ 
   Widget _buildPatientCard({
     required BuildContext context,
-    required String patientId, // 1. أضفنا هذا المعامل لاستقبال الـ ID
+    required String patientId, 
     required String name,
     required String room,
     required Color color,
   }) {
     return InkWell(
       onTap: () {
-        // 2. الآن يمكننا استخدام الـ ID الذي تم تمريره
+        
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => VitalSignsScreen(patientId: patientId)),
         );

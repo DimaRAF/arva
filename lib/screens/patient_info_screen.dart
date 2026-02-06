@@ -24,7 +24,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
   bool _confirmPasswordVisible = false;
   bool _isLoading = false;
 
-  // نصوص الأخطاء لكل خانة
+ 
   String? _usernameError;
   String? _emailError;
   String? _passwordError;
@@ -48,7 +48,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
     final confirmPassword = _confirmPasswordController.text.trim();
 
     setState(() {
-      // اسم المستخدم
+     
       if (username.isEmpty) {
         _usernameError = 'Name is required';
         isValid = false;
@@ -56,7 +56,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         _usernameError = null;
       }
 
-      // الإيميل
+    
       if (email.isEmpty) {
         _emailError = 'Email is required';
         isValid = false;
@@ -70,7 +70,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         }
       }
 
-      // الباسورد
+     
       if (password.isEmpty) {
         _passwordError = 'Password is required';
         isValid = false;
@@ -81,7 +81,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         _passwordError = null;
       }
 
-      // تأكيد الباسورد
+     
       if (confirmPassword.isEmpty) {
         _confirmPasswordError = 'Confirm your password';
         isValid = false;
@@ -97,7 +97,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
   }
 
   Future<void> signUp() async {
-    // التحقق من الحقول وعرض النص الأحمر تحت كل خانة
+    
     if (!_validateInputs()) return;
 
     setState(() {
@@ -116,7 +116,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
         final username = _usernameController.text.trim();
         final email = _emailController.text.trim();
 
-        // 1. إنشاء ملف المستخدم الأساسي في مجموعة "users"
+        
         await FirebaseFirestore.instance.collection('users').doc(userId).set({
           'username': username,
           'email': email,
@@ -124,7 +124,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
           'createdAt': Timestamp.now(),
         });
 
-        // --- 2. إنشاء الملف الطبي في "patient_profiles" ---
+        
         await FirebaseFirestore.instance
             .collection('patient_profiles')
             .doc(userId)
@@ -140,7 +140,7 @@ class _PatientSignUpScreenState extends State<PatientSignUpScreen> {
           'reportFileName': null,
         });
 
-        // إنشاء مجموعة الأدوية للمريض مع أول دواء (حتى لو فاضي كبداية)
+        
         await FirebaseFirestore.instance
             .collection('patient_profiles')
             .doc(userId)

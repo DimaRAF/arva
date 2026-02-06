@@ -7,7 +7,7 @@ import 'medical_staff_login_screen.dart';
 import 'auth_screen.dart';
 import 'medical_staff_home_screen.dart';
 
-// 1. تم تحويل الواجهة إلى StatefulWidget لتتمكن من التعامل مع الحالة
+
 class MedicalStaffSignUpScreen extends StatefulWidget {
   const MedicalStaffSignUpScreen({super.key});
 
@@ -28,7 +28,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
   bool _confirmPasswordVisible = false;
   bool _isLoading = false;
 
-  // Errors لكل خانة عشان نظهر النص الأحمر تحتها
+
   String? _usernameError;
   String? _jobTitleError;
   String? _emailError;
@@ -55,7 +55,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
     final confirmPassword = _confirmPasswordController.text.trim();
 
     setState(() {
-      // اسم المستخدم
+     
       if (username.isEmpty) {
         _usernameError = 'Name is required';
         isValid = false;
@@ -63,7 +63,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
         _usernameError = null;
       }
 
-      // المسمى الوظيفي
+     
       if (jobTitle.isEmpty) {
         _jobTitleError = 'Job title is required';
         isValid = false;
@@ -71,12 +71,11 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
         _jobTitleError = null;
       }
 
-      // الإيميل
       if (email.isEmpty) {
         _emailError = 'Email is required';
         isValid = false;
       } else {
-        // تحقق بسيط من شكل الإيميل
+        
         final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
         if (!emailRegex.hasMatch(email)) {
           _emailError = 'Enter a valid email address';
@@ -86,7 +85,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
         }
       }
 
-      // الباسورد
+      
       if (password.isEmpty) {
         _passwordError = 'Password is required';
         isValid = false;
@@ -97,7 +96,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
         _passwordError = null;
       }
 
-      // تأكيد الباسورد
+      
       if (confirmPassword.isEmpty) {
         _confirmPasswordError = 'Confirm your password';
         isValid = false;
@@ -113,7 +112,7 @@ class _MedicalStaffSignUpScreenState extends State<MedicalStaffSignUpScreen> {
   }
 
   Future<void> signUp() async {
-    // لو في خطأ في أي خانة نوقف قبل ما نكمل
+   
     if (!_validateInputs()) return;
 
     setState(() {

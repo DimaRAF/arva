@@ -59,14 +59,14 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
     final data = doc.data();
     if (data == null) return null;
 
-    // من الصورة عندك: reportFileName: "lamatestresults.pdf"
+    
     final String? fileName = data['reportFileName'] as String?;
     if (fileName == null || fileName.trim().isEmpty) {
       debugPrint('⚠ reportFileName is null/empty');
       return null;
     }
 
-    // لو أضفتي تقرير بتاريخ في المستقبل (مثلاً reportDate: Timestamp)
+    
     String dateLabel = 'Date: -';
     final dateField = data['reportDate'];
     if (dateField is Timestamp) {
@@ -77,7 +77,7 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
           '${d.year}';
     }
 
-    // عدلي هذا لو ملف الـ PDF داخل فولدر ثاني مثلاً assets/labs/
+   
     const folder = 'assets/';
     final assetPath = fileName.startsWith('assets/')
         ? fileName
@@ -86,9 +86,9 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
     debugPrint('📄 PDF asset path: $assetPath');
 
     return ReportItem(
-      title: 'Lab 1',                // اسم الكرت في الواجهة
-      dateLabel: dateLabel,          // تاريخ أو "-"
-      iconPath: 'assets/blood_test.png', // أيقونة زي الديزاين عندك
+      title: 'Lab 1',                
+      dateLabel: dateLabel,         
+      iconPath: 'assets/blood_test.png',
       backgroundColor: const Color(0xFF5FAAB1),
       assetPdfPath: assetPath,
     );
@@ -169,7 +169,7 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
 
                     const SizedBox(height: 24),
 
-                    // Filter buttons (شكل فقط حالياً)
+                    
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Row(
@@ -193,7 +193,7 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
 
                     const SizedBox(height: 32),
 
-                    // Reports list (من Firestore)
+                    
                     Expanded(
                       child: FutureBuilder<ReportItem?>(
                         future: _loadReportItem(),
@@ -219,7 +219,6 @@ class _MedicalReportsPageState extends State<MedicalReportsPage> {
                             );
                           }
 
-                          // حالياً عندنا كرت واحد فقط (Lab 1)
                           return ListView(
                             padding: const EdgeInsets.symmetric(horizontal: 24.0),
                             children: [
@@ -432,7 +431,6 @@ class _ReportCard extends StatelessWidget {
   }
 }
 
-/// شاشة عرض الـ PDF باستخدام pdfx
 class LabPdfViewerScreen extends StatefulWidget {
   final String title;
   final String assetPath;
