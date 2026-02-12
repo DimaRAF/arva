@@ -27,4 +27,4 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 
-All rights are reserved to me and the team members, as this is a graduation project intended for academic purposes. No one is permitted to use the application without prior permission, and any violation will result in legal accountability.
+All rights are reserved to me and the team members at Prince Sattam bin Abdulaziz University, as this is a graduation project intended for academic purposes. No one is permitted to use the application without prior permission, and any violation will result in legal accountability.
